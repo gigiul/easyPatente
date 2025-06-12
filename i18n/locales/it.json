@@ -1,0 +1,47 @@
+{
+  "quiz": {
+    "title": "Quiz Patente",
+    "subtitle": "Scegli una categoria per iniziare",
+    "comingSoon": "Quiz in arrivo...",
+    "categories": {
+      "roadSigns": {
+        "title": "Segnali Stradali",
+        "description": "Impara a riconoscere tutti i segnali stradali"
+      },
+      "rightOfWay": {
+        "title": "Precedenza",
+        "description": "Quiz sulla precedenza e le regole di circolazione"
+      },
+      "speedLimits": {
+        "title": "Limiti di Velocità",
+        "description": "Test sulla conoscenza dei limiti di velocità"
+      },
+      "roadSafety": {
+        "title": "Sicurezza Stradale",
+        "description": "Norme di sicurezza e comportamento"
+      },
+      "maintenance": {
+        "title": "Manutenzione",
+        "description": "Quiz sulla manutenzione del veicolo"
+      },
+      "complete": {
+        "title": "Quiz Completo",
+        "description": "Test completo su tutti gli argomenti"
+      }
+    }
+  },
+  "user": {
+    "title": "Profilo",
+    "subtitle": "Gestisci le tue preferenze",
+    "language": {
+      "title": "Lingua principale",
+      "it": "Italiano",
+      "en": "Inglese",
+      "es": "Spagnolo"
+    },
+    "secondaryLanguage": {
+      "title": "Lingua secondaria",
+      "description": "Seleziona una lingua secondaria per visualizzare le traduzioni alternative"
+    }
+  }
+} 

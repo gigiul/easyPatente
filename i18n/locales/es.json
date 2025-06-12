@@ -1,0 +1,47 @@
+{
+  "quiz": {
+    "title": "Test de Conducir",
+    "subtitle": "Elige una categoría para comenzar",
+    "comingSoon": "Test próximamente...",
+    "categories": {
+      "roadSigns": {
+        "title": "Señales de Tráfico",
+        "description": "Aprende a reconocer todas las señales de tráfico"
+      },
+      "rightOfWay": {
+        "title": "Prioridad",
+        "description": "Test sobre prioridad y normas de circulación"
+      },
+      "speedLimits": {
+        "title": "Límites de Velocidad",
+        "description": "Prueba tus conocimientos sobre límites de velocidad"
+      },
+      "roadSafety": {
+        "title": "Seguridad Vial",
+        "description": "Normas de seguridad y comportamiento"
+      },
+      "maintenance": {
+        "title": "Mantenimiento",
+        "description": "Test sobre mantenimiento del vehículo"
+      },
+      "complete": {
+        "title": "Test Completo",
+        "description": "Prueba completa sobre todos los temas"
+      }
+    }
+  },
+  "user": {
+    "title": "Perfil",
+    "subtitle": "Gestiona tus preferencias",
+    "language": {
+      "title": "Idioma principal",
+      "it": "Italiano",
+      "en": "Inglés",
+      "es": "Español"
+    },
+    "secondaryLanguage": {
+      "title": "Idioma secundario",
+      "description": "Selecciona un idioma secundario para ver traducciones alternativas"
+    }
+  }
+} 

@@ -1,0 +1,47 @@
+{
+  "quiz": {
+    "title": "Driving Test Quiz",
+    "subtitle": "Choose a category to start",
+    "comingSoon": "Quiz coming soon...",
+    "categories": {
+      "roadSigns": {
+        "title": "Road Signs",
+        "description": "Learn to recognize all road signs"
+      },
+      "rightOfWay": {
+        "title": "Right of Way",
+        "description": "Quiz on right of way and traffic rules"
+      },
+      "speedLimits": {
+        "title": "Speed Limits",
+        "description": "Test your knowledge of speed limits"
+      },
+      "roadSafety": {
+        "title": "Road Safety",
+        "description": "Safety rules and behavior"
+      },
+      "maintenance": {
+        "title": "Maintenance",
+        "description": "Quiz on vehicle maintenance"
+      },
+      "complete": {
+        "title": "Complete Quiz",
+        "description": "Complete test on all topics"
+      }
+    }
+  },
+  "user": {
+    "title": "Profile",
+    "subtitle": "Manage your preferences",
+    "language": {
+      "title": "Primary Language",
+      "it": "Italian",
+      "en": "English",
+      "es": "Spanish"
+    },
+    "secondaryLanguage": {
+      "title": "Secondary Language",
+      "description": "Select a secondary language to view alternative translations"
+    }
+  }
+} 
