@@ -1,47 +1,99 @@
 {
   "quiz": {
-    "title": "Driving Test Quiz",
-    "subtitle": "Choose a category to start",
+    "title": "Quiz",
+    "subtitle": "Test your knowledge of Italian driving rules",
     "comingSoon": "Quiz coming soon...",
     "categories": {
       "roadSigns": {
         "title": "Road Signs",
-        "description": "Learn to recognize all road signs"
+        "description": "Learn about traffic signs and their meanings"
       },
       "rightOfWay": {
         "title": "Right of Way",
-        "description": "Quiz on right of way and traffic rules"
+        "description": "Understand who has priority in different situations"
       },
       "speedLimits": {
         "title": "Speed Limits",
-        "description": "Test your knowledge of speed limits"
+        "description": "Learn about speed limits in different areas"
       },
       "roadSafety": {
         "title": "Road Safety",
-        "description": "Safety rules and behavior"
+        "description": "Essential safety rules and best practices"
       },
       "maintenance": {
-        "title": "Maintenance",
-        "description": "Quiz on vehicle maintenance"
+        "title": "Vehicle Maintenance",
+        "description": "Basic maintenance and vehicle requirements"
       },
       "complete": {
-        "title": "Complete Quiz",
-        "description": "Complete test on all topics"
+        "title": "Complete Test",
+        "description": "Practice with a full exam simulation"
       }
-    }
+    },
+    "questions": {
+      "roadSigns": {
+        "rs1": {
+          "question": "The no parking sign indicates that parking is prohibited in that section of road.",
+          "explanation": "The no parking sign (red circle with diagonal bar) indicates that parking is prohibited in that section of road, but stopping is allowed."
+        },
+        "rs2": {
+          "question": "The priority sign requires giving way to vehicles coming from both right and left.",
+          "explanation": "The priority sign (red triangle) indicates that you must give way to vehicles coming from side roads."
+        },
+        "rs3": {
+          "question": "The 50 km/h speed limit sign only applies in heavy traffic conditions.",
+          "explanation": "The speed limit sign applies at all times, regardless of traffic conditions."
+        },
+        "rs4": {
+          "question": "The triangular danger sign with red border indicates a general danger.",
+          "explanation": "Danger signs are always triangular with a red border and indicate a general or specific danger."
+        },
+        "rs5": {
+          "question": "The no overtaking sign prohibits overtaking only for motor vehicles.",
+          "explanation": "The no overtaking sign prohibits overtaking for all vehicles, not just motor vehicles."
+        },
+        "rs6": {
+          "question": "The mandatory direction sign requires proceeding in the indicated direction.",
+          "explanation": "Mandatory direction signs (blue circle with arrow) indicate that you must proceed in the indicated direction."
+        },
+        "rs7": {
+          "question": "The no entry sign applies only to motor vehicles.",
+          "explanation": "The no entry sign applies to all vehicles, including non-motorized ones."
+        },
+        "rs8": {
+          "question": "The road works danger sign indicates the presence of road construction sites.",
+          "explanation": "The road works danger sign (triangle with red border and construction symbol) indicates the presence of road construction sites."
+        },
+        "rs9": {
+          "question": "The no access sign prohibits access to all vehicles, including pedestrians.",
+          "explanation": "The no access sign prohibits access to vehicles, but not to pedestrians."
+        },
+        "rs10": {
+          "question": "The mandatory snow chains sign indicates that snow chains or winter tires are required.",
+          "explanation": "The mandatory snow chains sign (blue circle with chain symbol) indicates that snow chains or winter tires are required."
+        }
+      }
+    },
+    "question": "Question",
+    "explanation": "Explanation",
+    "next": "Next",
+    "previous": "Previous",
+    "true": "True",
+    "false": "False",
+    "questionCount": "Question {{current}} of {{total}}"
   },
   "user": {
-    "title": "Profile",
-    "subtitle": "Manage your preferences",
+    "title": "User Settings",
+    "subtitle": "Customize your learning experience",
     "language": {
       "title": "Primary Language",
-      "it": "Italian",
+      "description": "Choose your preferred language for the app interface",
       "en": "English",
+      "it": "Italian",
       "es": "Spanish"
     },
     "secondaryLanguage": {
       "title": "Secondary Language",
-      "description": "Select a secondary language to view alternative translations"
+      "description": "Show translations in a second language to help with learning"
     }
   }
 } 

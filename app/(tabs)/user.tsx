@@ -5,23 +5,24 @@ import { StyleSheet, View } from 'react-native';
 import { LanguagePicker } from '@/components/LanguagePicker';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export default function UserScreen() {
   const { t, i18n } = useTranslation();
   const [primaryLanguage, setPrimaryLanguage] = useState(i18n.language);
-  const [secondaryLanguage, setSecondaryLanguage] = useState('');
+  const { secondaryLanguage, setSecondaryLanguagePreference } = useLanguage();
 
   useEffect(() => {
     setPrimaryLanguage(i18n.language);
   }, [i18n.language]);
 
-  const handlePrimaryLanguageChange = (langCode: string) => {
+  const handlePrimaryLanguageChange = async (langCode: string) => {
     setPrimaryLanguage(langCode);
-    i18n.changeLanguage(langCode);
+    await i18n.changeLanguage(langCode);
   };
 
-  const handleSecondaryLanguageChange = (langCode: string) => {
-    setSecondaryLanguage(langCode);
+  const handleSecondaryLanguageChange = async (langCode: string) => {
+    await setSecondaryLanguagePreference(langCode || null);
   };
 
   return (
@@ -32,6 +33,9 @@ export default function UserScreen() {
       <View style={styles.section}>
         <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
           {t('user.language.title')}
+        </ThemedText>
+        <ThemedText style={styles.sectionDescription}>
+          {t('user.language.description')}
         </ThemedText>
         <LanguagePicker
           value={primaryLanguage}

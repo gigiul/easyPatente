@@ -1,47 +1,99 @@
 {
   "quiz": {
-    "title": "Quiz Patente",
-    "subtitle": "Scegli una categoria per iniziare",
+    "title": "Quiz",
+    "subtitle": "Metti alla prova le tue conoscenze del codice della strada",
     "comingSoon": "Quiz in arrivo...",
     "categories": {
       "roadSigns": {
-        "title": "Segnali Stradali",
-        "description": "Impara a riconoscere tutti i segnali stradali"
+        "title": "Segnaletica Stradale",
+        "description": "Impara a conoscere i segnali stradali e il loro significato"
       },
       "rightOfWay": {
         "title": "Precedenza",
-        "description": "Quiz sulla precedenza e le regole di circolazione"
+        "description": "Comprendi chi ha la precedenza in diverse situazioni"
       },
       "speedLimits": {
         "title": "Limiti di Velocità",
-        "description": "Test sulla conoscenza dei limiti di velocità"
+        "description": "Impara i limiti di velocità nelle diverse aree"
       },
       "roadSafety": {
         "title": "Sicurezza Stradale",
-        "description": "Norme di sicurezza e comportamento"
+        "description": "Regole di sicurezza essenziali e buone pratiche"
       },
       "maintenance": {
-        "title": "Manutenzione",
-        "description": "Quiz sulla manutenzione del veicolo"
+        "title": "Manutenzione Veicolo",
+        "description": "Manutenzione di base e requisiti del veicolo"
       },
       "complete": {
-        "title": "Quiz Completo",
-        "description": "Test completo su tutti gli argomenti"
+        "title": "Esame Completo",
+        "description": "Esercitati con una simulazione dell'esame completo"
+      }
+    },
+    "question": "Domanda",
+    "explanation": "Spiegazione",
+    "next": "Successiva",
+    "previous": "Precedente",
+    "true": "Vero",
+    "false": "Falso",
+    "questionCount": "Domanda {{current}} di {{total}}",
+    "questions": {
+      "roadSigns": {
+        "rs1": {
+          "question": "Il segnale di divieto di sosta indica che è vietata la sosta del veicolo in quel tratto di strada.",
+          "explanation": "Il segnale di divieto di sosta (cerchio rosso con barra diagonale) indica che è vietata la sosta del veicolo in quel tratto di strada, ma è consentita la fermata."
+        },
+        "rs2": {
+          "question": "Il segnale di precedenza obbliga a dare la precedenza ai veicoli provenienti sia da destra che da sinistra.",
+          "explanation": "Il segnale di precedenza (triangolo rosso) indica che bisogna dare la precedenza ai veicoli provenienti dalle strade laterali."
+        },
+        "rs3": {
+          "question": "Il segnale di limite massimo di velocità di 50 km/h si applica solo in presenza di traffico intenso.",
+          "explanation": "Il segnale di limite massimo di velocità si applica sempre, indipendentemente dalle condizioni del traffico."
+        },
+        "rs4": {
+          "question": "Il segnale di pericolo triangolare con bordo rosso indica un pericolo generico.",
+          "explanation": "I segnali di pericolo sono sempre triangolari con bordo rosso e indicano un pericolo generico o specifico."
+        },
+        "rs5": {
+          "question": "Il segnale di divieto di sorpasso vieta il sorpasso solo per i veicoli a motore.",
+          "explanation": "Il segnale di divieto di sorpasso vieta il sorpasso per tutti i veicoli, non solo per quelli a motore."
+        },
+        "rs6": {
+          "question": "Il segnale di obbligo di direzione obbliga a proseguire nella direzione indicata.",
+          "explanation": "I segnali di obbligo di direzione (cerchio blu con freccia) indicano che è obbligatorio proseguire nella direzione indicata."
+        },
+        "rs7": {
+          "question": "Il segnale di divieto di transito si applica solo ai veicoli a motore.",
+          "explanation": "Il segnale di divieto di transito si applica a tutti i veicoli, compresi quelli non a motore."
+        },
+        "rs8": {
+          "question": "Il segnale di pericolo per lavori in corso indica la presenza di cantieri stradali.",
+          "explanation": "Il segnale di pericolo per lavori in corso (triangolo con bordo rosso e simbolo di lavori) indica la presenza di cantieri stradali."
+        },
+        "rs9": {
+          "question": "Il segnale di divieto di accesso vieta l'accesso a tutti i veicoli, compresi i pedoni.",
+          "explanation": "Il segnale di divieto di accesso vieta l'accesso ai veicoli, ma non ai pedoni."
+        },
+        "rs10": {
+          "question": "Il segnale di obbligo di catene da neve indica che è obbligatorio montare le catene da neve o avere pneumatici invernali.",
+          "explanation": "Il segnale di obbligo di catene da neve (cerchio blu con simbolo di catene) indica che è obbligatorio montare le catene da neve o avere pneumatici invernali."
+        }
       }
     }
   },
   "user": {
-    "title": "Profilo",
-    "subtitle": "Gestisci le tue preferenze",
+    "title": "Impostazioni Utente",
+    "subtitle": "Personalizza la tua esperienza di apprendimento",
     "language": {
-      "title": "Lingua principale",
-      "it": "Italiano",
+      "title": "Lingua Principale",
+      "description": "Scegli la lingua preferita per l'interfaccia dell'app",
       "en": "Inglese",
+      "it": "Italiano",
       "es": "Spagnolo"
     },
     "secondaryLanguage": {
-      "title": "Lingua secondaria",
-      "description": "Seleziona una lingua secondaria per visualizzare le traduzioni alternative"
+      "title": "Lingua Secondaria",
+      "description": "Mostra le traduzioni in una seconda lingua per facilitare l'apprendimento"
     }
   }
 } 

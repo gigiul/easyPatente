@@ -1,47 +1,99 @@
 {
   "quiz": {
-    "title": "Test de Conducir",
-    "subtitle": "Elige una categoría para comenzar",
+    "title": "Quiz",
+    "subtitle": "Pon a prueba tus conocimientos de las normas de conducción italianas",
     "comingSoon": "Test próximamente...",
     "categories": {
       "roadSigns": {
         "title": "Señales de Tráfico",
-        "description": "Aprende a reconocer todas las señales de tráfico"
+        "description": "Aprende sobre las señales de tráfico y sus significados"
       },
       "rightOfWay": {
         "title": "Prioridad",
-        "description": "Test sobre prioridad y normas de circulación"
+        "description": "Comprende quién tiene prioridad en diferentes situaciones"
       },
       "speedLimits": {
         "title": "Límites de Velocidad",
-        "description": "Prueba tus conocimientos sobre límites de velocidad"
+        "description": "Aprende sobre los límites de velocidad en diferentes áreas"
       },
       "roadSafety": {
         "title": "Seguridad Vial",
-        "description": "Normas de seguridad y comportamiento"
+        "description": "Reglas de seguridad esenciales y mejores prácticas"
       },
       "maintenance": {
-        "title": "Mantenimiento",
-        "description": "Test sobre mantenimiento del vehículo"
+        "title": "Mantenimiento del Vehículo",
+        "description": "Mantenimiento básico y requisitos del vehículo"
       },
       "complete": {
-        "title": "Test Completo",
-        "description": "Prueba completa sobre todos los temas"
+        "title": "Examen Completo",
+        "description": "Practica con una simulación de examen completo"
       }
-    }
+    },
+    "questions": {
+      "roadSigns": {
+        "rs1": {
+          "question": "La señal de prohibido estacionar indica que está prohibido estacionar el vehículo en ese tramo de carretera.",
+          "explanation": "La señal de prohibido estacionar (círculo rojo con barra diagonal) indica que está prohibido estacionar el vehículo en ese tramo de carretera, pero se permite la parada."
+        },
+        "rs2": {
+          "question": "La señal de prioridad obliga a ceder el paso a los vehículos que vienen tanto por la derecha como por la izquierda.",
+          "explanation": "La señal de prioridad (triángulo rojo) indica que hay que ceder el paso a los vehículos que vienen por las calles laterales."
+        },
+        "rs3": {
+          "question": "La señal de límite máximo de velocidad de 50 km/h solo se aplica en presencia de tráfico intenso.",
+          "explanation": "La señal de límite máximo de velocidad se aplica siempre, independientemente de las condiciones del tráfico."
+        },
+        "rs4": {
+          "question": "La señal de peligro triangular con borde rojo indica un peligro general.",
+          "explanation": "Las señales de peligro son siempre triangulares con borde rojo e indican un peligro general o específico."
+        },
+        "rs5": {
+          "question": "La señal de prohibido adelantar prohíbe el adelantamiento solo para los vehículos a motor.",
+          "explanation": "La señal de prohibido adelantar prohíbe el adelantamiento para todos los vehículos, no solo para los que tienen motor."
+        },
+        "rs6": {
+          "question": "La señal de obligación de dirección obliga a continuar en la dirección indicada.",
+          "explanation": "Las señales de obligación de dirección (círculo azul con flecha) indican que es obligatorio continuar en la dirección indicada."
+        },
+        "rs7": {
+          "question": "La señal de prohibido el paso se aplica solo a los vehículos a motor.",
+          "explanation": "La señal de prohibido el paso se aplica a todos los vehículos, incluyendo los no motorizados."
+        },
+        "rs8": {
+          "question": "La señal de peligro por obras indica la presencia de obras en la carretera.",
+          "explanation": "La señal de peligro por obras (triángulo con borde rojo y símbolo de obras) indica la presencia de obras en la carretera."
+        },
+        "rs9": {
+          "question": "La señal de prohibido el acceso prohíbe el acceso a todos los vehículos, incluyendo peatones.",
+          "explanation": "La señal de prohibido el acceso prohíbe el acceso a los vehículos, pero no a los peatones."
+        },
+        "rs10": {
+          "question": "La señal de obligación de cadenas indica que es obligatorio montar cadenas o tener neumáticos de invierno.",
+          "explanation": "La señal de obligación de cadenas (círculo azul con símbolo de cadenas) indica que es obligatorio montar cadenas o tener neumáticos de invierno."
+        }
+      }
+    },
+    "question": "Pregunta",
+    "explanation": "Explicación",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "true": "Verdadero",
+    "false": "Falso",
+    "questionCount": "Pregunta {{current}} de {{total}}"
   },
   "user": {
-    "title": "Perfil",
-    "subtitle": "Gestiona tus preferencias",
+    "title": "Configuración de Usuario",
+    "subtitle": "Personaliza tu experiencia de aprendizaje",
     "language": {
-      "title": "Idioma principal",
-      "it": "Italiano",
+      "title": "Idioma Principal",
+      "description": "Elige tu idioma preferido para la interfaz de la aplicación",
       "en": "Inglés",
+      "it": "Italiano",
       "es": "Español"
     },
     "secondaryLanguage": {
-      "title": "Idioma secundario",
-      "description": "Selecciona un idioma secundario para ver traducciones alternativas"
+      "title": "Idioma Secundario",
+      "description": "Muestra traducciones en un segundo idioma para ayudar en el aprendizaje"
     }
   }
 } 
