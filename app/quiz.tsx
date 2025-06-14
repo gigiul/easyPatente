@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Speech from 'expo-speech';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -74,6 +75,45 @@ export default function QuizScreen() {
     return i18n.getFixedT(secondaryLanguage)(`quiz.questions.${categoryId}.${currentQuestion.id}.${type}`);
   };
 
+  const speakText = async (text: string, language: string) => {
+    try {
+      await Speech.stop();
+      // Use es-MX for Spanish to get Latin American accent
+      const ttsLanguage = language === 'es' ? 'es-MX' : language;
+      Speech.speak(text, {
+        language: ttsLanguage,
+        pitch: 1.0,
+        rate: 0.9,
+      });
+    } catch (error) {
+      console.error('Error speaking text:', error);
+    }
+  };
+
+  const handleSpeakQuestion = () => {
+    const questionText = getTranslatedQuestion();
+    speakText(questionText, i18n.language);
+  };
+
+  const handleSpeakSecondaryQuestion = () => {
+    const secondaryText = getSecondaryTranslation('question');
+    if (secondaryText && secondaryLanguage) {
+      speakText(secondaryText, secondaryLanguage);
+    }
+  };
+
+  const handleSpeakExplanation = () => {
+    const explanationText = getTranslatedExplanation();
+    speakText(explanationText, i18n.language);
+  };
+
+  const handleSpeakSecondaryExplanation = () => {
+    const secondaryText = getSecondaryTranslation('explanation');
+    if (secondaryText && secondaryLanguage) {
+      speakText(secondaryText, secondaryLanguage);
+    }
+  };
+
   if (quizCompleted) {
     return (
       <ThemedView style={styles.container}>
@@ -125,6 +165,9 @@ export default function QuizScreen() {
               <ThemedText type="defaultSemiBold" style={styles.questionTitle}>
                 {t('quiz.question')}
               </ThemedText>
+              <Pressable onPress={handleSpeakQuestion} style={styles.speakButton}>
+                <Ionicons name="volume-medium" size={24} color="#007AFF" />
+              </Pressable>
             </View>
             <View style={styles.questionContent}>
               <ThemedText style={styles.questionText}>{getTranslatedQuestion()}</ThemedText>
@@ -141,9 +184,14 @@ export default function QuizScreen() {
               
               {getSecondaryTranslation('question') && (
                 <View style={styles.translationContainer}>
-                  <ThemedText style={styles.translationLabel}>
-                    {t(`user.language.${secondaryLanguage}`)}:
-                  </ThemedText>
+                  <View style={styles.translationHeader}>
+                    <ThemedText style={styles.translationLabel}>
+                      {t(`user.language.${secondaryLanguage}`)}:
+                    </ThemedText>
+                    <Pressable onPress={handleSpeakSecondaryQuestion} style={styles.speakButton}>
+                      <Ionicons name="volume-medium" size={24} color="#007AFF" />
+                    </Pressable>
+                  </View>
                   <ThemedText style={styles.translationText}>
                     {getSecondaryTranslation('question')}
                   </ThemedText>
@@ -172,6 +220,9 @@ export default function QuizScreen() {
                 <ThemedText type="defaultSemiBold" style={styles.explanationTitle}>
                   {t('quiz.explanation')}
                 </ThemedText>
+                <Pressable onPress={handleSpeakExplanation} style={styles.speakButton}>
+                  <Ionicons name="volume-medium" size={24} color="#007AFF" />
+                </Pressable>
               </View>
               <View style={styles.explanationContent}>
                 <ThemedText style={styles.explanationText}>
@@ -180,9 +231,14 @@ export default function QuizScreen() {
                 
                 {getSecondaryTranslation('explanation') && (
                   <View style={styles.translationContainer}>
-                    <ThemedText style={styles.translationLabel}>
-                      {t(`user.language.${secondaryLanguage}`)}:
-                    </ThemedText>
+                    <View style={styles.translationHeader}>
+                      <ThemedText style={styles.translationLabel}>
+                        {t(`user.language.${secondaryLanguage}`)}:
+                      </ThemedText>
+                      <Pressable onPress={handleSpeakSecondaryExplanation} style={styles.speakButton}>
+                        <Ionicons name="volume-medium" size={24} color="#007AFF" />
+                      </Pressable>
+                    </View>
                     <ThemedText style={styles.translationText}>
                       {getSecondaryTranslation('explanation')}
                     </ThemedText>
@@ -388,10 +444,25 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#F5F5F5',
   },
   questionImage: {
     width: '100%',
     height: 200,
+  },
+  textWithSpeakButton: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  speakButton: {
+    marginLeft: 'auto',
+    padding: 4,
+  },
+  translationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
 }); 
