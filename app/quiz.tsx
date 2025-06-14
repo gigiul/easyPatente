@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -112,89 +113,105 @@ export default function QuizScreen() {
         </ThemedText>
       </View>
 
-      <View style={styles.contentContainer}>
-        <View style={styles.questionCard}>
-          <View style={styles.questionHeader}>
-            <Ionicons name="help-circle-outline" size={24} color="#007AFF" />
-            <ThemedText type="defaultSemiBold" style={styles.questionTitle}>
-              {t('quiz.question')}
-            </ThemedText>
-          </View>
-          <View style={styles.questionContent}>
-            <ThemedText style={styles.questionText}>{getTranslatedQuestion()}</ThemedText>
-            
-            {getSecondaryTranslation('question') && (
-              <View style={styles.translationContainer}>
-                <ThemedText style={styles.translationLabel}>
-                  {t(`user.language.${secondaryLanguage}`)}:
-                </ThemedText>
-                <ThemedText style={styles.translationText}>
-                  {getSecondaryTranslation('question')}
-                </ThemedText>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {!showExplanation ? (
-          <View style={styles.answerButtons}>
-            <ThemedButton
-              title={t('quiz.true')}
-              onPress={() => handleAnswer(true)}
-              style={styles.answerButton}
-            />
-            <ThemedButton
-              title={t('quiz.false')}
-              onPress={() => handleAnswer(false)}
-              style={styles.answerButton}
-            />
-          </View>
-        ) : (
-          <View style={styles.explanationContainer}>
-            <View style={styles.explanationHeader}>
-              <Ionicons name="bulb-outline" size={24} color="#FFB800" />
-              <ThemedText type="defaultSemiBold" style={styles.explanationTitle}>
-                {t('quiz.explanation')}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.contentContainer}>
+          <View style={styles.questionCard}>
+            <View style={styles.questionHeader}>
+              <Ionicons name="help-circle-outline" size={24} color="#007AFF" />
+              <ThemedText type="defaultSemiBold" style={styles.questionTitle}>
+                {t('quiz.question')}
               </ThemedText>
             </View>
-            <View style={styles.explanationContent}>
-              <ThemedText style={styles.explanationText}>
-                {getTranslatedExplanation()}
-              </ThemedText>
+            <View style={styles.questionContent}>
+              <ThemedText style={styles.questionText}>{getTranslatedQuestion()}</ThemedText>
               
-              {getSecondaryTranslation('explanation') && (
+              {currentQuestion.imageUrl && (
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={{ uri: currentQuestion.imageUrl }}
+                    style={styles.questionImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
+              
+              {getSecondaryTranslation('question') && (
                 <View style={styles.translationContainer}>
                   <ThemedText style={styles.translationLabel}>
                     {t(`user.language.${secondaryLanguage}`)}:
                   </ThemedText>
                   <ThemedText style={styles.translationText}>
-                    {getSecondaryTranslation('explanation')}
+                    {getSecondaryTranslation('question')}
                   </ThemedText>
                 </View>
               )}
             </View>
           </View>
-        )}
 
-        {showExplanation && (
-          <View style={styles.navigationButtons}>
-            <View style={styles.navButtonContainer}>
-              {currentQuestionIndex > 0 && (
-                <Pressable onPress={handlePrevious} style={styles.navButton}>
-                  <Ionicons name="chevron-back" size={24} color="#007AFF" />
-                </Pressable>
-              )}
+          {!showExplanation ? (
+            <View style={styles.answerButtons}>
+              <ThemedButton
+                title={t('quiz.true')}
+                onPress={() => handleAnswer(true)}
+                style={styles.answerButton}
+              />
+              <ThemedButton
+                title={t('quiz.false')}
+                onPress={() => handleAnswer(false)}
+                style={styles.answerButton}
+              />
             </View>
-            <View style={[styles.navButtonContainer, styles.rightButtonContainer]}>
-              {currentQuestionIndex < questions.length - 1 && (
-                <Pressable onPress={handleNext} style={styles.navButton}>
-                  <Ionicons name="chevron-forward" size={24} color="#007AFF" />
-                </Pressable>
-              )}
+          ) : (
+            <View style={styles.explanationContainer}>
+              <View style={styles.explanationHeader}>
+                <Ionicons name="bulb-outline" size={24} color="#FFB800" />
+                <ThemedText type="defaultSemiBold" style={styles.explanationTitle}>
+                  {t('quiz.explanation')}
+                </ThemedText>
+              </View>
+              <View style={styles.explanationContent}>
+                <ThemedText style={styles.explanationText}>
+                  {getTranslatedExplanation()}
+                </ThemedText>
+                
+                {getSecondaryTranslation('explanation') && (
+                  <View style={styles.translationContainer}>
+                    <ThemedText style={styles.translationLabel}>
+                      {t(`user.language.${secondaryLanguage}`)}:
+                    </ThemedText>
+                    <ThemedText style={styles.translationText}>
+                      {getSecondaryTranslation('explanation')}
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
             </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {showExplanation && (
+        <BlurView intensity={30} tint="light" style={styles.navigationButtons}>
+          <View style={styles.navButtonContainer}>
+            {currentQuestionIndex > 0 && (
+              <Pressable onPress={handlePrevious} style={styles.navButton}>
+                <Ionicons name="chevron-back" size={24} color="#007AFF" />
+              </Pressable>
+            )}
           </View>
-        )}
-      </View>
+          <View style={[styles.navButtonContainer, styles.rightButtonContainer]}>
+            {currentQuestionIndex < questions.length - 1 && (
+              <Pressable onPress={handleNext} style={styles.navButton}>
+                <Ionicons name="chevron-forward" size={24} color="#007AFF" />
+              </Pressable>
+            )}
+          </View>
+        </BlurView>
+      )}
     </ThemedView>
   );
 }
@@ -231,9 +248,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
   },
-  contentContainer: {
+  scrollView: {
     flex: 1,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+  contentContainer: {
     padding: 16,
+    paddingBottom: 100,
   },
   questionCard: {
     backgroundColor: '#fff',
@@ -334,15 +357,11 @@ const styles = StyleSheet.create({
     bottom: 16,
     left: 16,
     right: 16,
-    backgroundColor: '#fff',
     padding: 16,
     marginBottom: 32,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
   },
   navButtonContainer: {
     flex: 1,
@@ -364,5 +383,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  imageContainer: {
+    marginVertical: 12,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#F5F5F5',
+  },
+  questionImage: {
+    width: '100%',
+    height: 200,
   },
 }); 

@@ -9,6 +9,7 @@ export const languages = [
   { code: 'it', name: 'user.language.it' },
   { code: 'en', name: 'user.language.en' },
   { code: 'es', name: 'user.language.es' },
+  { code: 'bn', name: 'user.language.bn' },
 ];
 
 interface LanguagePickerProps {

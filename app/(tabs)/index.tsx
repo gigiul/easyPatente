@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -56,27 +56,33 @@ export default function HomeScreen() {
       <ThemedText type="title" style={styles.headerTitle}>{t('quiz.title')}</ThemedText>
       <ThemedText style={styles.subtitle}>{t('quiz.subtitle')}</ThemedText>
 
-      <View style={styles.categoriesGrid}>
-        {quizCategories.map((category) => (
-          <Pressable
-            key={category.id}
-            style={({ pressed }) => [
-              styles.categoryCard,
-              { backgroundColor: category.color },
-              pressed && styles.categoryCardPressed,
-            ]}
-            onPress={() => handleCategoryPress(category.id)}
-          >
-            <Ionicons name={category.icon} size={32} color="#fff" />
-            <ThemedText style={styles.categoryTitle}>
-              {t(`quiz.categories.${category.id}.title`)}
-            </ThemedText>
-            <ThemedText style={styles.categoryDescription}>
-              {t(`quiz.categories.${category.id}.description`)}
-            </ThemedText>
-          </Pressable>
-        ))}
-      </View>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.categoriesGrid}>
+          {quizCategories.map((category) => (
+            <Pressable
+              key={category.id}
+              style={({ pressed }) => [
+                styles.categoryCard,
+                { backgroundColor: category.color },
+                pressed && styles.categoryCardPressed,
+              ]}
+              onPress={() => handleCategoryPress(category.id)}
+            >
+              <Ionicons name={category.icon} size={32} color="#fff" />
+              <ThemedText style={styles.categoryTitle}>
+                {t(`quiz.categories.${category.id}.title`)}
+              </ThemedText>
+              <ThemedText style={styles.categoryDescription}>
+                {t(`quiz.categories.${category.id}.description`)}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -84,15 +90,22 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
   },
   headerTitle: {
     marginTop: 60,
     marginBottom: 8,
+    paddingHorizontal: 16,
   },
   subtitle: {
     marginBottom: 24,
     opacity: 0.7,
+    paddingHorizontal: 16,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    padding: 16,
   },
   categoriesGrid: {
     flexDirection: 'row',

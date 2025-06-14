@@ -1,7 +1,7 @@
 {
   "quiz": {
     "title": "Quiz",
-    "subtitle": "Test your knowledge of Italian driving rules",
+    "subtitle": "ইতালীয় ড্রাইভিং নিয়ম সম্পর্কে আপনার জ্ঞান পরীক্ষা করুন",
     "comingSoon": "Quiz coming soon...",
     "categories": {
       "roadSigns": {
@@ -89,7 +89,8 @@
       "description": "Choose your preferred language for the app interface",
       "en": "English",
       "it": "Italian",
-      "es": "Spanish"
+      "es": "Spanish",
+      "bn": "Bengalese"
     },
     "secondaryLanguage": {
       "title": "Secondary Language",

@@ -89,7 +89,8 @@
       "description": "Elige tu idioma preferido para la interfaz de la aplicación",
       "en": "Inglés",
       "it": "Italiano",
-      "es": "Español"
+      "es": "Español",
+      "bn": "Bengalese"
     },
     "secondaryLanguage": {
       "title": "Idioma Secundario",
