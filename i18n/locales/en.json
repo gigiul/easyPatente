@@ -96,5 +96,37 @@
       "title": "Secondary Language",
       "description": "Show translations in a second language to help with learning"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to continue",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Forgot Password?",
+      "signIn": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign Up",
+      "errors": {
+        "fillFields": "Please fill in all fields",
+        "unexpected": "An unexpected error occurred"
+      }
+    },
+    "signup": {
+      "title": "Create Account",
+      "subtitle": "Sign up to get started",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "createAccount": "Create Account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign In",
+      "errors": {
+        "fillFields": "Please fill in all fields",
+        "passwordsMatch": "Passwords do not match",
+        "passwordLength": "Password must be at least 6 characters",
+        "unexpected": "An unexpected error occurred"
+      }
+    }
   }
 } 

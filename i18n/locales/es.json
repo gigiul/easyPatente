@@ -96,5 +96,37 @@
       "title": "Idioma Secundario",
       "description": "Muestra traducciones en un segundo idioma para ayudar en el aprendizaje"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Inicia sesión para continuar",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "signIn": "Iniciar sesión",
+      "noAccount": "¿No tienes una cuenta?",
+      "signUp": "Regístrate",
+      "errors": {
+        "fillFields": "Por favor completa todos los campos",
+        "unexpected": "Se ha producido un error inesperado"
+      }
+    },
+    "signup": {
+      "title": "Crear cuenta",
+      "subtitle": "Regístrate para comenzar",
+      "email": "Correo electrónico",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "createAccount": "Crear cuenta",
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Iniciar sesión",
+      "errors": {
+        "fillFields": "Por favor completa todos los campos",
+        "passwordsMatch": "Las contraseñas no coinciden",
+        "passwordLength": "La contraseña debe tener al menos 6 caracteres",
+        "unexpected": "Se ha producido un error inesperado"
+      }
+    }
   }
 } 

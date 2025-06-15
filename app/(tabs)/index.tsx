@@ -55,7 +55,6 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.headerTitle}>{t('quiz.title')}</ThemedText>
       <ThemedText style={styles.subtitle}>{t('quiz.subtitle')}</ThemedText>
-
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}

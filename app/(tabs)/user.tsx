@@ -1,14 +1,18 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
 import { LanguagePicker } from '@/components/LanguagePicker';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 
 export default function UserScreen() {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
+  const { signOut } = useAuth();
   const [primaryLanguage, setPrimaryLanguage] = useState(i18n.language);
   const { secondaryLanguage, setSecondaryLanguagePreference } = useLanguage();
 
@@ -23,6 +27,31 @@ export default function UserScreen() {
 
   const handleSecondaryLanguageChange = async (langCode: string) => {
     await setSecondaryLanguagePreference(langCode || null);
+  };
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await signOut();
+            if (error) {
+              Alert.alert('Error', error.message);
+              return;
+            }
+            router.replace('/login');
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -60,6 +89,18 @@ export default function UserScreen() {
           allowNone
         />
       </View>
+
+      <View style={styles.section}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.logoutButton,
+            pressed && styles.logoutButtonPressed,
+          ]}
+          onPress={handleLogout}
+        >
+          <ThemedText style={styles.logoutButtonText}>Logout</ThemedText>
+        </Pressable>
+      </View>
     </ThemedView>
   );
 }
@@ -86,5 +127,20 @@ const styles = StyleSheet.create({
   sectionDescription: {
     marginBottom: 16,
     opacity: 0.7,
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  logoutButtonPressed: {
+    opacity: 0.8,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 }); 

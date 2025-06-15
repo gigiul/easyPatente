@@ -1,0 +1,29 @@
+import { createClient } from '@supabase/supabase-js';
+import Constants from 'expo-constants';
+
+// Initialize Supabase client
+const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl ?? '';
+const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey ?? '';
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Types for your database schema
+export type Quiz = {
+  id: string;
+  key: string;
+  image_url: string | null;
+  is_free: boolean;
+  created_at: string;
+};
+
+export type Subscription = {
+  user_id: string;
+  is_active: boolean;
+  language_primary: string | null;
+  language_secondary: string | null;
+  full_name: string | null;
+}; 
