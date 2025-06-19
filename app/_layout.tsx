@@ -22,17 +22,22 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
     const inLoginScreen = segments[0] === 'login';
     const inSignupScreen = segments[0] === 'signup';
+    const inTabsScreen = segments[0] === '(tabs)';
 
-    if (!session && !inLoginScreen && !inSignupScreen) {
-      // Redirect to the login page if not signed in
-      router.replace('/login');
-    } else if (session && (inLoginScreen || inSignupScreen)) {
-      // Redirect to the main app if signed in and trying to access auth screens
-      router.replace('/(tabs)');
+    if (session) {
+      if (inLoginScreen || inSignupScreen) {
+        router.replace('/(tabs)');
+      }
+    } else {
+      if (!inLoginScreen && !inSignupScreen) {
+        router.replace('/login');
+      }
     }
   }, [session, loading, segments]);
 

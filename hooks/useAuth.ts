@@ -15,13 +15,25 @@ export function useAuth() {
 
     const initializeAuth = async () => {
       try {
-        // Try to restore session from storage
         const restoredSession = await restoreSession();
-        if (mounted) {
-          setSession(restoredSession);
+    
+        if (restoredSession) {
+          // Inizializza la sessione in Supabase
+          const { data, error } = await supabase.auth.setSession({
+            access_token: restoredSession.access_token,
+            refresh_token: restoredSession.refresh_token,
+          });
+    
+          if (error) {
+            console.error('[useAuth] Error setting session in Supabase:', error);
+          } else {
+            if (mounted) {
+              setSession(data.session);
+            }
+          }
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('[useAuth] Error initializing auth:', error);
       } finally {
         if (mounted) {
           setLoading(false);

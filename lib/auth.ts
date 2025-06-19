@@ -15,21 +15,28 @@ export async function restoreSession(): Promise<Session | null> {
     // Parse stored session
     const session = JSON.parse(storedSession) as Session;
 
-    // Check if session is still valid
-    const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-    
-    if (error || !currentSession) {
-      // If there's an error or no current session, clear stored session
+    // Check if Supabase already has a session
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (currentSession) {
+      return currentSession;
+    }
+
+    // Set the session in Supabase
+    const { data, error } = await supabase.auth.setSession({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
+
+    if (error || !data.session) {
+      // Optional: remove invalid session from storage
       await storage.delete(SESSION_KEY);
       return null;
     }
 
-    // If we have a current session, return it
-    return currentSession;
+    return data.session;
   } catch (error) {
     console.error('Error restoring session:', error);
-    // If there's any error, clear stored session
     await storage.delete(SESSION_KEY);
     return null;
   }
-} 
+}
