@@ -41,3 +41,6 @@ app-example
 
 #androidStudio
 *.idea
+
+#apk
+*.apk
