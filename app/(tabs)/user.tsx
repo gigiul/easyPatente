@@ -7,26 +7,53 @@ import { LanguagePicker } from '@/components/LanguagePicker';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
-import { useLanguage } from '@/hooks/useLanguage';
+import i18n from '@/i18n';
+import { updateUserLanguage } from '@/queries/user';
+import { useLanguagesStore } from '@/store/languages';
+import { useUserProfileStore } from '@/store/user';
 
 export default function UserScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const router = useRouter();
   const { signOut } = useAuth();
-  const [primaryLanguage, setPrimaryLanguage] = useState(i18n.language);
-  const { secondaryLanguage, setSecondaryLanguagePreference } = useLanguage();
+  const languages = useLanguagesStore((state) => state.languages);
+  const userProfile = useUserProfileStore((state) => state.user);
+  const [primaryLanguage, setPrimaryLanguage] = useState<string>('');
+  const [secondaryLanguage, setSecondaryLanguage] = useState<string | null>('');
+
 
   useEffect(() => {
-    setPrimaryLanguage(i18n.language);
-  }, [i18n.language]);
+    // retrieve userProfile languages if set
+    const { lang_primary, lang_secondary } = userProfile || {};
+    if (lang_primary) {
+      setPrimaryLanguage(lang_primary);
+      i18n.changeLanguage(lang_primary);
+    }
+    if (lang_secondary) {
+      setSecondaryLanguage(lang_secondary);
+    }
+    // If no primary language is set, default to the first available language
+    if (!lang_primary && languages.length > 0) {
+      const setDefaultLanguage = async () => {
+        const defaultLang = languages.find((l) => l.is_default) || languages[0];
+        setPrimaryLanguage(defaultLang.code);
+        await i18n.changeLanguage(defaultLang.code);
+      };
+      setDefaultLanguage();
+    }
+  }, [languages, userProfile]);
 
   const handlePrimaryLanguageChange = async (langCode: string) => {
     setPrimaryLanguage(langCode);
     await i18n.changeLanguage(langCode);
+    //save on user profile
+    await updateUserLanguage(langCode, 'primary')
   };
 
   const handleSecondaryLanguageChange = async (langCode: string) => {
-    await setSecondaryLanguagePreference(langCode || null);
+    setSecondaryLanguage(langCode || null);
+    //save on user profile
+    await updateUserLanguage(langCode || '', 'secondary')
   };
 
   const handleLogout = async () => {
@@ -71,6 +98,7 @@ export default function UserScreen() {
           onChange={handlePrimaryLanguageChange}
           title={t('user.language.title')}
           excludeLanguage={secondaryLanguage}
+          languages={languages}
         />
       </View>
 
@@ -87,6 +115,7 @@ export default function UserScreen() {
           title={t('user.secondaryLanguage.title')}
           excludeLanguage={primaryLanguage}
           allowNone
+          languages={languages}
         />
       </View>
 
@@ -143,4 +172,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-}); 
+});

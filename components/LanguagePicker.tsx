@@ -1,27 +1,19 @@
+import type { Language } from '@/types/languages';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { FlatList, Modal, Pressable, StyleSheet, View } from 'react-native';
-
 import { ThemedText } from './ThemedText';
 
-export const languages = [
-  { code: 'it', name: 'user.language.it' },
-  { code: 'en', name: 'user.language.en' },
-  { code: 'es', name: 'user.language.es' },
-  { code: 'bn', name: 'user.language.bn' },
-];
-
 interface LanguagePickerProps {
-  value: string;
+  value: string | null;
   onChange: (value: string) => void;
   title: string;
-  excludeLanguage?: string;
+  languages: Language[];
+  excludeLanguage?: string | null;
   allowNone?: boolean;
 }
 
-export function LanguagePicker({ value, onChange, title, excludeLanguage, allowNone }: LanguagePickerProps) {
-  const { t } = useTranslation();
+export function LanguagePicker({ value, onChange, title, languages, excludeLanguage, allowNone }: LanguagePickerProps) {
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleLanguageChange = (langCode: string) => {
@@ -34,10 +26,10 @@ export function LanguagePicker({ value, onChange, title, excludeLanguage, allowN
     : languages;
 
   const displayLanguages = allowNone
-    ? [{ code: '', name: '-' }, ...filteredLanguages]
+    ? [{ code: '', name: '-', native_name: '', is_active: true, is_default: false, created_at: '' }, ...filteredLanguages]
     : filteredLanguages;
 
-  const renderLanguageItem = ({ item }: { item: typeof languages[0] | { code: string; name: string } }) => (
+  const renderLanguageItem = ({ item }: { item: Language }) => (
     <Pressable
       style={({ pressed }) => [
         styles.languageItem,
@@ -51,7 +43,7 @@ export function LanguagePicker({ value, onChange, title, excludeLanguage, allowN
         value === item.code && styles.languageTextSelected,
         item.code === '' && styles.noneOption
       ]}>
-        {item.code === '' ? '-' : t(item.name)}
+        {item.code === '' ? '-' : item.native_name || item.name}
       </ThemedText>
       {value === item.code && (
         <Ionicons name="checkmark" size={24} color="#0a7ea4" />
@@ -69,7 +61,7 @@ export function LanguagePicker({ value, onChange, title, excludeLanguage, allowN
         onPress={() => setModalVisible(true)}
       >
         <ThemedText style={styles.dropdownButtonText}>
-          {value === '' ? '-' : t(languages.find(lang => lang.code === value)?.name || '')}
+          {value === '' ? '-' : (languages.find(lang => lang.code === value)?.native_name || languages.find(lang => lang.code === value)?.name || '-')}
         </ThemedText>
         <Ionicons name="chevron-down" size={24} color="#0a7ea4" />
       </Pressable>
@@ -178,4 +170,4 @@ const styles = StyleSheet.create({
   noneOption: {
     color: '#666',
   },
-}); 
+});

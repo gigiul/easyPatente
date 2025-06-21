@@ -37,6 +37,7 @@ export default function LoginScreen() {
       // Navigate to main app
       router.replace('/(tabs)');
     } catch (err) {
+      console.error('Login error:', err);
       setError(t('auth.login.errors.unexpected'));
     } finally {
       setLoading(false);

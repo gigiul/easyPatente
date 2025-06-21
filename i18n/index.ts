@@ -6,6 +6,7 @@ import en from './locales/en.json';
 import es from './locales/es.json';
 import it from './locales/it.json';
 
+
 const resources = {
   en: {
     translation: en,
