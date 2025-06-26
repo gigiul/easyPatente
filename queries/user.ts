@@ -36,9 +36,7 @@ export async function updateUserLanguage(languageId: string, type: 'primary' | '
     .eq('id', profile.id)
     .select('*')
     .single();
-    
-    console.log("🚀 ~ updateUserLanguage ~ error:", error)
-    console.log("🚀 ~ updateUserLanguage ~ data:", data)
+
   if (error) throw error;
   if (data) {
     useUserProfileStore.getState().setProfile(data);

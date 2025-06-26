@@ -5,48 +5,29 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useCategories } from '@/hooks/useCategories';
 
-// Mock data for quiz categories
-const quizCategories = [
-  {
-    id: 'roadSigns',
-    icon: 'warning' as const,
-    color: '#FF6B6B',
-  },
-  {
-    id: 'rightOfWay',
-    icon: 'car' as const,
-    color: '#4ECDC4',
-  },
-  {
-    id: 'speedLimits',
-    icon: 'speedometer' as const,
-    color: '#FFD93D',
-  },
-  {
-    id: 'roadSafety',
-    icon: 'shield-checkmark' as const,
-    color: '#95E1D3',
-  },
-  {
-    id: 'maintenance',
-    icon: 'construct' as const,
-    color: '#FF8B94',
-  },
-  {
-    id: 'complete',
-    icon: 'trophy' as const,
-    color: '#6C5CE7',
-  },
-];
+// Helper to map category code to color
+const CATEGORY_COLORS: Record<string, string> = {
+  roadSigns: '#FF6B6B',
+  rightOfWay: '#4ECDC4',
+  speedLimits: '#FFD93D',
+  roadSafety: '#95E1D3',
+  maintenance: '#FF8B94',
+  complete: '#6C5CE7',
+};
+function getCategoryColor(code: string) {
+  return CATEGORY_COLORS[code] || '#ccc';
+}
 
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { categories } = useCategories();
 
   const handleCategoryPress = (categoryId: string) => {
     router.push({
-      pathname: '/quiz',
+      pathname: '/quizBatch',
       params: { categoryId },
     });
   };
@@ -61,22 +42,22 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.categoriesGrid}>
-          {quizCategories.map((category) => (
+          {categories.map((category) => (
             <Pressable
               key={category.id}
               style={({ pressed }) => [
                 styles.categoryCard,
-                { backgroundColor: category.color },
+                { backgroundColor: getCategoryColor(category.code) },
                 pressed && styles.categoryCardPressed,
               ]}
               onPress={() => handleCategoryPress(category.id)}
             >
-              <Ionicons name={category.icon} size={32} color="#fff" />
+              <Ionicons name={category.icon_url as any} size={32} color="#fff" />
               <ThemedText style={styles.categoryTitle}>
-                {t(`quiz.categories.${category.id}.title`)}
+                {t(`quiz.categories.${category.code}.title`)}
               </ThemedText>
               <ThemedText style={styles.categoryDescription}>
-                {t(`quiz.categories.${category.id}.description`)}
+                {t(`quiz.categories.${category.code}.description`)}
               </ThemedText>
             </Pressable>
           ))}
@@ -132,4 +113,4 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     fontSize: 14,
   },
-}); 
+});

@@ -3,6 +3,7 @@
       "title": "কুইজ",
       "subtitle": "ইতালীয় ড্রাইভিং নিয়মের জ্ঞান পরীক্ষা করুন",
       "comingSoon": "কুইজ শীঘ্রই আসছে...",
+      "chooseQuiz": "কুইজ বাছাই করুন",
       "categories": {
         "roadSigns": {
           "title": "রাস্তার চিহ্ন",
@@ -79,7 +80,10 @@
       "previous": "পূর্ববর্তী",
       "true": "সত্য",
       "false": "মিথ্যা",
-      "questionCount": "প্রশ্ন {{current}} এর {{total}}"
+      "questionCount": "প্রশ্ন {{current}} এর {{total}}",
+      "batches": {
+        "qb_rs_1": "রোড সাইন ১"
+      }
     },
     "user": {
       "title": "ব্যবহারকারী সেটিংস",
@@ -130,4 +134,3 @@
       }
     }
   }
-  

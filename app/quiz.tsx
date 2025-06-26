@@ -8,8 +8,8 @@ import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { roadSignsQuestions } from '@/data/quiz/roadSigns';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { ThemedButton } from '../components/ThemedButton';
 
 interface UserAnswer {
@@ -20,7 +20,7 @@ interface UserAnswer {
 
 export default function QuizScreen() {
   const { t, i18n } = useTranslation();
-  const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
+  const { batchId } = useLocalSearchParams<{ batchId: string }>();
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
@@ -30,24 +30,27 @@ export default function QuizScreen() {
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
 
-  // For now, we'll only handle road signs category
-  const questions = categoryId === 'roadSigns' ? roadSignsQuestions : [];
+  // Fetch questions from store/hook
+  const { questions } = useQuizQuestions(String(batchId), i18n.language);
+  console.log("🚀 ~ QuizScreen ~ questions:", questions)
   const currentQuestion = questions[currentQuestionIndex];
+  console.log("🚀 ~ QuizScreen ~ currentQuestion:", currentQuestion)
 
   const getTranslatedQuestion = () => {
-    return t(`quiz.questions.${categoryId}.${currentQuestion.id}.question`);
+    return currentQuestion?.translation?.text || '';
   };
 
   const getTranslatedExplanation = () => {
-    return t(`quiz.questions.${categoryId}.${currentQuestion.id}.explanation`);
+    return currentQuestion?.translation?.explanation || '';
   };
 
   const handleAnswer = (answer: boolean) => {
     setUserAnswer(answer);
     setShowExplanation(true);
-    if (answer === currentQuestion.answer) {
-      setScore(score + 1);
-    }
+    // Non c'è più answer nel backend: qui dovrai gestire la logica di risposta corretta in base ai dati reali (es: opzioni/soluzione)
+    // if (answer === currentQuestion.answer) {
+    //   setScore(score + 1);
+    // }
   };
 
   const handleNext = () => {
@@ -72,7 +75,8 @@ export default function QuizScreen() {
 
   const getSecondaryTranslation = (type: 'question' | 'explanation') => {
     if (!secondaryLanguage || secondaryLanguage === 'none') return null;
-    return i18n.getFixedT(secondaryLanguage)(`quiz.questions.${categoryId}.${currentQuestion.id}.${type}`);
+    // Nel backend ora hai solo currentQuestion.translation per la lingua principale
+    return null;
   };
 
   const speakText = async (text: string, language: string) => {
@@ -142,7 +146,7 @@ export default function QuizScreen() {
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </Pressable>
         <ThemedText type="title" style={styles.title}>
-          {t(`quiz.categories.${categoryId}.title`)}
+          {t(`quiz.categories.${batchId}.title`)}
         </ThemedText>
       </View>
 
@@ -172,10 +176,10 @@ export default function QuizScreen() {
             <View style={styles.questionContent}>
               <ThemedText style={styles.questionText}>{getTranslatedQuestion()}</ThemedText>
               
-              {currentQuestion.imageUrl && (
+              {currentQuestion?.image_url && (
                 <View style={styles.imageContainer}>
                   <Image
-                    source={{ uri: currentQuestion.imageUrl }}
+                    source={{ uri: currentQuestion.image_url }}
                     style={styles.questionImage}
                     resizeMode="contain"
                   />
@@ -465,4 +469,4 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
-}); 
+});

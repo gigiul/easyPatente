@@ -3,6 +3,7 @@
     "title": "Quiz",
     "subtitle": "Metti alla prova le tue conoscenze del codice della strada",
     "comingSoon": "Quiz in arrivo...",
+    "chooseQuiz": "Scegli un quiz",
     "categories": {
       "roadSigns": {
         "title": "Segnaletica Stradale",
@@ -79,6 +80,9 @@
           "explanation": "Il segnale di obbligo di catene da neve (cerchio blu con simbolo di catene) indica che è obbligatorio montare le catene da neve o avere pneumatici invernali."
         }
       }
+    },
+    "batches": {
+      "qb_rs_1": "Segnali Stradali 1"
     }
   },
   "user": {
@@ -129,4 +133,4 @@
       }
     }
   }
-} 
+}

@@ -4,4 +4,5 @@ export interface Category {
   code: string;
   icon_url?: string | null;
   created_at: string;
+  is_active: boolean;
 }

@@ -3,6 +3,7 @@
     "title": "Quiz",
     "subtitle": "Test your knowledge with interactive quizzes",
     "comingSoon": "Quiz coming soon...",
+    "chooseQuiz": "Choose a quiz",
     "categories": {
       "roadSigns": {
         "title": "Road Signs",
@@ -73,6 +74,9 @@
         }
       }
     },
+    "batches": {
+      "qb_rs_1": "Road Signs 1"
+    },
     "question": "Question",
     "explanation": "Explanation",
     "next": "Next",
@@ -129,4 +133,4 @@
       }
     }
   }
-} 
+}

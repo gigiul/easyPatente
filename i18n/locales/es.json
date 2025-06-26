@@ -3,6 +3,7 @@
     "title": "Quiz",
     "subtitle": "Pon a prueba tus conocimientos de las normas de conducción italianas",
     "comingSoon": "Test próximamente...",
+    "chooseQuiz": "Elige un quiz",
     "categories": {
       "roadSigns": {
         "title": "Señales de Tráfico",
@@ -73,6 +74,9 @@
         }
       }
     },
+    "batches": {
+      "qb_rs_1": "Señales de Tráfico 1"
+    },
     "question": "Pregunta",
     "explanation": "Explicación",
     "next": "Siguiente",
@@ -129,4 +133,4 @@
       }
     }
   }
-} 
+}
