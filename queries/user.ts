@@ -16,9 +16,7 @@ const sessionStr = await storage.get('@auth_session');
     .eq('id', userId)
     .single();
     
-    console.log("🚀 ~ fetchUserProfile ~ error:", error)
   if (error) throw error;
-  console.log("🚀 ~ fetchUserProfile ~ data:", data)
   if (data) {
     useUserProfileStore.getState().setProfile(data);
     return data;
