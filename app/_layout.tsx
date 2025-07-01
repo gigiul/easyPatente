@@ -1,8 +1,11 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import '@/i18n';
+import { useLanguage } from '@/hooks/useLanguage';
+import i18n from '@/i18n';
 import { fetchLanguages } from '@/queries/languages';
 import { fetchUserProfile } from '@/queries/user';
+import { useLanguagesStore } from '@/store/languages';
+import { useUserProfileStore } from '@/store/user';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -18,6 +21,11 @@ export default function RootLayout() {
   const { session, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const userProfile = useUserProfileStore((state) => state.user);
+  const languages = useLanguagesStore((state) => state.languages);
+  const { setSecondaryLanguagePreference } = useLanguage();
+  
+  
 
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -31,6 +39,27 @@ export default function RootLayout() {
       };
       fetchData();
   }, []);
+
+    useEffect(() => {
+    // retrieve userProfile languages if set
+    const { lang_primary, lang_secondary } = userProfile || {};
+    if (lang_primary) {
+      i18n.changeLanguage(lang_primary);
+    }
+
+    if (lang_secondary) {
+      setSecondaryLanguagePreference(lang_secondary);
+    }
+
+    // If no primary language is set, default to the first available language
+    if (!lang_primary && languages.length > 0) {
+      const setDefaultLanguage = async () => {
+        const defaultLang = languages.find((l) => l.is_default) || languages[0];
+        await i18n.changeLanguage(defaultLang.code);
+      };
+      setDefaultLanguage();
+    }
+  }, [languages, userProfile]);
 
 
   useEffect(() => {

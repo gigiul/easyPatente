@@ -31,10 +31,8 @@ export default function QuizScreen() {
   const [quizCompleted, setQuizCompleted] = useState(false);
 
   // Fetch questions from store/hook
-  const { questions } = useQuizQuestions(String(batchId), i18n.language);
-  console.log("🚀 ~ QuizScreen ~ questions:", questions)
-  const currentQuestion = questions[currentQuestionIndex];
-  console.log("🚀 ~ QuizScreen ~ currentQuestion:", currentQuestion)
+  const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
+  const currentQuestion = questions[currentQuestionIndex] as any;
 
   const getTranslatedQuestion = () => {
     return currentQuestion?.translation?.text || '';
@@ -73,10 +71,8 @@ export default function QuizScreen() {
 
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
-  const getSecondaryTranslation = (type: 'question' | 'explanation') => {
-    if (!secondaryLanguage || secondaryLanguage === 'none') return null;
-    // Nel backend ora hai solo currentQuestion.translation per la lingua principale
-    return null;
+  const getSecondaryTranslation = (type: 'text' | 'explanation') => {
+    return currentQuestion?.secondaryTranslation?.[type] || null;
   };
 
   const speakText = async (text: string, language: string) => {
@@ -100,7 +96,7 @@ export default function QuizScreen() {
   };
 
   const handleSpeakSecondaryQuestion = () => {
-    const secondaryText = getSecondaryTranslation('question');
+    const secondaryText = getSecondaryTranslation('text');
     if (secondaryText && secondaryLanguage) {
       speakText(secondaryText, secondaryLanguage);
     }
@@ -167,7 +163,7 @@ export default function QuizScreen() {
             <View style={styles.questionHeader}>
               <Ionicons name="help-circle-outline" size={24} color="#007AFF" />
               <ThemedText type="defaultSemiBold" style={styles.questionTitle}>
-                {t('quiz.question')}
+                {t('quiz.text')}
               </ThemedText>
               <Pressable onPress={handleSpeakQuestion} style={styles.speakButton}>
                 <Ionicons name="volume-medium" size={24} color="#007AFF" />
@@ -186,7 +182,7 @@ export default function QuizScreen() {
                 </View>
               )}
               
-              {getSecondaryTranslation('question') && (
+              {getSecondaryTranslation('text') && (
                 <View style={styles.translationContainer}>
                   <View style={styles.translationHeader}>
                     <ThemedText style={styles.translationLabel}>
@@ -197,7 +193,7 @@ export default function QuizScreen() {
                     </Pressable>
                   </View>
                   <ThemedText style={styles.translationText}>
-                    {getSecondaryTranslation('question')}
+                    {getSecondaryTranslation('text')}
                   </ThemedText>
                 </View>
               )}
