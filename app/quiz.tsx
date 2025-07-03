@@ -179,7 +179,7 @@ export default function QuizScreen() {
             {t(`quiz.categories.${batchId}.title`)}
           </ThemedText>
           <ThemedText style={styles.questionCounter}>
-            {currentQuestionIndex + 1} di {questions.length}
+            {t('quiz.questionOf', { current: currentQuestionIndex + 1, total: questions.length })}
           </ThemedText>
         </View>
       </View>
@@ -190,7 +190,7 @@ export default function QuizScreen() {
           <View style={[styles.progressBar, { width: `${progressPercent}%` }]} />
         </View>
         <ThemedText style={styles.progressText}>
-          {Math.round(progressPercent)}% completato
+          {t('quiz.percentCompleted', { percent: Math.round(progressPercent) })}
         </ThemedText>
       </View>
 
@@ -205,7 +205,7 @@ export default function QuizScreen() {
           <View style={styles.questionHeader}>
             <View style={styles.questionBadge}>
               <Ionicons name="help-circle" size={20} color="#2563EB" />
-              <ThemedText style={styles.questionBadgeText}>Domanda</ThemedText>
+              <ThemedText style={styles.questionBadgeText}>{t('quiz.question')}</ThemedText>
             </View>
             <Pressable onPress={handleSpeakQuestion} style={styles.speakButton}>
               <Ionicons name="volume-high" size={24} color="#2563EB" />
@@ -249,7 +249,7 @@ export default function QuizScreen() {
         {!hasAnswered ? (
           <View style={styles.answerSection}>
             <ThemedText style={styles.answerPrompt}>
-              Seleziona la tua risposta:
+              {t('quiz.selectAnswer')}
             </ThemedText>
             <View style={styles.answerButtons}>
               <Pressable
@@ -257,14 +257,14 @@ export default function QuizScreen() {
                 onPress={() => handleAnswer(true)}
               >
                 <Ionicons name="checkmark-circle" size={32} color="#059669" />
-                <ThemedText style={styles.answerButtonText}>VERO</ThemedText>
+                <ThemedText style={styles.answerButtonText}>{t('quiz.true')}</ThemedText>
               </Pressable>
               <Pressable
                 style={[styles.answerButton, styles.falseButton]}
                 onPress={() => handleAnswer(false)}
               >
                 <Ionicons name="close-circle" size={32} color="#DC2626" />
-                <ThemedText style={styles.answerButtonText}>FALSO</ThemedText>
+                <ThemedText style={styles.answerButtonText}>{t('quiz.false')}</ThemedText>
               </Pressable>
             </View>
           </View>
@@ -285,15 +285,15 @@ export default function QuizScreen() {
                   styles.answerResultText,
                   { color: isCorrect ? "#059669" : "#DC2626" }
                 ]}>
-                  {isCorrect ? "Risposta Corretta!" : "Risposta Errata"}
+                  {isCorrect ? t('quiz.correctAnswer') : t('quiz.incorrectAnswer')}
                 </ThemedText>
               </View>
               <ThemedText style={styles.userAnswerText}>
-                Hai risposto: {userAnswer ? "VERO" : "FALSO"}
+                {t('quiz.yourAnswer', { answer: userAnswer ? t('quiz.true') : t('quiz.false') })}
               </ThemedText>
               {!isCorrect && (
                 <ThemedText style={styles.correctAnswerText}>
-                  Risposta corretta: {currentQuestion?.is_correct ? "VERO" : "FALSO"}
+                  {t('quiz.correctAnswerIs', { answer: currentQuestion?.is_correct ? t('quiz.true') : t('quiz.false') })}
                 </ThemedText>
               )}
             </View>
@@ -303,7 +303,7 @@ export default function QuizScreen() {
               <View style={styles.explanationHeader}>
                 <View style={styles.explanationBadge}>
                   <Ionicons name="bulb" size={20} color="#F59E0B" />
-                  <ThemedText style={styles.explanationBadgeText}>Spiegazione</ThemedText>
+                  <ThemedText style={styles.explanationBadgeText}>{t('quiz.explanation')}</ThemedText>
                 </View>
                 <Pressable onPress={handleSpeakExplanation} style={styles.speakButton}>
                   <Ionicons name="volume-high" size={24} color="#F59E0B" />
@@ -356,7 +356,7 @@ export default function QuizScreen() {
               styles.navButtonText,
               currentQuestionIndex === 0 && styles.navButtonTextDisabled
             ]}>
-              Precedente
+              {t('quiz.previous')}
             </ThemedText>
           </Pressable>
 
@@ -394,7 +394,7 @@ export default function QuizScreen() {
               styles.navButtonText,
               currentQuestionIndex === questions.length - 1 && styles.navButtonTextDisabled
             ]}>
-              {hasAnswered ? "Successiva" : "Salta"}
+              {hasAnswered ? t('quiz.nextQuestion') : t('quiz.skipQuestion')}
             </ThemedText>
             <Ionicons 
               name="chevron-forward" 

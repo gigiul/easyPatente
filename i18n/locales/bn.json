@@ -81,6 +81,18 @@
       "true": "সত্য",
       "false": "মিথ্যা",
       "questionCount": "প্রশ্ন {{current}} এর {{total}}",
+      "completed": "কুইজ সম্পন্ন!",
+      "score": "স্কোর: {{total}} এর মধ্যে {{score}}",
+      "restart": "পুনরায় শুরু",
+      "percentCompleted": "{{percent}}% সম্পন্ন",
+      "questionOf": "{{total}} এর {{current}}",
+      "selectAnswer": "আপনার উত্তর নির্বাচন করুন:",
+      "correctAnswer": "সঠিক উত্তর!",
+      "incorrectAnswer": "ভুল উত্তর",
+      "yourAnswer": "আপনি উত্তর দিয়েছেন: {{answer}}",
+      "correctAnswerIs": "সঠিক উত্তর: {{answer}}",
+      "nextQuestion": "পরবর্তী",
+      "skipQuestion": "এড়িয়ে যান",
       "batches": {
         "qb_rs_1": "রোড সাইন ১"
       }

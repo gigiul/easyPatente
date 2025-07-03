@@ -37,6 +37,18 @@
     "true": "Vero",
     "false": "Falso",
     "questionCount": "Domanda {{current}} di {{total}}",
+    "completed": "Quiz Completato!",
+    "score": "Punteggio: {{score}} su {{total}}",
+    "restart": "Ricomincia",
+    "percentCompleted": "{{percent}}% completato",
+    "questionOf": "{{current}} di {{total}}",
+    "selectAnswer": "Seleziona la tua risposta:",
+    "correctAnswer": "Risposta Corretta!",
+    "incorrectAnswer": "Risposta Errata",
+    "yourAnswer": "Hai risposto: {{answer}}",
+    "correctAnswerIs": "Risposta corretta: {{answer}}",
+    "nextQuestion": "Successiva",
+    "skipQuestion": "Salta",
     "questions": {
       "roadSigns": {
         "rs1": {

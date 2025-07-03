@@ -83,7 +83,19 @@
     "previous": "Previous",
     "true": "True",
     "false": "False",
-    "questionCount": "Question {{current}} of {{total}}"
+    "questionCount": "Question {{current}} of {{total}}",
+    "completed": "Quiz Completed!",
+    "score": "Score: {{score}} out of {{total}}",
+    "restart": "Restart",
+    "percentCompleted": "{{percent}}% completed",
+    "questionOf": "{{current}} of {{total}}",
+    "selectAnswer": "Select your answer:",
+    "correctAnswer": "Correct Answer!",
+    "incorrectAnswer": "Incorrect Answer",
+    "yourAnswer": "You answered: {{answer}}",
+    "correctAnswerIs": "Correct answer: {{answer}}",
+    "nextQuestion": "Next",
+    "skipQuestion": "Skip"
   },
   "user": {
     "title": "User Settings",

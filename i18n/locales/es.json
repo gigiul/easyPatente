@@ -83,7 +83,19 @@
     "previous": "Anterior",
     "true": "Verdadero",
     "false": "Falso",
-    "questionCount": "Pregunta {{current}} de {{total}}"
+    "questionCount": "Pregunta {{current}} de {{total}}",
+    "completed": "¡Quiz Completado!",
+    "score": "Puntuación: {{score}} de {{total}}",
+    "restart": "Reiniciar",
+    "percentCompleted": "{{percent}}% completado",
+    "questionOf": "{{current}} de {{total}}",
+    "selectAnswer": "Selecciona tu respuesta:",
+    "correctAnswer": "¡Respuesta Correcta!",
+    "incorrectAnswer": "Respuesta Incorrecta",
+    "yourAnswer": "Has respondido: {{answer}}",
+    "correctAnswerIs": "Respuesta correcta: {{answer}}",
+    "nextQuestion": "Siguiente",
+    "skipQuestion": "Saltar"
   },
   "user": {
     "title": "Configuración de Usuario",
