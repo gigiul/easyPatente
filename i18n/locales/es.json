@@ -95,7 +95,11 @@
     "yourAnswer": "Has respondido: {{answer}}",
     "correctAnswerIs": "Respuesta correcta: {{answer}}",
     "nextQuestion": "Siguiente",
-    "skipQuestion": "Saltar"
+    "skipQuestion": "Saltar",
+    "home": "Inicio",
+    "incorrectQuestions": "Preguntas Incorrectas",
+    "reviewIncorrect": "Repasar Errores",
+    "noIncorrectQuestions": "¡No hay preguntas incorrectas!"
   },
   "user": {
     "title": "Configuración de Usuario",

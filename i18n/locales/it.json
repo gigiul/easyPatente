@@ -49,6 +49,10 @@
     "correctAnswerIs": "Risposta corretta: {{answer}}",
     "nextQuestion": "Successiva",
     "skipQuestion": "Salta",
+    "home": "Home",
+    "incorrectQuestions": "Domande Sbagliate",
+    "reviewIncorrect": "Ripassa Errori",
+    "noIncorrectQuestions": "Nessuna domanda sbagliata!",
     "questions": {
       "roadSigns": {
         "rs1": {

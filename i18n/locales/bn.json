@@ -93,6 +93,10 @@
       "correctAnswerIs": "সঠিক উত্তর: {{answer}}",
       "nextQuestion": "পরবর্তী",
       "skipQuestion": "এড়িয়ে যান",
+      "home": "হোম",
+      "incorrectQuestions": "ভুল প্রশ্ন",
+      "reviewIncorrect": "ভুল পর্যালোচনা",
+      "noIncorrectQuestions": "কোন ভুল প্রশ্ন নেই!",
       "batches": {
         "qb_rs_1": "রোড সাইন ১"
       }

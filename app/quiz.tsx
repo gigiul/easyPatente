@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
+import { useQuizScore } from '@/hooks/useQuizScore';
 import { updateQuizProgression } from '@/queries/quizProgression';
 import { ThemedButton } from '../components/ThemedButton';
 
@@ -24,10 +25,10 @@ export default function QuizScreen() {
   const { progress: quizProgress, loading: progressLoading } = useQuizProgression(userId, String(batchId));
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const { secondaryLanguage } = useLanguage();
-  const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [answers, setAnswers] = useState<any>({});
   const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
+  const { score } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
 
   const getTranslatedQuestion = () => {
@@ -60,13 +61,7 @@ export default function QuizScreen() {
     const questionId = currentQuestion?.id;
     const updatedAnswers = { ...answers, [questionId]: answer };
     setAnswers(updatedAnswers);
-    
-    // Calcola se la risposta è corretta
-    const isCorrect = answer === currentQuestion?.is_correct;
-    if (isCorrect) {
-      setScore(prev => prev + 1);
-    }
-    
+
     await updateQuizProgression(userId, String(batchId), updatedAnswers, currentQuestionIndex + 1, false);
   };
 
@@ -76,8 +71,14 @@ export default function QuizScreen() {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex + 2, false);
     } else {
-      setQuizCompleted(true);
+      // Quiz completato
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      
+      // Prima aggiorna il database con tutte le risposte
       await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex + 1, true);
+      
+      // Poi imposta il quiz come completato per aggiornare l'UI
+      setQuizCompleted(true);
     }
   };
 
@@ -85,6 +86,10 @@ export default function QuizScreen() {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
       await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex, false);
+
+      if (currentQuestionIndex <= questions.length) {
+        setQuizCompleted(false);
+      }
     }
   };
 
@@ -145,20 +150,127 @@ export default function QuizScreen() {
   if (quizCompleted) {
     return (
       <ThemedView style={styles.container}>
-        <ThemedText style={styles.title}>{t('quiz.completed')}</ThemedText>
-        <ThemedText style={styles.score}>
-          {t('quiz.score', { score, total: questions.length })}
-        </ThemedText>
-        <ThemedButton
-          title={t('quiz.restart')}
-          onPress={() => {
-            setCurrentQuestionIndex(0);
-            setScore(0);
-            setQuizCompleted(false);
-            setAnswers({});
-            updateQuizProgression(userId, String(batchId), {}, 1, false);
-          }}
-        />
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={28} color="#2563EB" />
+          </Pressable>
+          <View style={styles.headerContent}>
+            <ThemedText type="title" style={styles.title}>
+              {t(`quiz.categories.${batchId}.title`)}
+            </ThemedText>
+            <ThemedText style={styles.questionCounter}>
+              {t('quiz.completed')}
+            </ThemedText>
+          </View>
+        </View>
+
+        {/* Progress Bar - Completed */}
+        <View style={styles.progressWrapper}>
+          <View style={styles.progressContainer}>
+            <View style={[styles.progressBar, { width: '100%' }]} />
+          </View>
+          <ThemedText style={styles.progressText}>
+            {t('quiz.percentCompleted', { percent: 100 })}
+          </ThemedText>
+        </View>
+
+        {/* Results Content */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[styles.questionCard, styles.resultsCard]}>
+            <View style={styles.resultsHeader}>
+              <Ionicons name="trophy" size={48} color="#F59E0B" />
+              <ThemedText style={styles.resultsTitle}>{t('quiz.completed')}</ThemedText>
+            </View>
+
+            <View style={styles.scoreContainer}>
+              <ThemedText style={styles.scoreText}>
+                {t('quiz.score', { score, total: questions.length })}
+              </ThemedText>
+              <ThemedText style={styles.scorePercentage}>
+                {Math.round((score / questions.length) * 100)}%
+              </ThemedText>
+            </View>
+
+            <View style={styles.restartContainer}>
+              <ThemedButton
+                title={t('quiz.restart')}
+                onPress={() => {
+                  setCurrentQuestionIndex(0);
+                  setQuizCompleted(false);
+                  setAnswers({});
+                  updateQuizProgression(userId, String(batchId), {}, 1, false);
+                }}
+              />
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Navigation Bar  */}
+        <BlurView intensity={80} tint="light" style={styles.navigationBar}>
+          <View style={styles.navContent}>
+            <Pressable
+              style={[
+                styles.navButton,
+                currentQuestionIndex === 0 && styles.navButtonDisabled
+              ]}
+              onPress={handlePrevious}
+              disabled={currentQuestionIndex === 0}
+            >
+              <Ionicons
+                name="chevron-back"
+                size={24}
+                color={currentQuestionIndex === 0 ? "#9CA3AF" : "#2563EB"}
+              />
+              <ThemedText style={[
+                styles.navButtonText,
+                currentQuestionIndex === 0 && styles.navButtonTextDisabled
+              ]}>
+                {t('quiz.previous')}
+              </ThemedText>
+            </Pressable>
+
+            <View style={styles.navCenter}>
+              <View style={styles.questionDots}>
+                {questions.slice(Math.max(0, currentQuestionIndex - 2), currentQuestionIndex + 3).map((_, index) => {
+                  const actualIndex = Math.max(0, currentQuestionIndex - 2) + index;
+                  const isCurrentQuestion = actualIndex === currentQuestionIndex;
+                  const isAnswered = typeof answers[questions[actualIndex]?.id] !== 'undefined';
+
+                  return (
+                    <View
+                      key={actualIndex}
+                      style={[
+                        styles.dot,
+                        isCurrentQuestion && styles.currentDot,
+                        isAnswered && !isCurrentQuestion && styles.answeredDot
+                      ]}
+                    />
+                  );
+                })}
+              </View>
+            </View>
+
+            <Pressable
+              style={styles.navButton}
+              onPress={() => {
+                setCurrentQuestionIndex(0);
+                setQuizCompleted(false);
+                setAnswers({});
+                updateQuizProgression(userId, String(batchId), {}, 1, false);
+              }}
+            >
+              <ThemedText style={styles.navButtonText}>
+                {t('quiz.restart')}
+              </ThemedText>
+              <Ionicons name="refresh" size={24} color="#2563EB" />
+            </Pressable>
+          </View>
+        </BlurView>
       </ThemedView>
     );
   }
@@ -195,7 +307,7 @@ export default function QuizScreen() {
       </View>
 
       {/* Main Content */}
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -211,11 +323,11 @@ export default function QuizScreen() {
               <Ionicons name="volume-high" size={24} color="#2563EB" />
             </Pressable>
           </View>
-          
+
           <ThemedText style={styles.questionText}>
             {getTranslatedQuestion()}
           </ThemedText>
-          
+
           {currentQuestion?.image_url && (
             <View style={styles.imageContainer}>
               <Image
@@ -225,7 +337,7 @@ export default function QuizScreen() {
               />
             </View>
           )}
-          
+
           {getSecondaryTranslation('text') && (
             <View style={styles.secondaryLanguageCard}>
               <View style={styles.secondaryHeader}>
@@ -276,10 +388,10 @@ export default function QuizScreen() {
               isCorrect ? styles.correctCard : styles.incorrectCard
             ]}>
               <View style={styles.answerResultHeader}>
-                <Ionicons 
-                  name={isCorrect ? "checkmark-circle" : "close-circle"} 
-                  size={28} 
-                  color={isCorrect ? "#059669" : "#DC2626"} 
+                <Ionicons
+                  name={isCorrect ? "checkmark-circle" : "close-circle"}
+                  size={28}
+                  color={isCorrect ? "#059669" : "#DC2626"}
                 />
                 <ThemedText style={[
                   styles.answerResultText,
@@ -309,11 +421,11 @@ export default function QuizScreen() {
                   <Ionicons name="volume-high" size={24} color="#F59E0B" />
                 </Pressable>
               </View>
-              
+
               <ThemedText style={styles.explanationText}>
                 {getTranslatedExplanation()}
               </ThemedText>
-              
+
               {getSecondaryTranslation('explanation') && (
                 <View style={styles.secondaryLanguageCard}>
                   <View style={styles.secondaryHeader}>
@@ -347,10 +459,10 @@ export default function QuizScreen() {
             onPress={handlePrevious}
             disabled={currentQuestionIndex === 0}
           >
-            <Ionicons 
-              name="chevron-back" 
-              size={24} 
-              color={currentQuestionIndex === 0 ? "#9CA3AF" : "#2563EB"} 
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={currentQuestionIndex === 0 ? "#9CA3AF" : "#2563EB"}
             />
             <ThemedText style={[
               styles.navButtonText,
@@ -366,7 +478,7 @@ export default function QuizScreen() {
                 const actualIndex = Math.max(0, currentQuestionIndex - 2) + index;
                 const isCurrentQuestion = actualIndex === currentQuestionIndex;
                 const isAnswered = typeof answers[questions[actualIndex]?.id] !== 'undefined';
-                
+
                 return (
                   <View
                     key={actualIndex}
@@ -385,21 +497,21 @@ export default function QuizScreen() {
             style={[
               styles.navButton,
               styles.navButtonRight,
-              currentQuestionIndex === questions.length - 1 && styles.navButtonDisabled
+              currentQuestionIndex === questions.length && styles.navButtonDisabled
             ]}
             onPress={handleNext}
-            disabled={currentQuestionIndex === questions.length - 1}
+            disabled={currentQuestionIndex === questions.length}
           >
             <ThemedText style={[
               styles.navButtonText,
-              currentQuestionIndex === questions.length - 1 && styles.navButtonTextDisabled
+              currentQuestionIndex === questions.length && styles.navButtonTextDisabled
             ]}>
               {hasAnswered ? t('quiz.nextQuestion') : t('quiz.skipQuestion')}
             </ThemedText>
-            <Ionicons 
-              name="chevron-forward" 
-              size={24} 
-              color={currentQuestionIndex === questions.length - 1 ? "#9CA3AF" : "#2563EB"} 
+            <Ionicons
+              name="chevron-forward"
+              size={24}
+              color={currentQuestionIndex === questions.length ? "#9CA3AF" : "#2563EB"}
             />
           </Pressable>
         </View>
@@ -750,5 +862,48 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  resultsCard: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  resultsHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  resultsTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  scoreContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    minWidth: 200,
+  },
+  scoreText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  scorePercentage: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#2563EB',
+    textAlign: 'center',
+  },
+  restartContainer: {
+    width: '100%',
+    paddingHorizontal: 20,
   },
 });
