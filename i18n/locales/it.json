@@ -147,6 +147,11 @@
         "passwordLength": "La password deve essere di almeno 6 caratteri",
         "unexpected": "Si è verificato un errore imprevisto"
       }
+    },
+    "premium": {
+      "required": "Premium",
+      "upgrade": "Passa a Premium",
+      "unlockAll": "Sblocca tutte le categorie"
     }
   }
 }

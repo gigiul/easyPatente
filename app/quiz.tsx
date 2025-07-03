@@ -55,9 +55,6 @@ export default function QuizScreen() {
 
   // Aggiorna Supabase quando l'utente risponde
   const handleAnswer = async (answer: boolean) => {
-    console.log("🚀 ~ handleAnswer ~ answer:", answer)
-    console.log("currentQuestion?.is_correct:", currentQuestion?.is_correct);
-
     const questionId = currentQuestion?.id;
     const updatedAnswers = { ...answers, [questionId]: answer };
     setAnswers(updatedAnswers);

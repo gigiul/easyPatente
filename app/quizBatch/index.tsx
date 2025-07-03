@@ -3,13 +3,13 @@ import { ThemedView } from '@/components/ThemedView';
 import { useQuizBatches } from '@/hooks/useQuizBatches';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from 'react-native';
 
 export default function QuizBatchScreen() {
   const { t } = useTranslation();
   const { categoryId } = useLocalSearchParams();
   const router = useRouter();
-  const { batches } = useQuizBatches(String(categoryId));
+  const { batches, loading } = useQuizBatches(String(categoryId));
 
   const handleBatchPress = (batchId: string) => {
     router.push({ pathname: '/quiz', params: { batchId } });
@@ -19,20 +19,25 @@ export default function QuizBatchScreen() {
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.headerTitle}>{t('quiz.chooseQuiz')}</ThemedText>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {!batches.length && (
-          <ThemedText>{t('quiz.comingSoon', 'Nessun quiz disponibile per questa categoria.')}</ThemedText>
+        {loading ? (
+          <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
+        ) : !batches.length ? (
+          <ThemedText style={styles.emptyState}>
+            {t('quiz.comingSoon', 'Nessun quiz disponibile per questa categoria.')}
+          </ThemedText>
+        ) : (
+          batches.map((batch) => (
+            <Pressable
+              key={batch.id}
+              style={styles.batchCard}
+              onPress={() => handleBatchPress(batch.id)}
+            >
+              <ThemedText style={styles.batchTitle}>
+                {String(t(`quiz.batches.${batch.title}`, batch.title))}
+              </ThemedText>
+            </Pressable>
+          ))
         )}
-        {batches.map((batch) => (
-          <Pressable
-            key={batch.id}
-            style={styles.batchCard}
-            onPress={() => handleBatchPress(batch.id)}
-          >
-            <ThemedText style={styles.batchTitle}>
-              {String(t(`quiz.batches.${batch.title}`, batch.title))}
-            </ThemedText>
-          </Pressable>
-        ))}
       </ScrollView>
     </ThemedView>
   );
@@ -42,6 +47,15 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   headerTitle: { marginTop: 60, marginBottom: 8, paddingHorizontal: 16 },
   scrollViewContent: { padding: 16 },
+  loader: {
+    marginTop: 50,
+  },
+  emptyState: {
+    textAlign: 'center',
+    marginTop: 50,
+    fontSize: 16,
+    opacity: 0.7,
+  },
   batchCard: {
     backgroundColor: '#eee',
     borderRadius: 12,

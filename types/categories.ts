@@ -5,4 +5,5 @@ export interface Category {
   icon_url?: string | null;
   created_at: string;
   is_active: boolean;
+  is_premium: boolean;
 }
