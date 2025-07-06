@@ -15,8 +15,8 @@ export default function QuizBatchScreen() {
   const cardBackgroundColor = useThemeColor({}, 'background');
   const borderColor = useThemeColor({}, 'icon');
 
-  const handleBatchPress = (batchId: string) => {
-    router.push({ pathname: '/quiz', params: { batchId } });
+  const handleBatchPress = (batchId: string, batchTitle: string) => {
+    router.push({ pathname: '/quiz', params: { batchId, batchTitle } });
   };
 
   return (
@@ -42,7 +42,7 @@ export default function QuizBatchScreen() {
                   shadowColor: borderColor,
                 }
               ]}
-              onPress={() => handleBatchPress(batch.id)}
+              onPress={() => handleBatchPress(batch.id, batch.title)}
             >
               <ThemedText style={styles.batchTitle}>
                 {String(t(`quiz.batches.${batch.title}`, batch.title))}

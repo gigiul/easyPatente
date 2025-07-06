@@ -74,6 +74,19 @@
           }
         }
       },
+       "batches": {
+        "QB_VEHICLES_1": "যানবাহন ১",
+        "QB_VEHICLES_2": "যানবাহন ২",
+        "QB_VEHICLES_3": "যানবাহন ৩",
+        "QB_VEHICLES_4": "যানবাহন ৪",
+        "QB_VEHICLES_5": "যানবাহন ৫",
+        "QB_VEHICLES_6": "যানবাহন ৬",
+        "QB_VEHICLES_7": "যানবাহন ৭",
+        "QB_VEHICLES_8": "যানবাহন ৮",
+        "QB_VEHICLES_9": "যানবাহন ৯",
+        "QB_VEHICLES_10": "যানবাহন ১০",
+        "QB_VEHICLES_11": "যানবাহন ১১"
+      },
       "question": "প্রশ্ন",
       "explanation": "ব্যাখ্যা",
       "next": "পরবর্তী",
@@ -96,10 +109,7 @@
       "home": "হোম",
       "incorrectQuestions": "ভুল প্রশ্ন",
       "reviewIncorrect": "ভুল পর্যালোচনা",
-      "noIncorrectQuestions": "কোন ভুল প্রশ্ন নেই!",
-      "batches": {
-        "qb_rs_1": "রোড সাইন ১"
-      }
+      "noIncorrectQuestions": "কোন ভুল প্রশ্ন নেই!"
     },
     "user": {
       "title": "ব্যবহারকারী সেটিংস",

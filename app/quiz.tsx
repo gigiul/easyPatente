@@ -19,7 +19,7 @@ import { ThemedButton } from '../components/ThemedButton';
 
 export default function QuizScreen() {
   const { t, i18n } = useTranslation();
-  const { batchId } = useLocalSearchParams<{ batchId: string }>();
+  const { batchId, batchTitle } = useLocalSearchParams<{ batchId: string; batchTitle: string }>();
   const router = useRouter();
   const { session } = useAuth();
   const userId = session?.user?.id || '';
@@ -201,7 +201,7 @@ export default function QuizScreen() {
           </Pressable>
           <View style={styles.headerContent}>
             <ThemedText type="title" style={[styles.title, { color: textColor }]}>
-              {t(`quiz.categories.${batchId}.title`)}
+              {String(t(`quiz.batches.${batchTitle}`, batchTitle))}
             </ThemedText>
             <ThemedText style={[styles.questionCounter, { color: iconColor }]}>
               {t('quiz.completed')}
@@ -304,7 +304,7 @@ export default function QuizScreen() {
         </Pressable>
         <View style={styles.headerContent}>
           <ThemedText type="title" style={[styles.title, { color: textColor }]}>
-            {t(`quiz.categories.${batchId}.title`)}
+            {String(t(`quiz.batches.${batchTitle}`, batchTitle))}
           </ThemedText>
           <ThemedText style={[styles.questionCounter, { color: iconColor }]}>
             {t('quiz.questionOf', { current: currentQuestionIndex + 1, total: questions.length })}

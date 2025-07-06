@@ -75,7 +75,17 @@
       }
     },
     "batches": {
-      "qb_rs_1": "Señales de Tráfico 1"
+      "QB_VEHICLES_1": "Vehículos 1",
+      "QB_VEHICLES_2": "Vehículos 2",
+      "QB_VEHICLES_3": "Vehículos 3",
+      "QB_VEHICLES_4": "Vehículos 4",
+      "QB_VEHICLES_5": "Vehículos 5",
+      "QB_VEHICLES_6": "Vehículos 6",
+      "QB_VEHICLES_7": "Vehículos 7",
+      "QB_VEHICLES_8": "Vehículos 8",
+      "QB_VEHICLES_9": "Vehículos 9",
+      "QB_VEHICLES_10": "Vehículos 10",
+      "QB_VEHICLES_11": "Vehículos 11"
     },
     "question": "Pregunta",
     "explanation": "Explicación",
