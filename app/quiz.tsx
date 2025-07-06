@@ -48,6 +48,13 @@ export default function QuizScreen() {
     return currentQuestion?.translation?.explanation || '';
   };
 
+  // Reset state quando cambia il batchId
+  useEffect(() => {
+    setCurrentQuestionIndex(0);
+    setQuizCompleted(false);
+    setAnswers({});
+  }, [batchId]);
+
   // Popola answers da quizProgress se presente
   useEffect(() => {
     if (quizProgress && quizProgress.length > 0 && Object.keys(answers).length === 0) {
