@@ -252,24 +252,6 @@ export default function QuizScreen() {
             </Pressable>
 
             <View style={styles.navCenter}>
-              <View style={styles.questionDots}>
-                {questions.slice(Math.max(0, currentQuestionIndex - 2), currentQuestionIndex + 3).map((_, index) => {
-                  const actualIndex = Math.max(0, currentQuestionIndex - 2) + index;
-                  const isCurrentQuestion = actualIndex === currentQuestionIndex;
-                  const isAnswered = typeof answers[questions[actualIndex]?.id] !== 'undefined';
-
-                  return (
-                    <View
-                      key={actualIndex}
-                      style={[
-                        styles.dot,
-                        isCurrentQuestion && styles.currentDot,
-                        isAnswered && !isCurrentQuestion && styles.answeredDot
-                      ]}
-                    />
-                  );
-                })}
-              </View>
             </View>
 
             <Pressable
@@ -496,25 +478,9 @@ export default function QuizScreen() {
           </Pressable>
 
           <View style={styles.navCenter}>
-            <View style={styles.questionDots}>
-              {questions.slice(Math.max(0, currentQuestionIndex - 2), currentQuestionIndex + 3).map((_, index) => {
-                const actualIndex = Math.max(0, currentQuestionIndex - 2) + index;
-                const isCurrentQuestion = actualIndex === currentQuestionIndex;
-                const isAnswered = typeof answers[questions[actualIndex]?.id] !== 'undefined';
-
-                return (
-                  <View
-                    key={actualIndex}
-                    style={[
-                      styles.dot,
-                      { backgroundColor: borderColor },
-                      isCurrentQuestion && styles.currentDot,
-                      isAnswered && !isCurrentQuestion && styles.answeredDot
-                    ]}
-                  />
-                );
-              })}
-            </View>
+            <ThemedText style={[styles.questionIndicator, { color: iconColor }]}>
+              {currentQuestionIndex + 1} / {questions.length}
+            </ThemedText>
           </View>
 
           <Pressable
@@ -830,6 +796,11 @@ const styles = StyleSheet.create({
   questionDots: {
     flexDirection: 'row',
     gap: 8,
+  },
+  questionIndicator: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   dot: {
     width: 8,
