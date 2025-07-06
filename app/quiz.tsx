@@ -23,11 +23,12 @@ export default function QuizScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const userId = session?.user?.id || '';
-  const { progress: quizProgress, loading: progressLoading } = useQuizProgression(userId, String(batchId));
+  const { progress: quizProgress, loading: progressLoading, refresh: refreshProgression } = useQuizProgression(userId, String(batchId));
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const { secondaryLanguage } = useLanguage();
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [answers, setAnswers] = useState<any>({});
+  const [isResetting, setIsResetting] = useState(false);
   const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
   const { score } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
@@ -57,21 +58,27 @@ export default function QuizScreen() {
     setCurrentQuestionIndex(0);
     setQuizCompleted(false);
     setAnswers({});
+    setIsResetting(false);
   }, [batchId]);
 
-  // Popola answers da quizProgress se presente
+  // Popola answers da quizProgress se presente (solo se non stiamo resettando)
   useEffect(() => {
-    if (quizProgress && quizProgress.length > 0 && Object.keys(answers).length === 0) {
+    if (!isResetting && quizProgress && quizProgress.length > 0 && Object.keys(answers).length === 0) {
+      // Controllo aggiuntivo: se il progresso è un reset recente, ignoralo
       const progressAnswers = quizProgress[0]?.answers || {};
-      setAnswers(progressAnswers);
-      if (quizProgress[0]?.current_question) {
-        setCurrentQuestionIndex(quizProgress[0].current_question - 1);
-      }
-      if (quizProgress[0]?.completed) {
-        setQuizCompleted(true);
+      const hasNoAnswers = Object.keys(progressAnswers).length === 0;
+      
+      if (!hasNoAnswers) {
+        setAnswers(progressAnswers);
+        if (quizProgress[0]?.current_question) {
+          setCurrentQuestionIndex(quizProgress[0].current_question - 1);
+        }
+        if (quizProgress[0]?.completed) {
+          setQuizCompleted(true);
+        }
       }
     }
-  }, [quizProgress, answers]);
+  }, [quizProgress, answers, isResetting]);
 
   // Aggiorna Supabase quando l'utente risponde
   const handleAnswer = async (answer: boolean) => {
@@ -111,6 +118,26 @@ export default function QuizScreen() {
   };
 
   const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+  const handleReset = async () => {
+    setIsResetting(true);
+    
+    // Prima resettiamo lo stato locale
+    setCurrentQuestionIndex(0);
+    setQuizCompleted(false);
+    setAnswers({});
+    
+    // Poi aggiorniamo il database
+    await updateQuizProgression(userId, String(batchId), {}, 1, false);
+    
+    // Forziamo il refresh del progresso
+    refreshProgression();
+    
+    // Attendiamo un po' di più per assicurarci che tutto sia sincronizzato
+    setTimeout(() => {
+      setIsResetting(false);
+    }, 500);
+  };
 
   const getSecondaryTranslation = (type: 'text' | 'explanation') => {
     return currentQuestion?.secondaryTranslation?.[type] || null;
@@ -216,12 +243,7 @@ export default function QuizScreen() {
             <View style={styles.restartContainer}>
               <ThemedButton
                 title={t('quiz.restart')}
-                onPress={() => {
-                  setCurrentQuestionIndex(0);
-                  setQuizCompleted(false);
-                  setAnswers({});
-                  updateQuizProgression(userId, String(batchId), {}, 1, false);
-                }}
+                onPress={handleReset}
               />
             </View>
           </View>
@@ -256,12 +278,7 @@ export default function QuizScreen() {
 
             <Pressable
               style={styles.navButton}
-              onPress={() => {
-                setCurrentQuestionIndex(0);
-                setQuizCompleted(false);
-                setAnswers({});
-                updateQuizProgression(userId, String(batchId), {}, 1, false);
-              }}
+              onPress={handleReset}
             >
               <ThemedText style={styles.navButtonText}>
                 {t('quiz.restart')}
