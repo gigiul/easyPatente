@@ -1,6 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useQuizBatches } from '@/hooks/useQuizBatches';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from 'react-native';
@@ -10,6 +11,9 @@ export default function QuizBatchScreen() {
   const { categoryId } = useLocalSearchParams();
   const router = useRouter();
   const { batches, loading } = useQuizBatches(String(categoryId));
+  
+  const cardBackgroundColor = useThemeColor({}, 'background');
+  const borderColor = useThemeColor({}, 'icon');
 
   const handleBatchPress = (batchId: string) => {
     router.push({ pathname: '/quiz', params: { batchId } });
@@ -29,7 +33,15 @@ export default function QuizBatchScreen() {
           batches.map((batch) => (
             <Pressable
               key={batch.id}
-              style={styles.batchCard}
+              style={[
+                styles.batchCard,
+                { 
+                  backgroundColor: cardBackgroundColor,
+                  borderWidth: 1,
+                  borderColor: borderColor,
+                  shadowColor: borderColor,
+                }
+              ]}
               onPress={() => handleBatchPress(batch.id)}
             >
               <ThemedText style={styles.batchTitle}>
@@ -57,10 +69,13 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   batchCard: {
-    backgroundColor: '#eee',
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   batchTitle: {
     fontSize: 18,

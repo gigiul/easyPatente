@@ -13,6 +13,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizScore } from '@/hooks/useQuizScore';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { updateQuizProgression } from '@/queries/quizProgression';
 import { ThemedButton } from '../components/ThemedButton';
 
@@ -30,6 +31,14 @@ export default function QuizScreen() {
   const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
   const { score } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
+
+  // Theme colors
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const iconColor = useThemeColor({}, 'icon');
+  const cardBackgroundColor = useThemeColor({ light: '#FFFFFF', dark: '#1F2937' }, 'background');
+  const borderColor = useThemeColor({ light: '#E2E8F0', dark: '#374151' }, 'icon');
+  const secondaryBackgroundColor = useThemeColor({ light: '#F8FAFC', dark: '#111827' }, 'background');
 
   const getTranslatedQuestion = () => {
     return currentQuestion?.translation?.text || '';
@@ -146,28 +155,28 @@ export default function QuizScreen() {
 
   if (quizCompleted) {
     return (
-      <ThemedView style={styles.container}>
+      <ThemedView style={[styles.container, { backgroundColor }]}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={28} color="#2563EB" />
           </Pressable>
           <View style={styles.headerContent}>
-            <ThemedText type="title" style={styles.title}>
+            <ThemedText type="title" style={[styles.title, { color: textColor }]}>
               {t(`quiz.categories.${batchId}.title`)}
             </ThemedText>
-            <ThemedText style={styles.questionCounter}>
+            <ThemedText style={[styles.questionCounter, { color: iconColor }]}>
               {t('quiz.completed')}
             </ThemedText>
           </View>
         </View>
 
         {/* Progress Bar - Completed */}
-        <View style={styles.progressWrapper}>
-          <View style={styles.progressContainer}>
+        <View style={[styles.progressWrapper, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
+          <View style={[styles.progressContainer, { backgroundColor: borderColor }]}>
             <View style={[styles.progressBar, { width: '100%' }]} />
           </View>
-          <ThemedText style={styles.progressText}>
+          <ThemedText style={[styles.progressText, { color: iconColor }]}>
             {t('quiz.percentCompleted', { percent: 100 })}
           </ThemedText>
         </View>
@@ -178,14 +187,14 @@ export default function QuizScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={[styles.questionCard, styles.resultsCard]}>
+          <View style={[styles.questionCard, styles.resultsCard, { backgroundColor: cardBackgroundColor }]}>
             <View style={styles.resultsHeader}>
               <Ionicons name="trophy" size={48} color="#F59E0B" />
-              <ThemedText style={styles.resultsTitle}>{t('quiz.completed')}</ThemedText>
+              <ThemedText style={[styles.resultsTitle, { color: textColor }]}>{t('quiz.completed')}</ThemedText>
             </View>
 
-            <View style={styles.scoreContainer}>
-              <ThemedText style={styles.scoreText}>
+            <View style={[styles.scoreContainer, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
+              <ThemedText style={[styles.scoreText, { color: textColor }]}>
                 {t('quiz.score', { score, total: questions.length })}
               </ThemedText>
               <ThemedText style={styles.scorePercentage}>
@@ -277,28 +286,28 @@ export default function QuizScreen() {
   const isCorrect = userAnswer === currentQuestion?.is_correct;
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { backgroundColor }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={28} color="#2563EB" />
         </Pressable>
         <View style={styles.headerContent}>
-          <ThemedText type="title" style={styles.title}>
+          <ThemedText type="title" style={[styles.title, { color: textColor }]}>
             {t(`quiz.categories.${batchId}.title`)}
           </ThemedText>
-          <ThemedText style={styles.questionCounter}>
+          <ThemedText style={[styles.questionCounter, { color: iconColor }]}>
             {t('quiz.questionOf', { current: currentQuestionIndex + 1, total: questions.length })}
           </ThemedText>
         </View>
       </View>
 
       {/* Progress Bar */}
-      <View style={styles.progressWrapper}>
-        <View style={styles.progressContainer}>
+      <View style={[styles.progressWrapper, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
+        <View style={[styles.progressContainer, { backgroundColor: borderColor }]}>
           <View style={[styles.progressBar, { width: `${progressPercent}%` }]} />
         </View>
-        <ThemedText style={styles.progressText}>
+        <ThemedText style={[styles.progressText, { color: iconColor }]}>
           {t('quiz.percentCompleted', { percent: Math.round(progressPercent) })}
         </ThemedText>
       </View>
@@ -310,23 +319,23 @@ export default function QuizScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Question Card */}
-        <View style={styles.questionCard}>
-          <View style={styles.questionHeader}>
+        <View style={[styles.questionCard, { backgroundColor: cardBackgroundColor }]}>
+          <View style={[styles.questionHeader, { borderBottomColor: borderColor }]}>
             <View style={styles.questionBadge}>
               <Ionicons name="help-circle" size={20} color="#2563EB" />
               <ThemedText style={styles.questionBadgeText}>{t('quiz.question')}</ThemedText>
             </View>
-            <Pressable onPress={handleSpeakQuestion} style={styles.speakButton}>
+            <Pressable onPress={handleSpeakQuestion} style={[styles.speakButton, { backgroundColor: secondaryBackgroundColor }]}>
               <Ionicons name="volume-high" size={24} color="#2563EB" />
             </Pressable>
           </View>
 
-          <ThemedText style={styles.questionText}>
+          <ThemedText style={[styles.questionText, { color: textColor }]}>
             {getTranslatedQuestion()}
           </ThemedText>
 
           {currentQuestion?.image_url && (
-            <View style={styles.imageContainer}>
+            <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
               <Image
                 source={{ uri: currentQuestion.image_url }}
                 style={styles.questionImage}
@@ -336,18 +345,18 @@ export default function QuizScreen() {
           )}
 
           {getSecondaryTranslation('text') && (
-            <View style={styles.secondaryLanguageCard}>
+            <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
               <View style={styles.secondaryHeader}>
-                <View style={styles.languageBadge}>
-                  <ThemedText style={styles.languageBadgeText}>
+                <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
+                  <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
                     {t(`user.language.${secondaryLanguage}`)}
                   </ThemedText>
                 </View>
-                <Pressable onPress={handleSpeakSecondaryQuestion} style={styles.speakButtonSmall}>
+                <Pressable onPress={handleSpeakSecondaryQuestion} style={[styles.speakButtonSmall, { backgroundColor: borderColor }]}>
                   <Ionicons name="volume-high" size={20} color="#6B7280" />
                 </Pressable>
               </View>
-              <ThemedText style={styles.secondaryText}>
+              <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
                 {getSecondaryTranslation('text')}
               </ThemedText>
             </View>
@@ -357,7 +366,7 @@ export default function QuizScreen() {
         {/* Answer Section */}
         {!hasAnswered ? (
           <View style={styles.answerSection}>
-            <ThemedText style={styles.answerPrompt}>
+            <ThemedText style={[styles.answerPrompt, { color: textColor }]}>
               {t('quiz.selectAnswer')}
             </ThemedText>
             <View style={styles.answerButtons}>
@@ -397,45 +406,45 @@ export default function QuizScreen() {
                   {isCorrect ? t('quiz.correctAnswer') : t('quiz.incorrectAnswer')}
                 </ThemedText>
               </View>
-              <ThemedText style={styles.userAnswerText}>
+              <ThemedText style={[styles.userAnswerText, { color: textColor }]}>
                 {t('quiz.yourAnswer', { answer: userAnswer ? t('quiz.true') : t('quiz.false') })}
               </ThemedText>
               {!isCorrect && (
-                <ThemedText style={styles.correctAnswerText}>
+                <ThemedText style={[styles.correctAnswerText, { color: iconColor }]}>
                   {t('quiz.correctAnswerIs', { answer: currentQuestion?.is_correct ? t('quiz.true') : t('quiz.false') })}
                 </ThemedText>
               )}
             </View>
 
             {/* Explanation Card */}
-            <View style={styles.explanationCard}>
-              <View style={styles.explanationHeader}>
+            <View style={[styles.explanationCard, { backgroundColor: cardBackgroundColor }]}>
+              <View style={[styles.explanationHeader, { borderBottomColor: borderColor }]}>
                 <View style={styles.explanationBadge}>
                   <Ionicons name="bulb" size={20} color="#F59E0B" />
                   <ThemedText style={styles.explanationBadgeText}>{t('quiz.explanation')}</ThemedText>
                 </View>
-                <Pressable onPress={handleSpeakExplanation} style={styles.speakButton}>
+                <Pressable onPress={handleSpeakExplanation} style={[styles.speakButton, { backgroundColor: secondaryBackgroundColor }]}>
                   <Ionicons name="volume-high" size={24} color="#F59E0B" />
                 </Pressable>
               </View>
 
-              <ThemedText style={styles.explanationText}>
+              <ThemedText style={[styles.explanationText, { color: textColor }]}>
                 {getTranslatedExplanation()}
               </ThemedText>
 
               {getSecondaryTranslation('explanation') && (
-                <View style={styles.secondaryLanguageCard}>
+                <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
                   <View style={styles.secondaryHeader}>
-                    <View style={styles.languageBadge}>
-                      <ThemedText style={styles.languageBadgeText}>
+                    <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
+                      <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
                         {t(`user.language.${secondaryLanguage}`)}
                       </ThemedText>
                     </View>
-                    <Pressable onPress={handleSpeakSecondaryExplanation} style={styles.speakButtonSmall}>
+                    <Pressable onPress={handleSpeakSecondaryExplanation} style={[styles.speakButtonSmall, { backgroundColor: borderColor }]}>
                       <Ionicons name="volume-high" size={20} color="#6B7280" />
                     </Pressable>
                   </View>
-                  <ThemedText style={styles.secondaryText}>
+                  <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
                     {getSecondaryTranslation('explanation')}
                   </ThemedText>
                 </View>
@@ -446,11 +455,12 @@ export default function QuizScreen() {
       </ScrollView>
 
       {/* Navigation Bar */}
-      <BlurView intensity={80} tint="light" style={styles.navigationBar}>
+      <BlurView intensity={80} tint="light" style={[styles.navigationBar, { backgroundColor: cardBackgroundColor + 'F0', borderTopColor: borderColor }]}>
         <View style={styles.navContent}>
           <Pressable
             style={[
               styles.navButton,
+              { backgroundColor: secondaryBackgroundColor },
               currentQuestionIndex === 0 && styles.navButtonDisabled
             ]}
             onPress={handlePrevious}
@@ -481,6 +491,7 @@ export default function QuizScreen() {
                     key={actualIndex}
                     style={[
                       styles.dot,
+                      { backgroundColor: borderColor },
                       isCurrentQuestion && styles.currentDot,
                       isAnswered && !isCurrentQuestion && styles.answeredDot
                     ]}
@@ -494,6 +505,7 @@ export default function QuizScreen() {
             style={[
               styles.navButton,
               styles.navButtonRight,
+              { backgroundColor: secondaryBackgroundColor },
               currentQuestionIndex === questions.length && styles.navButtonDisabled
             ]}
             onPress={handleNext}
@@ -520,7 +532,6 @@ export default function QuizScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
@@ -528,9 +539,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
   },
   backButton: {
     marginRight: 16,
@@ -542,24 +551,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1E293B',
     marginBottom: 4,
   },
   questionCounter: {
     fontSize: 14,
-    color: '#64748B',
     fontWeight: '500',
   },
   progressWrapper: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
   },
   progressContainer: {
     height: 6,
-    backgroundColor: '#E2E8F0',
     borderRadius: 3,
     marginBottom: 8,
   },
@@ -570,7 +574,6 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 12,
-    color: '#64748B',
     textAlign: 'center',
     fontWeight: '500',
   },
@@ -581,7 +584,6 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   questionCard: {
-    backgroundColor: '#FFFFFF',
     margin: 20,
     marginBottom: 16,
     borderRadius: 16,
@@ -599,7 +601,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
   },
   questionBadge: {
     flexDirection: 'row',
@@ -618,14 +619,12 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 18,
     lineHeight: 26,
-    color: '#1E293B',
     fontWeight: '500',
   },
   imageContainer: {
     marginTop: 20,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#F8FAFC',
   },
   questionImage: {
     width: '100%',
@@ -634,10 +633,8 @@ const styles = StyleSheet.create({
   secondaryLanguageCard: {
     marginTop: 16,
     padding: 16,
-    backgroundColor: '#F8FAFC',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
   },
   secondaryHeader: {
     flexDirection: 'row',
@@ -646,7 +643,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   languageBadge: {
-    backgroundColor: '#F1F5F9',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -654,22 +650,18 @@ const styles = StyleSheet.create({
   languageBadgeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#64748B',
   },
   secondaryText: {
     fontSize: 16,
     lineHeight: 22,
-    color: '#475569',
   },
   speakButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: '#F8FAFC',
   },
   speakButtonSmall: {
     padding: 6,
     borderRadius: 6,
-    backgroundColor: '#F1F5F9',
   },
   answerSection: {
     margin: 20,
@@ -678,7 +670,6 @@ const styles = StyleSheet.create({
   answerPrompt: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1E293B',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -745,16 +736,13 @@ const styles = StyleSheet.create({
   },
   userAnswerText: {
     fontSize: 16,
-    color: '#374151',
     marginBottom: 4,
   },
   correctAnswerText: {
     fontSize: 16,
-    color: '#6B7280',
     fontStyle: 'italic',
   },
   explanationCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
     shadowColor: '#000',
@@ -770,7 +758,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
   },
   explanationBadge: {
     flexDirection: 'row',
@@ -789,7 +776,6 @@ const styles = StyleSheet.create({
   explanationText: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#374151',
   },
   navigationBar: {
     position: 'absolute',
@@ -799,9 +785,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingBottom: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
   },
   navContent: {
     flexDirection: 'row',
@@ -814,7 +798,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#F8FAFC',
     gap: 6,
   },
   navButtonRight: {
@@ -844,7 +827,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#E2E8F0',
   },
   currentDot: {
     backgroundColor: '#2563EB',
@@ -871,7 +853,6 @@ const styles = StyleSheet.create({
   resultsTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1E293B',
     marginTop: 16,
     textAlign: 'center',
   },
@@ -880,16 +861,13 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     paddingHorizontal: 20,
     paddingVertical: 24,
-    backgroundColor: '#F8FAFC',
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#E2E8F0',
     minWidth: 200,
   },
   scoreText: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#374151',
     marginBottom: 8,
     textAlign: 'center',
   },
