@@ -424,39 +424,41 @@ export default function QuizScreen() {
             </View>
 
             {/* Explanation Card */}
-            <View style={[styles.explanationCard, { backgroundColor: cardBackgroundColor }]}>
-              <View style={[styles.explanationHeader, { borderBottomColor: borderColor }]}>
-                <View style={styles.explanationBadge}>
-                  <Ionicons name="bulb" size={20} color="#F59E0B" />
-                  <ThemedText style={styles.explanationBadgeText}>{t('quiz.explanation')}</ThemedText>
-                </View>
-                <Pressable onPress={handleSpeakExplanation} style={[styles.speakButton, { backgroundColor: secondaryBackgroundColor }]}>
-                  <Ionicons name="volume-high" size={24} color="#F59E0B" />
-                </Pressable>
-              </View>
-
-              <ThemedText style={[styles.explanationText, { color: textColor }]}>
-                {getTranslatedExplanation()}
-              </ThemedText>
-
-              {getSecondaryTranslation('explanation') && (
-                <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
-                  <View style={styles.secondaryHeader}>
-                    <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
-                      <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
-                        {t(`user.language.${secondaryLanguage}`)}
-                      </ThemedText>
-                    </View>
-                    <Pressable onPress={handleSpeakSecondaryExplanation} style={[styles.speakButtonSmall, { backgroundColor: borderColor }]}>
-                      <Ionicons name="volume-high" size={20} color="#6B7280" />
-                    </Pressable>
+            {getTranslatedExplanation() && (
+              <View style={[styles.explanationCard, { backgroundColor: cardBackgroundColor }]}>
+                <View style={[styles.explanationHeader, { borderBottomColor: borderColor }]}>
+                  <View style={styles.explanationBadge}>
+                    <Ionicons name="bulb" size={20} color="#F59E0B" />
+                    <ThemedText style={styles.explanationBadgeText}>{t('quiz.explanation')}</ThemedText>
                   </View>
-                  <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
-                    {getSecondaryTranslation('explanation')}
-                  </ThemedText>
+                  <Pressable onPress={handleSpeakExplanation} style={[styles.speakButton, { backgroundColor: secondaryBackgroundColor }]}>
+                    <Ionicons name="volume-high" size={24} color="#F59E0B" />
+                  </Pressable>
                 </View>
-              )}
-            </View>
+
+                <ThemedText style={[styles.explanationText, { color: textColor }]}>
+                  {getTranslatedExplanation()}
+                </ThemedText>
+
+                {getSecondaryTranslation('explanation') && (
+                  <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
+                    <View style={styles.secondaryHeader}>
+                      <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
+                        <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
+                          {t(`user.language.${secondaryLanguage}`)}
+                        </ThemedText>
+                      </View>
+                      <Pressable onPress={handleSpeakSecondaryExplanation} style={[styles.speakButtonSmall, { backgroundColor: borderColor }]}>
+                        <Ionicons name="volume-high" size={20} color="#6B7280" />
+                      </Pressable>
+                    </View>
+                    <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
+                      {getSecondaryTranslation('explanation')}
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
