@@ -147,11 +147,11 @@
         "passwordLength": "Password must be at least 6 characters",
         "unexpected": "An unexpected error occurred"
       }
-    },
-    "premium": {
-      "required": "Premium",
-      "upgrade": "Upgrade to Premium",
-      "unlockAll": "Unlock all categories"
     }
+  },
+  "premium": {
+    "required": "Premium",
+    "upgrade": "Upgrade to Premium",
+    "unlockAll": "Unlock all categories"
   }
 }
