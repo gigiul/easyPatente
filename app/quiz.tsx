@@ -39,6 +39,10 @@ export default function QuizScreen() {
   const cardBackgroundColor = useThemeColor({ light: '#FFFFFF', dark: '#1F2937' }, 'background');
   const borderColor = useThemeColor({ light: '#E2E8F0', dark: '#374151' }, 'icon');
   const secondaryBackgroundColor = useThemeColor({ light: '#F8FAFC', dark: '#111827' }, 'background');
+  
+  // Answer result colors
+  const correctCardColor = useThemeColor({ light: '#ECFDF5', dark: '#065F46' }, 'background');
+  const incorrectCardColor = useThemeColor({ light: '#FEF2F2', dark: '#991B1B' }, 'background');
 
   const getTranslatedQuestion = () => {
     return currentQuestion?.translation?.text || '';
@@ -398,7 +402,10 @@ export default function QuizScreen() {
             {/* User Answer Display */}
             <View style={[
               styles.answerResultCard,
-              isCorrect ? styles.correctCard : styles.incorrectCard
+              {
+                backgroundColor: isCorrect ? correctCardColor : incorrectCardColor,
+                borderColor: isCorrect ? '#10B981' : '#EF4444'
+              }
             ]}>
               <View style={styles.answerResultHeader}>
                 <Ionicons
@@ -724,14 +731,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     borderWidth: 2,
-  },
-  correctCard: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#10B981',
-  },
-  incorrectCard: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#EF4444',
   },
   answerResultHeader: {
     flexDirection: 'row',
