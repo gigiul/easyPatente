@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'easyPatente',
   slug: 'easyPatente',
-  version: '1.0.0',
+  version: '1.0.1',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
   scheme: 'easypatente',
@@ -48,7 +48,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     eas: {
       projectId: 'f14f10d2-5092-4112-8da1-7fdbadd07ae4',
     },
-    supabaseUrl: process.env.SUPABASE_URL ?? '',
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY ?? '',
+    // Serve solo a rendere disponibili i valori in fase di build/config.
+    // Il client Supabase vero e proprio legge da `lib/supabase.ts`.
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? '',
+    supabaseAnonKey:
+      process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+      process.env.SUPABASE_PUBLISHABLE_KEY ??
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
+      process.env.SUPABASE_ANON_KEY ??
+      '',
   },
 });
