@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuizBatches } from '@/hooks/useQuizBatches';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -14,8 +15,15 @@ export default function QuizBatchScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const userId = session?.user?.id || '';
-  const { batches, loading } = useQuizBatches(String(categoryId), userId);
-  
+  const { batches, loading, refresh } = useQuizBatches(String(categoryId), userId);
+
+  // Re-fetch every time the screen comes into focus (e.g. returning from quiz)
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
   const cardBackgroundColor = useThemeColor({}, 'background');
   const borderColor = useThemeColor({}, 'icon');
   const iconColor = useThemeColor({}, 'icon');
@@ -40,7 +48,7 @@ export default function QuizBatchScreen() {
               key={batch.id}
               style={[
                 styles.batchCard,
-                { 
+                {
                   backgroundColor: cardBackgroundColor,
                   borderWidth: 1,
                   borderColor: borderColor,
