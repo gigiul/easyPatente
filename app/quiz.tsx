@@ -4,7 +4,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -40,18 +47,13 @@ export default function QuizScreen() {
   const cardBackgroundColor = useThemeColor({ light: '#FFFFFF', dark: '#1F2937' }, 'background');
   const borderColor = useThemeColor({ light: '#E2E8F0', dark: '#374151' }, 'icon');
   const secondaryBackgroundColor = useThemeColor({ light: '#F8FAFC', dark: '#111827' }, 'background');
-  
+
   // Answer result colors
   const correctCardColor = useThemeColor({ light: '#ECFDF5', dark: '#065F46' }, 'background');
   const incorrectCardColor = useThemeColor({ light: '#FEF2F2', dark: '#991B1B' }, 'background');
 
-  const getTranslatedQuestion = () => {
-    return currentQuestion?.translation?.text || '';
-  };
-
-  const getTranslatedExplanation = () => {
-    return currentQuestion?.translation?.explanation || '';
-  };
+  const getTranslatedQuestion = () => currentQuestion?.translation?.text || '';
+  const getTranslatedExplanation = () => currentQuestion?.translation?.explanation || '';
 
   // Reset state quando cambia il batchId
   useEffect(() => {
@@ -61,13 +63,11 @@ export default function QuizScreen() {
     setIsResetting(false);
   }, [batchId]);
 
-  // Popola answers da quizProgress se presente (solo se non stiamo resettando)
+  // Popola answers da quizProgress se presente
   useEffect(() => {
     if (!isResetting && quizProgress && quizProgress.length > 0 && Object.keys(answers).length === 0) {
-      // Controllo aggiuntivo: se il progresso è un reset recente, ignoralo
       const progressAnswers = quizProgress[0]?.answers || {};
       const hasNoAnswers = Object.keys(progressAnswers).length === 0;
-      
       if (!hasNoAnswers) {
         setAnswers(progressAnswers);
         if (quizProgress[0]?.current_question) {
@@ -80,28 +80,20 @@ export default function QuizScreen() {
     }
   }, [quizProgress, answers, isResetting]);
 
-  // Aggiorna Supabase quando l'utente risponde
   const handleAnswer = async (answer: boolean) => {
     const questionId = currentQuestion?.id;
     const updatedAnswers = { ...answers, [questionId]: answer };
     setAnswers(updatedAnswers);
-
     await updateQuizProgression(userId, String(batchId), updatedAnswers, currentQuestionIndex + 1, false);
   };
 
-  // Aggiorna Supabase quando il quiz è completato
   const handleNext = async () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex + 2, false);
     } else {
-      // Quiz completato
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-      
-      // Prima aggiorna il database con tutte le risposte
       await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex + 1, true);
-      
-      // Poi imposta il quiz come completato per aggiornare l'UI
       setQuizCompleted(true);
     }
   };
@@ -110,113 +102,81 @@ export default function QuizScreen() {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
       await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex, false);
-
       if (currentQuestionIndex <= questions.length) {
         setQuizCompleted(false);
       }
     }
   };
 
-  const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
-
   const handleReset = async () => {
     setIsResetting(true);
-    
-    // Prima resettiamo lo stato locale
     setCurrentQuestionIndex(0);
     setQuizCompleted(false);
     setAnswers({});
-    
-    // Poi aggiorniamo il database
     await updateQuizProgression(userId, String(batchId), {}, 1, false);
-    
-    // Forziamo il refresh del progresso
     refreshProgression();
-    
-    // Attendiamo un po' di più per assicurarci che tutto sia sincronizzato
-    setTimeout(() => {
-      setIsResetting(false);
-    }, 500);
+    setTimeout(() => setIsResetting(false), 500);
   };
 
-  const getSecondaryTranslation = (type: 'text' | 'explanation') => {
-    return currentQuestion?.secondaryTranslation?.[type] || null;
-  };
+  const getSecondaryTranslation = (type: 'text' | 'explanation') =>
+    currentQuestion?.secondaryTranslation?.[type] || null;
 
   const speakText = async (text: string, language: string) => {
     try {
       await Speech.stop();
-      // Use es-MX for Spanish to get Latin American accent
       const ttsLanguage = language === 'es' ? 'es-MX' : language;
-      Speech.speak(text, {
-        language: ttsLanguage,
-        pitch: 1.0,
-        rate: 0.9,
-      });
+      Speech.speak(text, { language: ttsLanguage, pitch: 1.0, rate: 0.9, volume: 1.0 });
     } catch (error) {
       console.error('Error speaking text:', error);
     }
   };
 
-  const handleSpeakQuestion = () => {
-    const questionText = getTranslatedQuestion();
-    speakText(questionText, i18n.language);
-  };
-
+  const handleSpeakQuestion = () => speakText(getTranslatedQuestion(), i18n.language);
   const handleSpeakSecondaryQuestion = () => {
     const secondaryText = getSecondaryTranslation('text');
-    if (secondaryText && secondaryLanguage) {
-      speakText(secondaryText, secondaryLanguage);
-    }
+    if (secondaryText && secondaryLanguage) speakText(secondaryText, secondaryLanguage);
   };
-
-  const handleSpeakExplanation = () => {
-    const explanationText = getTranslatedExplanation();
-    speakText(explanationText, i18n.language);
-  };
-
+  const handleSpeakExplanation = () => speakText(getTranslatedExplanation(), i18n.language);
   const handleSpeakSecondaryExplanation = () => {
     const secondaryText = getSecondaryTranslation('explanation');
-    if (secondaryText && secondaryLanguage) {
-      speakText(secondaryText, secondaryLanguage);
-    }
+    if (secondaryText && secondaryLanguage) speakText(secondaryText, secondaryLanguage);
   };
 
-  // Show loading indicator while progress is loading
+  const progressPercent = questions.length > 0
+    ? ((currentQuestionIndex + 1) / questions.length) * 100
+    : 0;
+
   if (progressLoading) {
     return (
       <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" color="#007AFF" style={{ flex: 1, justifyContent: 'center' }} />
+        <ActivityIndicator size="large" color="#2563EB" style={{ flex: 1 }} />
       </ThemedView>
     );
   }
 
+  // ─── RESULTS SCREEN ────────────────────────────────────────────
   if (quizCompleted) {
     return (
       <ThemedView style={[styles.container, { backgroundColor }]}>
-        {/* Header */}
+        {/* Compact Header */}
         <View style={[styles.header, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={28} color="#2563EB" />
+            <Ionicons name="arrow-back" size={24} color="#2563EB" />
           </Pressable>
-          <View style={styles.headerContent}>
-            <ThemedText type="title" style={[styles.title, { color: textColor }]}>
+          <View style={{ flex: 1 }}>
+            <ThemedText style={[styles.headerTitle, { color: textColor }]}>
               {String(t(`quiz.batches.${batchTitle}`, batchTitle))}
             </ThemedText>
-            <ThemedText style={[styles.questionCounter, { color: iconColor }]}>
+            <ThemedText style={[styles.headerSubtitle, { color: iconColor }]}>
               {t('quiz.completed')}
             </ThemedText>
           </View>
-        </View>
-
-        {/* Progress Bar - Completed */}
-        <View style={[styles.progressWrapper, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
-          <View style={[styles.progressContainer, { backgroundColor: borderColor }]}>
-            <View style={[styles.progressBar, { width: '100%' }]} />
+          {/* Full progress bar */}
+          <View style={styles.headerProgressWrapper}>
+            <View style={[styles.headerProgressTrack, { backgroundColor: borderColor }]}>
+              <View style={[styles.headerProgressFill, { width: '100%' }]} />
+            </View>
           </View>
-          <ThemedText style={[styles.progressText, { color: iconColor }]}>
-            {t('quiz.percentCompleted', { percent: 100 })}
-          </ThemedText>
         </View>
 
         {/* Results Content */}
@@ -227,10 +187,9 @@ export default function QuizScreen() {
         >
           <View style={[styles.questionCard, styles.resultsCard, { backgroundColor: cardBackgroundColor }]}>
             <View style={styles.resultsHeader}>
-              <Ionicons name="trophy" size={48} color="#F59E0B" />
+              <Ionicons name="trophy" size={56} color="#F59E0B" />
               <ThemedText style={[styles.resultsTitle, { color: textColor }]}>{t('quiz.completed')}</ThemedText>
             </View>
-
             <View style={[styles.scoreContainer, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
               <ThemedText style={[styles.scoreText, { color: textColor }]}>
                 {t('quiz.score', { score, total: questions.length })}
@@ -239,51 +198,31 @@ export default function QuizScreen() {
                 {Math.round((score / questions.length) * 100)}%
               </ThemedText>
             </View>
-
             <View style={styles.restartContainer}>
-              <ThemedButton
-                title={t('quiz.restart')}
-                onPress={handleReset}
-              />
+              <ThemedButton title={t('quiz.restart')} onPress={handleReset} />
             </View>
           </View>
         </ScrollView>
 
-        {/* Navigation Bar  */}
-        <BlurView intensity={80} tint="light" style={styles.navigationBar}>
+        {/* Bottom Nav */}
+        <BlurView intensity={80} tint="light" style={[styles.navigationBar, { borderTopColor: borderColor }]}>
           <View style={styles.navContent}>
             <Pressable
-              style={[
-                styles.navButton,
-                currentQuestionIndex === 0 && styles.navButtonDisabled
-              ]}
+              style={[styles.navButton, currentQuestionIndex === 0 && styles.navButtonDisabled]}
               onPress={handlePrevious}
               disabled={currentQuestionIndex === 0}
             >
-              <Ionicons
-                name="chevron-back"
-                size={24}
-                color={currentQuestionIndex === 0 ? "#9CA3AF" : "#2563EB"}
-              />
-              <ThemedText style={[
-                styles.navButtonText,
-                currentQuestionIndex === 0 && styles.navButtonTextDisabled
-              ]}>
+              <Ionicons name="chevron-back" size={20} color={currentQuestionIndex === 0 ? '#9CA3AF' : '#2563EB'} />
+              <ThemedText style={[styles.navButtonText, currentQuestionIndex === 0 && styles.navButtonTextDisabled]}>
                 {t('quiz.previous')}
               </ThemedText>
             </Pressable>
-
-            <View style={styles.navCenter}>
-            </View>
-
-            <Pressable
-              style={styles.navButton}
-              onPress={handleReset}
-            >
-              <ThemedText style={styles.navButtonText}>
-                {t('quiz.restart')}
-              </ThemedText>
-              <Ionicons name="refresh" size={24} color="#2563EB" />
+            <ThemedText style={[styles.questionIndicator, { color: iconColor }]}>
+              {questions.length} / {questions.length}
+            </ThemedText>
+            <Pressable style={styles.navButton} onPress={handleReset}>
+              <ThemedText style={styles.navButtonText}>{t('quiz.restart')}</ThemedText>
+              <Ionicons name="refresh" size={20} color="#2563EB" />
             </Pressable>
           </View>
         </BlurView>
@@ -291,38 +230,35 @@ export default function QuizScreen() {
     );
   }
 
+  // ─── MAIN QUIZ SCREEN ───────────────────────────────────────────
   const hasAnswered = typeof answers[currentQuestion?.id] !== 'undefined';
   const userAnswer = answers[currentQuestion?.id];
   const isCorrect = userAnswer === currentQuestion?.is_correct;
 
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
-      {/* Header */}
+
+      {/* ── Compact Header with integrated progress bar ── */}
       <View style={[styles.header, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={28} color="#2563EB" />
+          <Ionicons name="arrow-back" size={24} color="#2563EB" />
         </Pressable>
-        <View style={styles.headerContent}>
-          <ThemedText type="title" style={[styles.title, { color: textColor }]}>
+        <View style={{ flex: 1 }}>
+          <ThemedText style={[styles.headerTitle, { color: textColor }]} numberOfLines={1}>
             {String(t(`quiz.batches.${batchTitle}`, batchTitle))}
           </ThemedText>
-          <ThemedText style={[styles.questionCounter, { color: iconColor }]}>
-            {t('quiz.questionOf', { current: currentQuestionIndex + 1, total: questions.length })}
-          </ThemedText>
+          <View style={styles.headerProgressRow}>
+            <View style={[styles.headerProgressTrack, { backgroundColor: borderColor }]}>
+              <View style={[styles.headerProgressFill, { width: `${progressPercent}%` }]} />
+            </View>
+            <ThemedText style={[styles.headerProgressLabel, { color: iconColor }]}>
+              {currentQuestionIndex + 1}/{questions.length}
+            </ThemedText>
+          </View>
         </View>
       </View>
 
-      {/* Progress Bar */}
-      <View style={[styles.progressWrapper, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
-        <View style={[styles.progressContainer, { backgroundColor: borderColor }]}>
-          <View style={[styles.progressBar, { width: `${progressPercent}%` }]} />
-        </View>
-        <ThemedText style={[styles.progressText, { color: iconColor }]}>
-          {t('quiz.percentCompleted', { percent: Math.round(progressPercent) })}
-        </ThemedText>
-      </View>
-
-      {/* Main Content */}
+      {/* ── Scrollable Question Content ── */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -330,13 +266,13 @@ export default function QuizScreen() {
       >
         {/* Question Card */}
         <View style={[styles.questionCard, { backgroundColor: cardBackgroundColor }]}>
-          <View style={[styles.questionHeader, { borderBottomColor: borderColor }]}>
+          <View style={styles.questionBadgeRow}>
             <View style={styles.questionBadge}>
-              <Ionicons name="help-circle" size={20} color="#2563EB" />
+              <Ionicons name="help-circle" size={16} color="#2563EB" />
               <ThemedText style={styles.questionBadgeText}>{t('quiz.question')}</ThemedText>
             </View>
-            <Pressable onPress={handleSpeakQuestion} style={[styles.speakButton, { backgroundColor: secondaryBackgroundColor }]}>
-              <Ionicons name="volume-high" size={24} color="#2563EB" />
+            <Pressable onPress={handleSpeakQuestion} style={[styles.speakButtonSmall, { backgroundColor: secondaryBackgroundColor }]}>
+              <Ionicons name="volume-high" size={20} color="#2563EB" />
             </Pressable>
           </View>
 
@@ -363,7 +299,7 @@ export default function QuizScreen() {
                   </ThemedText>
                 </View>
                 <Pressable onPress={handleSpeakSecondaryQuestion} style={[styles.speakButtonSmall, { backgroundColor: borderColor }]}>
-                  <Ionicons name="volume-high" size={20} color="#6B7280" />
+                  <Ionicons name="volume-high" size={18} color="#6B7280" />
                 </Pressable>
               </View>
               <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
@@ -373,49 +309,23 @@ export default function QuizScreen() {
           )}
         </View>
 
-        {/* Answer Section */}
-        {!hasAnswered ? (
-          <View style={styles.answerSection}>
-            <ThemedText style={[styles.answerPrompt, { color: textColor }]}>
-              {t('quiz.selectAnswer')}
-            </ThemedText>
-            <View style={styles.answerButtons}>
-              <Pressable
-                style={[styles.answerButton, styles.trueButton]}
-                onPress={() => handleAnswer(true)}
-              >
-                <Ionicons name="checkmark-circle" size={32} color="#059669" />
-                <ThemedText style={styles.answerButtonText}>{t('quiz.true')}</ThemedText>
-              </Pressable>
-              <Pressable
-                style={[styles.answerButton, styles.falseButton]}
-                onPress={() => handleAnswer(false)}
-              >
-                <Ionicons name="close-circle" size={32} color="#DC2626" />
-                <ThemedText style={styles.answerButtonText}>{t('quiz.false')}</ThemedText>
-              </Pressable>
-            </View>
-          </View>
-        ) : (
+        {/* Answer Result + Explanation (shown after answering) */}
+        {hasAnswered && (
           <View style={styles.answeredSection}>
-            {/* User Answer Display */}
             <View style={[
               styles.answerResultCard,
               {
                 backgroundColor: isCorrect ? correctCardColor : incorrectCardColor,
-                borderColor: isCorrect ? '#10B981' : '#EF4444'
+                borderColor: isCorrect ? '#10B981' : '#EF4444',
               }
             ]}>
               <View style={styles.answerResultHeader}>
                 <Ionicons
-                  name={isCorrect ? "checkmark-circle" : "close-circle"}
-                  size={28}
-                  color={isCorrect ? "#059669" : "#DC2626"}
+                  name={isCorrect ? 'checkmark-circle' : 'close-circle'}
+                  size={26}
+                  color={isCorrect ? '#059669' : '#DC2626'}
                 />
-                <ThemedText style={[
-                  styles.answerResultText,
-                  { color: isCorrect ? "#059669" : "#DC2626" }
-                ]}>
+                <ThemedText style={[styles.answerResultText, { color: isCorrect ? '#059669' : '#DC2626' }]}>
                   {isCorrect ? t('quiz.correctAnswer') : t('quiz.incorrectAnswer')}
                 </ThemedText>
               </View>
@@ -429,23 +339,20 @@ export default function QuizScreen() {
               )}
             </View>
 
-            {/* Explanation Card */}
             {getTranslatedExplanation() && (
               <View style={[styles.explanationCard, { backgroundColor: cardBackgroundColor }]}>
                 <View style={[styles.explanationHeader, { borderBottomColor: borderColor }]}>
                   <View style={styles.explanationBadge}>
-                    <Ionicons name="bulb" size={20} color="#F59E0B" />
+                    <Ionicons name="bulb" size={16} color="#F59E0B" />
                     <ThemedText style={styles.explanationBadgeText}>{t('quiz.explanation')}</ThemedText>
                   </View>
-                  <Pressable onPress={handleSpeakExplanation} style={[styles.speakButton, { backgroundColor: secondaryBackgroundColor }]}>
-                    <Ionicons name="volume-high" size={24} color="#F59E0B" />
+                  <Pressable onPress={handleSpeakExplanation} style={[styles.speakButtonSmall, { backgroundColor: secondaryBackgroundColor }]}>
+                    <Ionicons name="volume-high" size={18} color="#F59E0B" />
                   </Pressable>
                 </View>
-
                 <ThemedText style={[styles.explanationText, { color: textColor }]}>
                   {getTranslatedExplanation()}
                 </ThemedText>
-
                 {getSecondaryTranslation('explanation') && (
                   <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
                     <View style={styles.secondaryHeader}>
@@ -455,7 +362,7 @@ export default function QuizScreen() {
                         </ThemedText>
                       </View>
                       <Pressable onPress={handleSpeakSecondaryExplanation} style={[styles.speakButtonSmall, { backgroundColor: borderColor }]}>
-                        <Ionicons name="volume-high" size={20} color="#6B7280" />
+                        <Ionicons name="volume-high" size={18} color="#6B7280" />
                       </Pressable>
                     </View>
                     <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
@@ -469,57 +376,74 @@ export default function QuizScreen() {
         )}
       </ScrollView>
 
-      {/* Navigation Bar */}
-      <BlurView intensity={80} tint="light" style={[styles.navigationBar, { backgroundColor: cardBackgroundColor + 'F0', borderTopColor: borderColor }]}>
+      {/* ── STICKY Answer Buttons (always visible, above nav bar) ── */}
+      {!hasAnswered && (
+        <View style={[styles.stickyAnswerBar, { backgroundColor: cardBackgroundColor, borderTopColor: borderColor }]}>
+          <ThemedText style={[styles.answerPrompt, { color: iconColor }]}>
+            {t('quiz.selectAnswer')}
+          </ThemedText>
+          <View style={styles.answerButtons}>
+            {/* FALSE button */}
+            <Pressable
+              style={({ pressed }) => [styles.answerButton, styles.falseButton, pressed && styles.answerButtonPressed]}
+              onPress={() => handleAnswer(false)}
+            >
+              <Ionicons name="close-circle" size={36} color="#DC2626" />
+              <ThemedText style={[styles.answerButtonText, { color: '#DC2626' }]}>{t('quiz.false')}</ThemedText>
+            </Pressable>
+            {/* TRUE button */}
+            <Pressable
+              style={({ pressed }) => [styles.answerButton, styles.trueButton, pressed && styles.answerButtonPressed]}
+              onPress={() => handleAnswer(true)}
+            >
+              <Ionicons name="checkmark-circle" size={36} color="#059669" />
+              <ThemedText style={[styles.answerButtonText, { color: '#059669' }]}>{t('quiz.true')}</ThemedText>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      {/* ── Bottom Navigation Bar ── */}
+      <BlurView
+        intensity={80}
+        tint="light"
+        style={[styles.navigationBar, { borderTopColor: borderColor }]}
+      >
         <View style={styles.navContent}>
           <Pressable
-            style={[
-              styles.navButton,
-              { backgroundColor: secondaryBackgroundColor },
-              currentQuestionIndex === 0 && styles.navButtonDisabled
-            ]}
+            style={[styles.navButton, currentQuestionIndex === 0 && styles.navButtonDisabled]}
             onPress={handlePrevious}
             disabled={currentQuestionIndex === 0}
           >
-            <Ionicons
-              name="chevron-back"
-              size={24}
-              color={currentQuestionIndex === 0 ? "#9CA3AF" : "#2563EB"}
-            />
-            <ThemedText style={[
-              styles.navButtonText,
-              currentQuestionIndex === 0 && styles.navButtonTextDisabled
-            ]}>
+            <Ionicons name="chevron-back" size={20} color={currentQuestionIndex === 0 ? '#9CA3AF' : '#2563EB'} />
+            <ThemedText style={[styles.navButtonText, currentQuestionIndex === 0 && styles.navButtonTextDisabled]}>
               {t('quiz.previous')}
             </ThemedText>
           </Pressable>
 
-          <View style={styles.navCenter}>
-            <ThemedText style={[styles.questionIndicator, { color: iconColor }]}>
-              {currentQuestionIndex + 1} / {questions.length}
-            </ThemedText>
-          </View>
+          <ThemedText style={[styles.questionIndicator, { color: iconColor }]}>
+            {currentQuestionIndex + 1} / {questions.length}
+          </ThemedText>
 
           <Pressable
             style={[
               styles.navButton,
               styles.navButtonRight,
-              { backgroundColor: secondaryBackgroundColor },
-              currentQuestionIndex === questions.length && styles.navButtonDisabled
+              currentQuestionIndex === questions.length && styles.navButtonDisabled,
             ]}
             onPress={handleNext}
             disabled={currentQuestionIndex === questions.length}
           >
             <ThemedText style={[
               styles.navButtonText,
-              currentQuestionIndex === questions.length && styles.navButtonTextDisabled
+              currentQuestionIndex === questions.length && styles.navButtonTextDisabled,
             ]}>
               {hasAnswered ? t('quiz.nextQuestion') : t('quiz.skipQuestion')}
             </ThemedText>
             <Ionicons
               name="chevron-forward"
-              size={24}
-              color={currentQuestionIndex === questions.length ? "#9CA3AF" : "#2563EB"}
+              size={20}
+              color={currentQuestionIndex === questions.length ? '#9CA3AF' : '#2563EB'}
             />
           </Pressable>
         </View>
@@ -532,106 +456,118 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+
+  // ── Header ──
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
+    paddingTop: 56,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
+    gap: 10,
   },
   backButton: {
-    marginRight: 16,
-    padding: 8,
+    padding: 6,
+    borderRadius: 8,
   },
-  headerContent: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 22,
+  headerTitle: {
+    fontSize: 17,
     fontWeight: '700',
     marginBottom: 4,
   },
-  questionCounter: {
-    fontSize: 14,
+  headerSubtitle: {
+    fontSize: 13,
     fontWeight: '500',
   },
-  progressWrapper: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
+  headerProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  progressContainer: {
-    height: 6,
+  headerProgressWrapper: {
+    // For results screen (full width inside header column)
+    marginTop: 4,
+  },
+  headerProgressTrack: {
+    flex: 1,
+    height: 5,
     borderRadius: 3,
-    marginBottom: 8,
   },
-  progressBar: {
+  headerProgressFill: {
     height: '100%',
     backgroundColor: '#2563EB',
     borderRadius: 3,
   },
-  progressText: {
+  headerProgressLabel: {
     fontSize: 12,
-    textAlign: 'center',
-    fontWeight: '500',
+    fontWeight: '600',
+    minWidth: 36,
+    textAlign: 'right',
   },
+  speakButtonHeader: {
+    padding: 8,
+    borderRadius: 10,
+  },
+
+  // ── Scroll Content ──
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 120,
+    padding: 16,
+    paddingBottom: 20,
   },
+
+  // ── Question Card ──
   questionCard: {
-    margin: 20,
-    marginBottom: 16,
     borderRadius: 16,
-    padding: 20,
+    padding: 18,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  questionHeader: {
+  questionBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
+    marginBottom: 14,
   },
   questionBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#EFF6FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 20,
-    gap: 6,
+    gap: 5,
+    alignSelf: 'flex-start',
   },
   questionBadgeText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#2563EB',
   },
   questionText: {
     fontSize: 18,
-    lineHeight: 26,
+    lineHeight: 27,
     fontWeight: '500',
   },
   imageContainer: {
-    marginTop: 20,
+    marginTop: 16,
     borderRadius: 12,
     overflow: 'hidden',
   },
   questionImage: {
     width: '100%',
-    height: 200,
+    height: 180,
   },
   secondaryLanguageCard: {
-    marginTop: 16,
-    padding: 16,
+    marginTop: 14,
+    padding: 14,
     borderRadius: 12,
     borderWidth: 1,
   },
@@ -639,143 +575,148 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   languageBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: 3,
+    borderRadius: 10,
   },
   languageBadgeText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   secondaryText: {
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  speakButton: {
-    padding: 8,
-    borderRadius: 8,
+    fontSize: 15,
+    lineHeight: 21,
   },
   speakButtonSmall: {
-    padding: 6,
-    borderRadius: 6,
+    padding: 5,
+    borderRadius: 8,
   },
-  answerSection: {
-    margin: 20,
-    marginTop: 0,
-  },
-  answerPrompt: {
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  answerButtons: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  answerButton: {
-    flex: 1,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  trueButton: {
-    backgroundColor: '#ECFDF5',
-    borderWidth: 2,
-    borderColor: '#A7F3D0',
-  },
-  falseButton: {
-    backgroundColor: '#FEF2F2',
-    borderWidth: 2,
-    borderColor: '#FECACA',
-  },
-  answerButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#374151',
-  },
+
+  // ── Answered Section ──
   answeredSection: {
-    margin: 20,
-    marginTop: 0,
-    gap: 16,
+    gap: 14,
+    marginBottom: 8,
   },
   answerResultCard: {
-    padding: 20,
+    padding: 16,
     borderRadius: 16,
     borderWidth: 2,
   },
   answerResultHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
+    gap: 10,
+    marginBottom: 8,
   },
   answerResultText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
   },
   userAnswerText: {
-    fontSize: 16,
-    marginBottom: 4,
+    fontSize: 15,
+    marginBottom: 2,
   },
   correctAnswerText: {
-    fontSize: 16,
+    fontSize: 15,
     fontStyle: 'italic',
   },
   explanationCard: {
     borderRadius: 16,
-    padding: 20,
+    padding: 18,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   explanationHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
-    paddingBottom: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
+    marginBottom: 14,
   },
   explanationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFBEB',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 20,
-    gap: 6,
+    gap: 5,
   },
   explanationBadgeText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#F59E0B',
   },
   explanationText: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 15,
+    lineHeight: 23,
   },
-  navigationBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
+
+  // ── Sticky Answer Bar ──
+  stickyAnswerBar: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    borderTopWidth: 1,
+  },
+  answerPrompt: {
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  answerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  answerButton: {
+    flex: 1,
     paddingVertical: 16,
-    paddingBottom: 32,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  answerButtonPressed: {
+    opacity: 0.75,
+    transform: [{ scale: 0.97 }],
+  },
+  trueButton: {
+    backgroundColor: '#F0FDF4',
+    borderWidth: 2.5,
+    borderColor: '#86EFAC',
+  },
+  falseButton: {
+    backgroundColor: '#FFF1F2',
+    borderWidth: 2.5,
+    borderColor: '#FECDD3',
+  },
+  answerButtonText: {
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+
+  // ── Bottom Navigation ──
+  navigationBar: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingBottom: 28,
     borderTopWidth: 1,
   },
   navContent: {
@@ -786,58 +727,32 @@ const styles = StyleSheet.create({
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 4,
   },
   navButtonRight: {
     flexDirection: 'row-reverse',
   },
   navButtonDisabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   navButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#2563EB',
   },
   navButtonTextDisabled: {
     color: '#9CA3AF',
   },
-  navCenter: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 20,
-  },
-  questionDots: {
-    flexDirection: 'row',
-    gap: 8,
-  },
   questionIndicator: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     textAlign: 'center',
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  currentDot: {
-    backgroundColor: '#2563EB',
-    width: 12,
-    height: 8,
-    borderRadius: 4,
-  },
-  answeredDot: {
-    backgroundColor: '#10B981',
-  },
-  score: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
+
+  // ── Results Screen ──
   resultsCard: {
     alignItems: 'center',
     paddingVertical: 40,
@@ -847,7 +762,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   resultsTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
     marginTop: 16,
     textAlign: 'center',
@@ -855,20 +770,20 @@ const styles = StyleSheet.create({
   scoreContainer: {
     alignItems: 'center',
     marginBottom: 32,
-    paddingHorizontal: 20,
+    paddingHorizontal: 32,
     paddingVertical: 24,
     borderRadius: 16,
     borderWidth: 2,
     minWidth: 200,
   },
   scoreText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
     textAlign: 'center',
   },
   scorePercentage: {
-    fontSize: 32,
+    fontSize: 40,
     fontWeight: '800',
     color: '#2563EB',
     textAlign: 'center',
