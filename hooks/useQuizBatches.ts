@@ -1,9 +1,10 @@
-import { fetchQuizBatchesByCategory } from '@/queries/quizBatches';
+import { fetchQuizBatchesByCategory, fetchQuizBatchesWithProgress } from '@/queries/quizBatches';
 import { useQuizBatchesStore } from '@/store/quizBatches';
 import { useEffect, useState } from 'react';
 
-export function useQuizBatches(categoryId: string) {
+export function useQuizBatches(categoryId: string, userId?: string) {
   const [loading, setLoading] = useState(false);
+  const [lastUserId, setLastUserId] = useState<string | undefined>();
   const setBatches = useQuizBatchesStore((state) => state.setBatches);
   const getBatches = useQuizBatchesStore((state) => state.getBatches);
   
@@ -12,12 +13,22 @@ export function useQuizBatches(categoryId: string) {
   useEffect(() => {
     if (!categoryId) return;
 
-    // Se non abbiamo già i batches per questa categoria, li fetchiamo
-    if (batches.length === 0) {
+    // Fetch se:
+    // 1. Non abbiamo batches per questa categoria, oppure
+    // 2. L'userId è cambiato (per aggiornare le informazioni di progresso)
+    const shouldFetch = batches.length === 0 || (userId && userId !== lastUserId);
+    
+    if (shouldFetch) {
       setLoading(true);
-      fetchQuizBatchesByCategory(categoryId)
+      
+      const fetchFunction = userId 
+        ? fetchQuizBatchesWithProgress(categoryId, userId)
+        : fetchQuizBatchesByCategory(categoryId);
+        
+      fetchFunction
         .then((data) => {
           setBatches(categoryId, data || []);
+          setLastUserId(userId);
         })
         .catch((error) => {
           console.error('Error fetching quiz batches:', error);
@@ -27,7 +38,7 @@ export function useQuizBatches(categoryId: string) {
           setLoading(false);
         });
     }
-  }, [categoryId, batches.length, setBatches]);
+  }, [categoryId, userId, batches.length, lastUserId, setBatches]);
 
   return { batches, loading };
 }

@@ -4,4 +4,13 @@ export interface QuizBatch {
   category_id?: string | null;
   is_random: boolean;
   created_at: string;
+  // Progress information (added when fetching with user context)
+  isCompleted?: boolean;
+  hasProgress?: boolean;
+  progress?: {
+    completed: boolean;
+    completed_at?: string;
+    current_question: number;
+    answers: Record<string, any>;
+  } | null;
 }

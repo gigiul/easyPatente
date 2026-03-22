@@ -53,6 +53,9 @@
     "incorrectQuestions": "Domande Sbagliate",
     "reviewIncorrect": "Ripassa Errori",
     "noIncorrectQuestions": "Nessuna domanda sbagliata!",
+    "inProgress": "In corso",
+    "start": "Inizia",
+    "currentQuestion": "Domanda corrente: {{current}}",
     "questions": {
       "roadSigns": {
         "rs1": {

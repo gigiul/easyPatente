@@ -1,19 +1,24 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useAuth } from '@/hooks/useAuth';
 import { useQuizBatches } from '@/hooks/useQuizBatches';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function QuizBatchScreen() {
   const { t } = useTranslation();
   const { categoryId } = useLocalSearchParams();
   const router = useRouter();
-  const { batches, loading } = useQuizBatches(String(categoryId));
+  const { session } = useAuth();
+  const userId = session?.user?.id || '';
+  const { batches, loading } = useQuizBatches(String(categoryId), userId);
   
   const cardBackgroundColor = useThemeColor({}, 'background');
   const borderColor = useThemeColor({}, 'icon');
+  const iconColor = useThemeColor({}, 'icon');
 
   const handleBatchPress = (batchId: string, batchTitle: string) => {
     router.push({ pathname: '/quiz', params: { batchId, batchTitle } });
@@ -44,9 +49,37 @@ export default function QuizBatchScreen() {
               ]}
               onPress={() => handleBatchPress(batch.id, batch.title)}
             >
-              <ThemedText style={styles.batchTitle}>
-                {String(t(`quiz.batches.${batch.title}`, batch.title))}
-              </ThemedText>
+              <View style={styles.cardContent}>
+                <View style={styles.cardHeader}>
+                  <ThemedText style={styles.batchTitle}>
+                    {String(t(`quiz.batches.${batch.title}`, batch.title))}
+                  </ThemedText>
+                  <View style={styles.statusContainer}>
+                    {batch.isCompleted ? (
+                      <View style={[styles.statusBadge, styles.completedBadge]}>
+                        <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
+                        <ThemedText style={[styles.statusText, styles.completedText]}>
+                          {t('quiz.completed', 'Completato')}
+                        </ThemedText>
+                      </View>
+                    ) : batch.hasProgress ? (
+                      <View style={[styles.statusBadge, styles.inProgressBadge]}>
+                        <Ionicons name="time" size={16} color="#FFFFFF" />
+                        <ThemedText style={[styles.statusText, styles.inProgressText]}>
+                          {t('quiz.inProgress', 'In corso')} {batch.progress?.current_question || 1}/30
+                        </ThemedText>
+                      </View>
+                    ) : (
+                      <View style={[styles.statusBadge, styles.notStartedBadge]}>
+                        <Ionicons name="play-circle" size={16} color={iconColor} />
+                        <ThemedText style={[styles.statusText, { color: iconColor }]}>
+                          {t('quiz.start', 'Inizia')}
+                        </ThemedText>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </View>
             </Pressable>
           ))
         )}
@@ -77,8 +110,51 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  cardContent: {
+    flex: 1,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
   batchTitle: {
     fontSize: 18,
     fontWeight: '600',
+    flex: 1,
+    marginRight: 12,
+  },
+  statusContainer: {
+    alignItems: 'flex-end',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  completedBadge: {
+    backgroundColor: '#10B981',
+  },
+  inProgressBadge: {
+    backgroundColor: '#F59E0B',
+  },
+  notStartedBadge: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  completedText: {
+    color: '#FFFFFF',
+  },
+  inProgressText: {
+    color: '#FFFFFF',
   },
 });

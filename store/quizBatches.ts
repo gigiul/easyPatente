@@ -1,12 +1,5 @@
+import type { QuizBatch } from '@/types/quiz_batches';
 import { create } from 'zustand';
-
-interface QuizBatch {
-  id: string;
-  title: string;
-  category_id: string;
-  is_random: boolean;
-  created_at: string;
-}
 
 interface QuizBatchesState {
   batchesByCategory: Record<string, QuizBatch[]>;

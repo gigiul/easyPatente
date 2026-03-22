@@ -109,7 +109,10 @@
     "home": "Home",
     "incorrectQuestions": "Incorrect Questions",
     "reviewIncorrect": "Review Mistakes",
-    "noIncorrectQuestions": "No incorrect questions!"
+    "noIncorrectQuestions": "No incorrect questions!",
+    "inProgress": "In progress",
+    "start": "Start",
+    "currentQuestion": "Current question: {{current}}"
   },
   "user": {
     "title": "User Settings",

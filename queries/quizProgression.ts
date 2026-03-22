@@ -99,7 +99,7 @@ export async function calculateQuizScore(userId: string, batchId: string) {
     `)
     .eq('user_id', userId)
     .eq('batch_id', batchId)
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
   if (!data) return { score: 0, total: 0, incorrectCount: 0 };
