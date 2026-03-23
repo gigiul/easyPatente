@@ -75,8 +75,8 @@ export async function fetchIncorrectQuestions(userId: string, batchId?: string) 
       const questionId = question.id;
       const userAnswer = answers[questionId];
       
-      // Se l'utente ha risposto e la risposta è sbagliata
-      if (userAnswer !== undefined && userAnswer !== question.is_correct) {
+      // Se la risposta è sbagliata o non data
+      if (userAnswer !== question.is_correct) {
         incorrectQuestions.push({
           ...question,
           userAnswer,
@@ -128,12 +128,10 @@ export async function calculateQuizScore(userId: string, batchId: string) {
   questions.forEach((batchQuestion: any) => {
     const question = batchQuestion.questions;
     const userAnswer = answers[question.id];
-    if (userAnswer !== undefined) {
-      if (userAnswer === question.is_correct) {
-        score++;
-      } else {
-        incorrectCount++;
-      }
+    if (userAnswer === question.is_correct) {
+      score++;
+    } else {
+      incorrectCount++;
     }
   });
 

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -37,7 +38,7 @@ export default function QuizScreen() {
   const [answers, setAnswers] = useState<any>({});
   const [isResetting, setIsResetting] = useState(false);
   const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
-  const { score } = useQuizScore(userId, String(batchId), answers, quizCompleted);
+  const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
 
   // Theme colors
@@ -92,9 +93,21 @@ export default function QuizScreen() {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex + 2, false);
     } else {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex + 1, true);
-      setQuizCompleted(true);
+      Alert.alert(
+        t('quiz.finishAlert.title'),
+        t('quiz.finishAlert.message'),
+        [
+          { text: t('quiz.finishAlert.cancel'), style: 'cancel' },
+          {
+            text: t('quiz.finishAlert.confirm'),
+            onPress: async () => {
+              setCurrentQuestionIndex(currentQuestionIndex + 1);
+              await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex + 1, true);
+              setQuizCompleted(true);
+            }
+          }
+        ]
+      );
     }
   };
 
@@ -156,6 +169,9 @@ export default function QuizScreen() {
 
   // ─── RESULTS SCREEN ────────────────────────────────────────────
   if (quizCompleted) {
+    const MAX_ERRORS = 3;
+    const isPassed = incorrectCount <= MAX_ERRORS;
+
     return (
       <ThemedView style={[styles.container, { backgroundColor }]}>
         {/* Compact Header */}
@@ -171,7 +187,6 @@ export default function QuizScreen() {
               {t('quiz.completed')}
             </ThemedText>
           </View>
-          {/* Full progress bar */}
           <View style={styles.headerProgressWrapper}>
             <View style={[styles.headerProgressTrack, { backgroundColor: borderColor }]}>
               <View style={[styles.headerProgressFill, { width: '100%' }]} />
@@ -179,29 +194,91 @@ export default function QuizScreen() {
           </View>
         </View>
 
-        {/* Results Content */}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <View style={[styles.questionCard, styles.resultsCard, { backgroundColor: cardBackgroundColor }]}>
-            <View style={styles.resultsHeader}>
-              <Ionicons name="trophy" size={56} color="#F59E0B" />
-              <ThemedText style={[styles.resultsTitle, { color: textColor }]}>{t('quiz.completed')}</ThemedText>
+          {isPassed ? (
+            /* ✅ SUPERATO */
+            <View style={[styles.resultsCard, styles.passedCard]}>
+              <View style={styles.resultsBanner}>
+                <Ionicons name="shield-checkmark" size={64} color="#10B981" />
+                <ThemedText style={styles.resultsTitlePassed}>{t('quiz.results.passed.title')}</ThemedText>
+                <ThemedText style={styles.resultsSubtitle}>
+                  {t('quiz.results.passed.subtitle')}
+                </ThemedText>
+              </View>
+
+              {/* Score pills row */}
+              <View style={styles.scorePillsRow}>
+                <View style={[styles.scorePill, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}>
+                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                  <ThemedText style={[styles.scorePillValue, { color: '#065F46' }]}>{score}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: '#065F46' }]}>{t('quiz.results.correct')}</ThemedText>
+                </View>
+                <View style={[styles.scorePill, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
+                  <Ionicons name="close-circle" size={20} color="#EF4444" />
+                  <ThemedText style={[styles.scorePillValue, { color: '#991B1B' }]}>{incorrectCount}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: '#991B1B' }]}>{t('quiz.results.incorrect')}</ThemedText>
+                </View>
+                <View style={[styles.scorePill, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
+                  <Ionicons name="trophy" size={20} color="#2563EB" />
+                  <ThemedText style={[styles.scorePillValue, { color: '#1D4ED8' }]}>
+                    {Math.round((score / questions.length) * 100)}%
+                  </ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: '#1D4ED8' }]}>{t('quiz.results.scoreLabel')}</ThemedText>
+                </View>
+              </View>
+
+              <View style={styles.restartContainer}>
+                <ThemedButton title={t('quiz.restart')} onPress={handleReset} />
+              </View>
             </View>
-            <View style={[styles.scoreContainer, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
-              <ThemedText style={[styles.scoreText, { color: textColor }]}>
-                {t('quiz.score', { score, total: questions.length })}
-              </ThemedText>
-              <ThemedText style={styles.scorePercentage}>
-                {Math.round((score / questions.length) * 100)}%
-              </ThemedText>
+          ) : (
+            /* ❌ NON SUPERATO */
+            <View style={[styles.resultsCard, styles.failedCard]}>
+              <View style={styles.resultsBanner}>
+                <Ionicons name="close-circle" size={64} color="#EF4444" />
+                <ThemedText style={styles.resultsTitleFailed}>{t('quiz.results.failed.title')}</ThemedText>
+                <ThemedText style={styles.resultsSubtitle}>
+                  {t('quiz.results.failed.subtitle', { incorrect: incorrectCount, total: questions.length, max: MAX_ERRORS })}
+                </ThemedText>
+              </View>
+
+              {/* Score pills row */}
+              <View style={styles.scorePillsRow}>
+                <View style={[styles.scorePill, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}>
+                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                  <ThemedText style={[styles.scorePillValue, { color: '#065F46' }]}>{score}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: '#065F46' }]}>{t('quiz.results.correct')}</ThemedText>
+                </View>
+                <View style={[styles.scorePill, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
+                  <Ionicons name="close-circle" size={20} color="#EF4444" />
+                  <ThemedText style={[styles.scorePillValue, { color: '#991B1B' }]}>{incorrectCount}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: '#991B1B' }]}>{t('quiz.results.incorrect')}</ThemedText>
+                </View>
+                <View style={[styles.scorePill, { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' }]}>
+                  <Ionicons name="bar-chart" size={20} color="#EA580C" />
+                  <ThemedText style={[styles.scorePillValue, { color: '#9A3412' }]}>
+                    {Math.round((score / questions.length) * 100)}%
+                  </ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: '#9A3412' }]}>{t('quiz.results.scoreLabel')}</ThemedText>
+                </View>
+              </View>
+
+              <View style={[styles.errorLimitBanner, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
+                <Ionicons name="information-circle" size={18} color="#DC2626" />
+                <ThemedText style={styles.errorLimitText}>
+                  {t('quiz.results.errorLimit', { max: MAX_ERRORS })}
+                </ThemedText>
+              </View>
+
+              <View style={styles.restartContainer}>
+                <ThemedButton title={t('quiz.retry')} onPress={handleReset} />
+              </View>
             </View>
-            <View style={styles.restartContainer}>
-              <ThemedButton title={t('quiz.restart')} onPress={handleReset} />
-            </View>
-          </View>
+          )}
         </ScrollView>
 
         {/* Bottom Nav */}
@@ -229,6 +306,7 @@ export default function QuizScreen() {
       </ThemedView>
     );
   }
+
 
   // ─── MAIN QUIZ SCREEN ───────────────────────────────────────────
   const hasAnswered = typeof answers[currentQuestion?.id] !== 'undefined';
@@ -754,42 +832,93 @@ const styles = StyleSheet.create({
 
   // ── Results Screen ──
   resultsCard: {
-    alignItems: 'center',
-    paddingVertical: 40,
+    borderRadius: 20,
+    marginBottom: 20,
+    overflow: 'hidden',
   },
-  resultsHeader: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  resultsTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  scoreContainer: {
-    alignItems: 'center',
-    marginBottom: 32,
-    paddingHorizontal: 32,
-    paddingVertical: 24,
-    borderRadius: 16,
+  passedCard: {
     borderWidth: 2,
-    minWidth: 200,
+    borderColor: '#A7F3D0',
+    backgroundColor: '#F0FDF4',
   },
-  scoreText: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-    textAlign: 'center',
+  failedCard: {
+    borderWidth: 2,
+    borderColor: '#FECACA',
+    backgroundColor: '#FFF1F2',
   },
-  scorePercentage: {
-    fontSize: 40,
+  resultsBanner: {
+    alignItems: 'center',
+    padding: 28,
+    paddingBottom: 20,
+  },
+  resultsTitlePassed: {
+    fontSize: 26,
     fontWeight: '800',
-    color: '#2563EB',
+    color: '#065F46',
+    marginTop: 14,
     textAlign: 'center',
+  },
+  resultsTitleFailed: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#991B1B',
+    marginTop: 14,
+    textAlign: 'center',
+  },
+  resultsSubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+    opacity: 0.75,
+    color: '#991B1B',
+  },
+  scorePillsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    gap: 10,
+  },
+  scorePill: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    gap: 4,
+  },
+  scorePillValue: {
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  scorePillLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  errorLimitBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  errorLimitText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#DC2626',
+    fontWeight: '500',
   },
   restartContainer: {
     width: '100%',
     paddingHorizontal: 20,
+    paddingBottom: 24,
   },
 });

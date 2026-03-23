@@ -1,13 +1,15 @@
 import { fetchQuizBatchesByCategory, fetchQuizBatchesWithProgress } from '@/queries/quizBatches';
 import { useQuizBatchesStore } from '@/store/quizBatches';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export function useQuizBatches(categoryId: string, userId?: string) {
   const [loading, setLoading] = useState(false);
-  const setBatches = useQuizBatchesStore((state) => state.setBatches);
-  const getBatches = useQuizBatchesStore((state) => state.getBatches);
 
-  const batches = getBatches(categoryId);
+  // Restituiamo undefined dal selettore e assegnamo l'array vuoto fuori.
+  // Se restituisci `|| []` *dentro* il selettore, Zustand riceve un array nuovo ogni volta
+  // se undefined, e scatena un loop infinito ("Maximum update depth exceeded").
+  const batches = useQuizBatchesStore((state) => state.batchesByCategory[categoryId]) || [];
+  const setBatches = useQuizBatchesStore((state) => state.setBatches);
 
   const fetchBatches = useCallback(() => {
     if (!categoryId) return;
@@ -30,13 +32,6 @@ export function useQuizBatches(categoryId: string, userId?: string) {
         setLoading(false);
       });
   }, [categoryId, userId, setBatches]);
-
-  // Fetch iniziale
-  useEffect(() => {
-    if (batches.length === 0) {
-      fetchBatches();
-    }
-  }, [batches.length, fetchBatches]);
 
   return { batches, loading, refresh: fetchBatches };
 }

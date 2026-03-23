@@ -64,12 +64,23 @@ export default function QuizBatchScreen() {
                   </ThemedText>
                   <View style={styles.statusContainer}>
                     {batch.isCompleted ? (
-                      <View style={[styles.statusBadge, styles.completedBadge]}>
-                        <Ionicons name="checkmark-circle" size={16} color="#FFFFFF" />
-                        <ThemedText style={[styles.statusText, styles.completedText]}>
-                          {t('quiz.completed', 'Completato')}
-                        </ThemedText>
-                      </View>
+                      batch.isPassed ? (
+                        // ✅ SUPERATO
+                        <View style={[styles.statusBadge, styles.passedBadge]}>
+                          <Ionicons name="shield-checkmark" size={15} color="#FFFFFF" />
+                          <ThemedText style={[styles.statusText, styles.badgeTextWhite]}>
+                            {t('quiz.passed', 'Superato')}
+                          </ThemedText>
+                        </View>
+                      ) : (
+                        // ❌ NON SUPERATO
+                        <View style={[styles.statusBadge, styles.failedBadge]}>
+                          <Ionicons name="close-circle" size={15} color="#FFFFFF" />
+                          <ThemedText style={[styles.statusText, styles.badgeTextWhite]}>
+                            {t('quiz.failed', 'Non superato')} · {batch.incorrectCount} {t('quiz.errors', 'err.')}
+                          </ThemedText>
+                        </View>
+                      )
                     ) : batch.hasProgress ? (
                       <View style={[styles.statusBadge, styles.inProgressBadge]}>
                         <Ionicons name="time" size={16} color="#FFFFFF" />
@@ -100,9 +111,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   headerTitle: { marginTop: 60, marginBottom: 8, paddingHorizontal: 16 },
   scrollViewContent: { padding: 16 },
-  loader: {
-    marginTop: 50,
-  },
+  loader: { marginTop: 50 },
   emptyState: {
     textAlign: 'center',
     marginTop: 50,
@@ -118,9 +127,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  cardContent: {
-    flex: 1,
-  },
+  cardContent: { flex: 1 },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -133,9 +140,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
-  statusContainer: {
-    alignItems: 'flex-end',
-  },
+  statusContainer: { alignItems: 'flex-end' },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -144,11 +149,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 4,
   },
-  completedBadge: {
-    backgroundColor: '#10B981',
+  passedBadge: {
+    backgroundColor: '#10B981', // verde
+  },
+  failedBadge: {
+    backgroundColor: '#EF4444', // rosso
   },
   inProgressBadge: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#F59E0B', // giallo
   },
   notStartedBadge: {
     backgroundColor: 'transparent',
@@ -159,7 +167,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  completedText: {
+  badgeTextWhite: {
     color: '#FFFFFF',
   },
   inProgressText: {

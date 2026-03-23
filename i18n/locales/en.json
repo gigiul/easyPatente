@@ -112,7 +112,31 @@
     "noIncorrectQuestions": "No incorrect questions!",
     "inProgress": "In progress",
     "start": "Start",
-    "currentQuestion": "Current question: {{current}}"
+    "currentQuestion": "Current question: {{current}}",
+    "passed": "Passed",
+    "failed": "Failed",
+    "errors": "err.",
+    "results": {
+      "passed": {
+        "title": "Quiz Passed!",
+        "subtitle": "Great job! You answered most questions correctly."
+      },
+      "failed": {
+        "title": "Quiz Failed",
+        "subtitle": "You made {{incorrect}} errors out of {{total}} questions. A maximum of {{max}} is allowed. Try again!"
+      },
+      "correct": "Correct",
+      "incorrect": "Errors",
+      "scoreLabel": "Score",
+      "errorLimit": "Maximum of {{max}} errors allowed to pass the quiz"
+    },
+    "retry": "Try Again",
+    "finishAlert": {
+      "title": "Finish Quiz",
+      "message": "Do you want to end the quiz and see your results? Any unanswered questions will be counted as incorrect.",
+      "confirm": "Finish",
+      "cancel": "Continue"
+    }
   },
   "user": {
     "title": "User Settings",
