@@ -282,7 +282,7 @@ export default function QuizScreen() {
         </ScrollView>
 
         {/* Bottom Nav */}
-        <BlurView intensity={80} tint="light" style={[styles.navigationBar, { borderTopColor: borderColor }]}>
+        <BlurView intensity={80} tint={backgroundColor === '#000000' ? 'dark' : 'light'} style={[styles.navigationBar, { borderTopColor: borderColor }]}>
           <View style={styles.navContent}>
             <Pressable
               style={[styles.navButton, currentQuestionIndex === 0 && styles.navButtonDisabled]}
@@ -484,7 +484,7 @@ export default function QuizScreen() {
       {/* ── Bottom Navigation Bar ── */}
       <BlurView
         intensity={80}
-        tint="light"
+        tint={backgroundColor === '#000000' ? 'dark' : 'light'}
         style={[styles.navigationBar, { borderTopColor: borderColor }]}
       >
         <View style={styles.navContent}>
