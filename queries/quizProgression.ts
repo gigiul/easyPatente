@@ -137,3 +137,11 @@ export async function calculateQuizScore(userId: string, batchId: string) {
 
   return { score, total, incorrectCount };
 }
+
+export async function fetchExamHistory(userId: string) {
+  const { data, error } = await supabase.rpc('get_user_exam_history', {
+    p_user_id: userId,
+  });
+  if (error) throw error;
+  return data || [];
+}

@@ -191,5 +191,69 @@
     "required": "Premium",
     "upgrade": "Upgrade to Premium",
     "unlockAll": "Unlock all categories"
+  },
+  "exam": {
+    "title": "Exam Simulation",
+    "subtitle": "Test yourself with a real exam",
+    "info": {
+      "questions": {
+        "title": "30 Questions",
+        "description": "Mixed from all exam topics"
+      },
+      "time": {
+        "title": "20 Minutes",
+        "description": "If time runs out, the exam ends automatically"
+      },
+      "errors": {
+        "title": "Max 3 Errors",
+        "description": "At the fourth error, the simulation is considered failed"
+      }
+    },
+    "start": "START EXAM",
+    "alerts": {
+      "error": "Error",
+      "notLoggedIn": "You must be logged in to start an exam.",
+      "startFailed": "Failed to start the exam. Please try again.",
+      "unexpected": "An unexpected error occurred.",
+      "submitTitle": "Submit Exam",
+      "submitConfirm": "Are you sure you want to submit?",
+      "submitIncomplete": "You answered {{answered}} out of {{total}} questions. Empty answers will be considered incorrect. Submit anyway?",
+      "cancel": "Cancel",
+      "submit": "Submit",
+      "timeOutTitle": "Time Up",
+      "timeOutMessage": "Exam time has run out. Your exam has been submitted automatically."
+    },
+    "results": {
+      "title": "Exam Result",
+      "timeTaken": "{{time}} taken",
+      "passed": "EXAM PASSED",
+      "failed": "EXAM FAILED",
+      "passedMessage": "Congratulations! You would pass with this result.",
+      "failedMessage": "You made {{incorrect}} errors out of {{total}}. The limit is {{max}}.",
+      "correct": "Correct",
+      "incorrect": "Errors",
+      "backToHome": "Back to Home"
+    },
+    "questionOf": "Question {{current}}/{{total}}",
+    "true": "True",
+    "false": "False",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "history": {
+      "title": "Exam History",
+      "empty": "No exams taken yet. Start a simulation!",
+      "passed": "PASSED",
+      "failed": "FAILED",
+      "errors": "{{count}} Errors",
+      "score": "{{correct}}/{{total}} Correct",
+      "date": "{{date}}",
+      "inProgress": "IN PROGRESS"
+    }
+  },
+  "tabs": {
+    "quiz": "Quiz",
+    "exam": "Exam",
+    "user": "User"
   }
 }

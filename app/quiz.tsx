@@ -22,6 +22,7 @@ import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizScore } from '@/hooks/useQuizScore';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { useQuizTheme } from '@/hooks/useQuizTheme';
 import { updateQuizProgression } from '@/queries/quizProgression';
 import { ThemedButton } from '../components/ThemedButton';
 
@@ -48,10 +49,7 @@ export default function QuizScreen() {
   const cardBackgroundColor = useThemeColor({ light: '#FFFFFF', dark: '#1F2937' }, 'background');
   const borderColor = useThemeColor({ light: '#E2E8F0', dark: '#374151' }, 'icon');
   const secondaryBackgroundColor = useThemeColor({ light: '#F8FAFC', dark: '#111827' }, 'background');
-
-  // Answer result colors
-  const correctCardColor = useThemeColor({ light: '#ECFDF5', dark: '#065F46' }, 'background');
-  const incorrectCardColor = useThemeColor({ light: '#FEF2F2', dark: '#991B1B' }, 'background');
+  const quizTheme = useQuizTheme();
 
   const getTranslatedQuestion = () => currentQuestion?.translation?.text || '';
   const getTranslatedExplanation = () => currentQuestion?.translation?.explanation || '';
@@ -201,10 +199,10 @@ export default function QuizScreen() {
         >
           {isPassed ? (
             /* ✅ SUPERATO */
-            <View style={[styles.resultsCard, styles.passedCard]}>
+            <View style={[styles.resultsCard, { backgroundColor: quizTheme.passed.bg, borderColor: quizTheme.passed.border, borderWidth: 2 }]}>
               <View style={styles.resultsBanner}>
-                <Ionicons name="shield-checkmark" size={64} color="#10B981" />
-                <ThemedText style={styles.resultsTitlePassed}>{t('quiz.results.passed.title')}</ThemedText>
+                <Ionicons name="shield-checkmark" size={64} color={quizTheme.passed.icon} />
+                <ThemedText style={[styles.resultsTitlePassed, { color: quizTheme.passed.title }]}>{t('quiz.results.passed.title')}</ThemedText>
                 <ThemedText style={styles.resultsSubtitle}>
                   {t('quiz.results.passed.subtitle')}
                 </ThemedText>
@@ -212,22 +210,22 @@ export default function QuizScreen() {
 
               {/* Score pills row */}
               <View style={styles.scorePillsRow}>
-                <View style={[styles.scorePill, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}>
-                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                  <ThemedText style={[styles.scorePillValue, { color: '#065F46' }]}>{score}</ThemedText>
-                  <ThemedText style={[styles.scorePillLabel, { color: '#065F46' }]}>{t('quiz.results.correct')}</ThemedText>
+                <View style={[styles.scorePill, { backgroundColor: quizTheme.scorePills.correct.bg, borderColor: quizTheme.scorePills.correct.border }]}>
+                  <Ionicons name="checkmark-circle" size={20} color={quizTheme.scorePills.correct.icon} />
+                  <ThemedText style={[styles.scorePillValue, { color: quizTheme.scorePills.correct.text }]}>{score}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: quizTheme.scorePills.correct.text }]}>{t('quiz.results.correct')}</ThemedText>
                 </View>
-                <View style={[styles.scorePill, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
-                  <Ionicons name="close-circle" size={20} color="#EF4444" />
-                  <ThemedText style={[styles.scorePillValue, { color: '#991B1B' }]}>{incorrectCount}</ThemedText>
-                  <ThemedText style={[styles.scorePillLabel, { color: '#991B1B' }]}>{t('quiz.results.incorrect')}</ThemedText>
+                <View style={[styles.scorePill, { backgroundColor: quizTheme.scorePills.incorrect.bg, borderColor: quizTheme.scorePills.incorrect.border }]}>
+                  <Ionicons name="close-circle" size={20} color={quizTheme.scorePills.incorrect.icon} />
+                  <ThemedText style={[styles.scorePillValue, { color: quizTheme.scorePills.incorrect.text }]}>{incorrectCount}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: quizTheme.scorePills.incorrect.text }]}>{t('quiz.results.incorrect')}</ThemedText>
                 </View>
-                <View style={[styles.scorePill, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
-                  <Ionicons name="trophy" size={20} color="#2563EB" />
-                  <ThemedText style={[styles.scorePillValue, { color: '#1D4ED8' }]}>
+                <View style={[styles.scorePill, { backgroundColor: quizTheme.scorePills.scoreBlue.bg, borderColor: quizTheme.scorePills.scoreBlue.border }]}>
+                  <Ionicons name="trophy" size={20} color={quizTheme.scorePills.scoreBlue.icon} />
+                  <ThemedText style={[styles.scorePillValue, { color: quizTheme.scorePills.scoreBlue.text }]}>
                     {Math.round((score / questions.length) * 100)}%
                   </ThemedText>
-                  <ThemedText style={[styles.scorePillLabel, { color: '#1D4ED8' }]}>{t('quiz.results.scoreLabel')}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: quizTheme.scorePills.scoreBlue.text }]}>{t('quiz.results.scoreLabel')}</ThemedText>
                 </View>
               </View>
 
@@ -237,10 +235,10 @@ export default function QuizScreen() {
             </View>
           ) : (
             /* ❌ NON SUPERATO */
-            <View style={[styles.resultsCard, styles.failedCard]}>
+            <View style={[styles.resultsCard, { backgroundColor: quizTheme.failed.bg, borderColor: quizTheme.failed.border, borderWidth: 2 }]}>
               <View style={styles.resultsBanner}>
-                <Ionicons name="close-circle" size={64} color="#EF4444" />
-                <ThemedText style={styles.resultsTitleFailed}>{t('quiz.results.failed.title')}</ThemedText>
+                <Ionicons name="close-circle" size={64} color={quizTheme.failed.icon} />
+                <ThemedText style={[styles.resultsTitleFailed, { color: quizTheme.failed.title }]}>{t('quiz.results.failed.title')}</ThemedText>
                 <ThemedText style={styles.resultsSubtitle}>
                   {t('quiz.results.failed.subtitle', { incorrect: incorrectCount, total: questions.length, max: MAX_ERRORS })}
                 </ThemedText>
@@ -248,22 +246,22 @@ export default function QuizScreen() {
 
               {/* Score pills row */}
               <View style={styles.scorePillsRow}>
-                <View style={[styles.scorePill, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}>
-                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                  <ThemedText style={[styles.scorePillValue, { color: '#065F46' }]}>{score}</ThemedText>
-                  <ThemedText style={[styles.scorePillLabel, { color: '#065F46' }]}>{t('quiz.results.correct')}</ThemedText>
+                <View style={[styles.scorePill, { backgroundColor: quizTheme.scorePills.correct.bg, borderColor: quizTheme.scorePills.correct.border }]}>
+                  <Ionicons name="checkmark-circle" size={20} color={quizTheme.scorePills.correct.icon} />
+                  <ThemedText style={[styles.scorePillValue, { color: quizTheme.scorePills.correct.text }]}>{score}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: quizTheme.scorePills.correct.text }]}>{t('quiz.results.correct')}</ThemedText>
                 </View>
-                <View style={[styles.scorePill, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
-                  <Ionicons name="close-circle" size={20} color="#EF4444" />
-                  <ThemedText style={[styles.scorePillValue, { color: '#991B1B' }]}>{incorrectCount}</ThemedText>
-                  <ThemedText style={[styles.scorePillLabel, { color: '#991B1B' }]}>{t('quiz.results.incorrect')}</ThemedText>
+                <View style={[styles.scorePill, { backgroundColor: quizTheme.scorePills.incorrect.bg, borderColor: quizTheme.scorePills.incorrect.border }]}>
+                  <Ionicons name="close-circle" size={20} color={quizTheme.scorePills.incorrect.icon} />
+                  <ThemedText style={[styles.scorePillValue, { color: quizTheme.scorePills.incorrect.text }]}>{incorrectCount}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: quizTheme.scorePills.incorrect.text }]}>{t('quiz.results.incorrect')}</ThemedText>
                 </View>
-                <View style={[styles.scorePill, { backgroundColor: '#FFF7ED', borderColor: '#FED7AA' }]}>
-                  <Ionicons name="bar-chart" size={20} color="#EA580C" />
-                  <ThemedText style={[styles.scorePillValue, { color: '#9A3412' }]}>
+                <View style={[styles.scorePill, { backgroundColor: quizTheme.scorePills.scoreOrange.bg, borderColor: quizTheme.scorePills.scoreOrange.border }]}>
+                  <Ionicons name="bar-chart" size={20} color={quizTheme.scorePills.scoreOrange.icon} />
+                  <ThemedText style={[styles.scorePillValue, { color: quizTheme.scorePills.scoreOrange.text }]}>
                     {Math.round((score / questions.length) * 100)}%
                   </ThemedText>
-                  <ThemedText style={[styles.scorePillLabel, { color: '#9A3412' }]}>{t('quiz.results.scoreLabel')}</ThemedText>
+                  <ThemedText style={[styles.scorePillLabel, { color: quizTheme.scorePills.scoreOrange.text }]}>{t('quiz.results.scoreLabel')}</ThemedText>
                 </View>
               </View>
 
@@ -393,17 +391,17 @@ export default function QuizScreen() {
             <View style={[
               styles.answerResultCard,
               {
-                backgroundColor: isCorrect ? correctCardColor : incorrectCardColor,
-                borderColor: isCorrect ? '#10B981' : '#EF4444',
+                backgroundColor: isCorrect ? quizTheme.passed.bg : quizTheme.failed.bg,
+                borderColor: isCorrect ? quizTheme.passed.icon : quizTheme.failed.icon,
               }
             ]}>
               <View style={styles.answerResultHeader}>
                 <Ionicons
                   name={isCorrect ? 'checkmark-circle' : 'close-circle'}
                   size={26}
-                  color={isCorrect ? '#059669' : '#DC2626'}
+                  color={isCorrect ? quizTheme.passed.errorLabel : quizTheme.failed.errorLabel}
                 />
-                <ThemedText style={[styles.answerResultText, { color: isCorrect ? '#059669' : '#DC2626' }]}>
+                <ThemedText style={[styles.answerResultText, { color: isCorrect ? quizTheme.passed.errorLabel : quizTheme.failed.errorLabel }]}>
                   {isCorrect ? t('quiz.correctAnswer') : t('quiz.incorrectAnswer')}
                 </ThemedText>
               </View>
@@ -836,16 +834,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     overflow: 'hidden',
   },
-  passedCard: {
-    borderWidth: 2,
-    borderColor: '#A7F3D0',
-    backgroundColor: '#F0FDF4',
-  },
-  failedCard: {
-    borderWidth: 2,
-    borderColor: '#FECACA',
-    backgroundColor: '#FFF1F2',
-  },
   resultsBanner: {
     alignItems: 'center',
     padding: 28,
@@ -854,14 +842,12 @@ const styles = StyleSheet.create({
   resultsTitlePassed: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#065F46',
     marginTop: 14,
     textAlign: 'center',
   },
   resultsTitleFailed: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#991B1B',
     marginTop: 14,
     textAlign: 'center',
   },
