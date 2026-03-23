@@ -158,6 +158,7 @@
         "fillFields": "Compila tutti i campi",
         "passwordsMatch": "Le password non coincidono",
         "passwordLength": "La password deve essere di almeno 6 caratteri",
+        "invalidDomain": "Registrazione consentita solo con domini email conosciuti (es. Gmail, Outlook, Yahoo)",
         "unexpected": "Si è verificato un errore imprevisto"
       }
     }

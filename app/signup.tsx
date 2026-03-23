@@ -1,17 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/hooks/useTranslation';
+import { fetchAllowedDomains } from '@/lib/emailValidation';
 
 export default function SignUpScreen() {
   const router = useRouter();
   const { signUp } = useAuth();
   const { t } = useTranslation();
+  
+  // Fetch allowed domains on mount to keep UI synchronized
+  useEffect(() => {
+    fetchAllowedDomains();
+  }, []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -41,7 +47,11 @@ export default function SignUpScreen() {
       const { error: signUpError } = await signUp(email, password);
       
       if (signUpError) {
-        setError(signUpError.message);
+        // If the error message is an i18n key, translate it
+        const errorMessage = signUpError.message.startsWith('auth.') 
+          ? t(signUpError.message as any) 
+          : signUpError.message;
+        setError(errorMessage);
         return;
       }
 

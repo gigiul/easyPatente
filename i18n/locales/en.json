@@ -182,6 +182,7 @@
         "fillFields": "Please fill in all fields",
         "passwordsMatch": "Passwords do not match",
         "passwordLength": "Password must be at least 6 characters",
+        "invalidDomain": "Registration allowed only with common email domains (e.g. Gmail, Outlook, Yahoo)",
         "unexpected": "An unexpected error occurred"
       }
     }

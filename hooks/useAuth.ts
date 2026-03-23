@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { restoreSession } from '../lib/auth';
 import { storage } from '../lib/storage';
 import { supabase } from '../lib/supabase';
+import { isAllowedEmailDomain } from '../lib/emailValidation';
 
 const SESSION_KEY = '@auth_session';
 
@@ -69,6 +70,9 @@ export function useAuth() {
   };
 
   const signUp = async (email: string, password: string) => {
+    if (!isAllowedEmailDomain(email)) {
+      return { error: { message: 'auth.signup.errors.invalidDomain' } };
+    }
     const { error } = await supabase.auth.signUp({ email, password });
     return { error };
   };
