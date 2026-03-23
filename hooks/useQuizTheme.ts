@@ -23,11 +23,11 @@ export function useQuizTheme() {
       icon: isDark ? '#F87171' : '#EF4444',
       title: isDark ? '#FECACA' : '#991B1B',
     },
-    inProgress: {
-      bg: isDark ? '#1F2937' : '#ffffff',
+    abandoned: {
+      bg: isDark ? '#1F2937' : '#F9FAFB',
       border: isDark ? '#374151' : '#E5E7EB',
-      badge: isDark ? '#78350F' : '#FEF3C7',
-      text: isDark ? '#FCD34D' : '#B45309',
+      badge: isDark ? '#374151' : '#F3F4F6',
+      text: isDark ? '#9CA3AF' : '#6B7280',
     },
     scorePills: {
       correct: {

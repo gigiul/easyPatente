@@ -248,7 +248,7 @@
       "errors": "{{count}} Errors",
       "score": "{{correct}}/{{total}} Correct",
       "date": "{{date}}",
-      "inProgress": "IN PROGRESS"
+      "abandoned": "ABANDONED"
     }
   },
   "tabs": {

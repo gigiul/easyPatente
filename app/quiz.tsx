@@ -21,8 +21,8 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizScore } from '@/hooks/useQuizScore';
-import { useThemeColor } from '@/hooks/useThemeColor';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { updateQuizProgression } from '@/queries/quizProgression';
 import { ThemedButton } from '../components/ThemedButton';
 
@@ -857,7 +857,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     lineHeight: 20,
     opacity: 0.75,
-    color: '#991B1B',
   },
   scorePillsRow: {
     flexDirection: 'row',

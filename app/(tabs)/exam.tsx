@@ -137,14 +137,14 @@ export default function ExamTab() {
               const isPassed = exam.incorrect_count <= 3;
               if (!exam.completed) {
                 return (
-                  <View key={exam.batch_id} style={[styles.historyCard, { backgroundColor: themeColors.inProgress.bg, borderColor: themeColors.inProgress.border }]}>
+                  <View key={exam.batch_id} style={[styles.historyCard, { backgroundColor: themeColors.abandoned.bg, borderColor: themeColors.abandoned.border }]}>
                     <View style={styles.historyCardHeader}>
                       <ThemedText style={styles.historyDate}>
                         {new Date(exam.started_at).toLocaleDateString()}
                       </ThemedText>
-                      <View style={[styles.statusBadge, { backgroundColor: themeColors.inProgress.badge }]}>
-                        <ThemedText style={[styles.statusText, { color: themeColors.inProgress.text }]}>
-                          {t('exam.history.inProgress')}
+                      <View style={[styles.statusBadge, { backgroundColor: themeColors.abandoned.badge }]}>
+                        <ThemedText style={[styles.statusText, { color: themeColors.abandoned.text }]}>
+                          {t('exam.history.abandoned')}
                         </ThemedText>
                       </View>
                     </View>
