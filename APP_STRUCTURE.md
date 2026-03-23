@@ -39,6 +39,11 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   - Permette di modificare la **Lingua Primaria** (usata per l'interfaccia e la traduzione del quiz) e una **Lingua Secondaria** opzionale (con cui visualizzare testo parallelo nei quiz per utenti stranieri).
   - Gestisce l'aggiornamento simultaneo dell'UI via `i18n` e del profilo utente su database remoto.
   - Include il pulsante di configurazione e Logout.
+- **`app/(tabs)/exam.tsx` (Exam Screen)**: 
+  - Hub dedicato alle simulazioni d'esame.
+  - Permette di generare un nuovo esame da 30 domande casuali collegate a un timer di 20 minuti, chiamando la RPC Supabase `generate_exam_batch`.
+  - Mostra lo **"Storico Esami"** dell'utente, con logica di ricalcolo del punteggio super ottimizzata interrogando direttamente via RPC (`get_user_exam_history`).
+  - Mostra le status card dinamicamente formattate (*Abandoned*, *Passed*, *Failed*) avvalendosi del nuovo custom hook `useQuizTheme` per l'adattamento perfetto della UI in Light/Dark mode.
 
 ### 3. Selezione Quiz Batch (Blocchi)
 - **`app/quizBatch/index.tsx` (Quiz Batch Screen)**:
@@ -46,7 +51,7 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   - L'UI elenca i batch sotto forma di card indicando le metriche dello svolgimento ("Inizia", "In corso 5/30", "Completato").
   - Un tap porta l'utente dentro il quiz effettivo passandogli il `batchId`.
 
-### 4. Svolgimento del Quiz Effettivo
+### 4. Svolgimento del Quiz ed Esame
 - **`app/quiz.tsx` (Quiz Screen)**:
   - È la schermata più complessa contenente la _logica di business_ del testing (`useQuizQuestions`, `useQuizProgression`).
   - Gestisce la navigazione tra le domande mediante uno state `currentQuestionIndex`.
@@ -54,10 +59,14 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
     - **Audio/TTS:** Integrazione con `expo-speech` per la lettura del testo tradotto.
     - **Supporto multi-lingua:** Visualizzazione contestuale della traduzione secondaria (se configurata).
     - **Progresso:** Barra a riempimento orizzontale posizionata sotto l'header.
-    - **Azioni Interattive (Vero/Falso):** Una volta fornita la risposta, la logica invia il dato al DB (`updateQuizProgression`) e mostra dinamicamente la carta risultato (Corretto/Sbagliato) e un'eventuale _Explanation / Spiegazione_ con indicazione sonora e multi-lingua.
-    - **Risultati Finali:** A quiz completato, calcola il punteggio in base alle risposte e lo mostra all'utente con un pulsante per "Riavviare" il quiz azzerando i progressi di quel batch nel database.
-
----
+    - **Azioni Interattive (Vero/Falso):** Una volta fornita la risposta, la logica invia il dato al DB (`updateQuizProgression`) e mostra dinamicamente la carta risultato e la _Explanation_ (con lettura sonora/multi-lingua).
+    - **Risultati Finali:** A quiz completato, calcola il punteggio in base alle risposte e lo mostra all'utente con design full-theme compatibile (`useQuizTheme`). 
+- **`app/examQuiz/index.tsx` (Exam Quiz Screen)**:
+  - Variante specializzata per la **Simulazione Esame Reale**.
+  - Non mostra le spiegazioni né la correttezza della risposta durante lo svolgimento.
+  - Integra un Timer rigoroso da 20 minuti con elaborazione di submit automatica allo scadere del tempo.
+  - Mostra la schermata dei risultati solo al termine simulazione, indicando esito Superato/Non Superato in base al limite di 3 errori.
+----
 
 ## 🧠 Flusso Dati (Data Flow & State Management)
 
@@ -134,6 +143,7 @@ CREATE TABLE public.quiz_batches (
   title text NOT NULL,
   category_id uuid,
   is_random boolean NOT NULL DEFAULT false,
+  is_exam boolean NOT NULL DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT quiz_batches_pkey PRIMARY KEY (id),
   CONSTRAINT quiz_batches_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
@@ -151,3 +161,13 @@ CREATE TABLE public.user_quiz_progress (
   CONSTRAINT user_quiz_progress_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.quiz_batches(id),
   CONSTRAINT user_quiz_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
+
+---
+
+## 🚀 Roadmap e Implementazioni Future
+
+- **AI Assistant Integrato (RAG)**:
+  Implementazione pianificata di un assistente virtuale basato su AI che funge da Tutor per la teoria della patente. L'AI utilizzerà la tecnica RAG (Retrieval-Augmented Generation) fruttando **Supabase Edge Functions** e **pgvector** per ricercare nel database relazionale (o vettoriale) estratti esatti del Manuale di Teoria, in modo da poter fornire risposte ragionate, di contesto, prive di allucinazioni e pertinenti alle vere simulazioni d'esame.
+- **Statistiche Globali**:
+  Dashboard analitica avanzata per tracciare le performance a lungo termine (progressione apprendimento, argomenti più falliti, percentuale probabilità di passare l'esame reale).
+

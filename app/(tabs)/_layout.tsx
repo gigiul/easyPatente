@@ -39,7 +39,7 @@ export default function TabLayout() {
         name="exam"
         options={{
           title: t('tabs.exam'),
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="arrow.triangle.pull" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="doc.text.fill" color={color} />,
         }}
       />
       <Tabs.Screen
