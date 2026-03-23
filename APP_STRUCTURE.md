@@ -65,3 +65,89 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 2. Vengono elaborati/messi in cache all'interno della cartella `store/` utilizzando **Zustand**.
 3. Gli strati della logica sono isolati nella directory `hooks/`, in cui viene consumato lo Store e incapsulata unicità della logica di business.
 4. Ogni "pagina" in `app/` espone solo la View collegata a questi hooks. Questo pattern architetturale (Separation of Concerns tra UI component e State) garantisce grandissima facilità di manutenzione e mocking.
+
+## DB Schema SQL
+
+CREATE TABLE public.categories (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  code text NOT NULL UNIQUE,
+  icon_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  is_active boolean DEFAULT false,
+  is_premium boolean NOT NULL DEFAULT false,
+  CONSTRAINT categories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.languages (
+  code text NOT NULL,
+  name text NOT NULL,
+  native_name text,
+  is_active boolean DEFAULT true,
+  is_default boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT languages_pkey PRIMARY KEY (code)
+);
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  lang_primary text,
+  lang_secondary text,
+  is_premium boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
+  CONSTRAINT profiles_lang_primary_fkey FOREIGN KEY (lang_primary) REFERENCES public.languages(code),
+  CONSTRAINT profiles_lang_secondary_fkey FOREIGN KEY (lang_secondary) REFERENCES public.languages(code)
+);
+CREATE TABLE public.question_translations (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  question_id uuid NOT NULL,
+  lang_code text NOT NULL,
+  text text NOT NULL,
+  explanation text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT question_translations_pkey PRIMARY KEY (id),
+  CONSTRAINT question_translations_lang_code_fkey FOREIGN KEY (lang_code) REFERENCES public.languages(code),
+  CONSTRAINT question_translations_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions(id)
+);
+CREATE TABLE public.questions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  code text NOT NULL UNIQUE,
+  image_url text,
+  is_free boolean NOT NULL DEFAULT true,
+  category_id uuid NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  is_correct boolean NOT NULL DEFAULT true,
+  CONSTRAINT questions_pkey PRIMARY KEY (id),
+  CONSTRAINT questions_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
+);
+CREATE TABLE public.quiz_batch_questions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  batch_id uuid NOT NULL,
+  question_id uuid NOT NULL,
+  position integer NOT NULL,
+  CONSTRAINT quiz_batch_questions_pkey PRIMARY KEY (id),
+  CONSTRAINT quiz_batch_questions_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.quiz_batches(id),
+  CONSTRAINT quiz_batch_questions_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions(id)
+);
+CREATE TABLE public.quiz_batches (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  category_id uuid,
+  is_random boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT quiz_batches_pkey PRIMARY KEY (id),
+  CONSTRAINT quiz_batches_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
+);
+CREATE TABLE public.user_quiz_progress (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  batch_id uuid NOT NULL,
+  current_question integer NOT NULL DEFAULT 1,
+  answers jsonb NOT NULL DEFAULT '{}'::jsonb,
+  completed boolean NOT NULL DEFAULT false,
+  started_at timestamp with time zone NOT NULL DEFAULT now(),
+  completed_at timestamp with time zone,
+  CONSTRAINT user_quiz_progress_pkey PRIMARY KEY (id),
+  CONSTRAINT user_quiz_progress_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.quiz_batches(id),
+  CONSTRAINT user_quiz_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
