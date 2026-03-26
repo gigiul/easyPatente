@@ -13,6 +13,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import ImageViewing from 'react-native-image-viewing';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -41,6 +42,7 @@ export default function QuizScreen() {
   const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
 
   // Theme colors
   const backgroundColor = useThemeColor({}, 'background');
@@ -357,10 +359,18 @@ export default function QuizScreen() {
           </ThemedText>
           {currentQuestion?.image_filename && (
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
-              <Image
-                source={{ uri: `${process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL}/${currentQuestion.image_filename}` }}
-                style={styles.questionImage}
-                resizeMode="contain"
+              <Pressable onPress={() => setIsImageViewerVisible(true)}>
+                <Image
+                  source={{ uri: `${process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL}/${currentQuestion.image_filename}` }}
+                  style={styles.questionImage}
+                  resizeMode="contain"
+                />
+              </Pressable>
+              <ImageViewing
+                images={[{ uri: `${process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL}/${currentQuestion.image_filename}` }]}
+                imageIndex={0}
+                visible={isImageViewerVisible}
+                onRequestClose={() => setIsImageViewerVisible(false)}
               />
             </View>
           )}
