@@ -20,8 +20,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizScore } from '@/hooks/useQuizScore';
-import { useThemeColor } from '@/hooks/useThemeColor';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { updateQuizProgression } from '@/queries/quizProgression';
 
 const EXAM_DURATION_SECONDS = 20 * 60; // 20 minutes
@@ -181,21 +181,7 @@ export default function ExamQuizScreen() {
 
     return (
       <ThemedView style={[styles.container, { backgroundColor }]}>
-        <View style={[styles.header, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#059669" />
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <ThemedText style={[styles.headerTitle, { color: textColor }]}>
-              {t('exam.results.title')}
-            </ThemedText>
-            <ThemedText style={[styles.headerSubtitle, { color: iconColor }]}>
-              {t('exam.results.timeTaken', { time: formatTime(EXAM_DURATION_SECONDS - timeLeft) })}
-            </ThemedText>
-          </View>
-        </View>
-
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.resultsScrollContent}>
           <View style={[styles.resultsCard, { backgroundColor: isPassed ? quizTheme.passed.bg : quizTheme.failed.bg }]}>
             <View style={styles.resultsBanner}>
               <Ionicons name={isPassed ? "shield-checkmark" : "close-circle"} size={64} color={isPassed ? quizTheme.passed.icon : quizTheme.failed.icon} />
@@ -263,9 +249,9 @@ export default function ExamQuizScreen() {
             {getTranslatedQuestion()}
           </ThemedText>
 
-          {currentQuestion?.image_url && (
+          {currentQuestion?.image_filename && (
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
-              <Image source={{ uri: currentQuestion.image_url }} style={styles.questionImage} resizeMode="contain" />
+              <Image source={{ uri: `${process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL}/${currentQuestion.image_filename}` }} style={styles.questionImage} resizeMode="contain" />
             </View>
           )}
         </View>
@@ -369,6 +355,7 @@ const styles = StyleSheet.create({
   headerProgressFill: { height: '100%', backgroundColor: '#059669', borderRadius: 3 },
   scrollView: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 20 },
+  resultsScrollContent: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   questionCard: {
     borderRadius: 16,
     padding: 24,

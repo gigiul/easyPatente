@@ -14,7 +14,7 @@ export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 export type Quiz = {
   id: string;
   key: string;
-  image_url: string | null;
+  image_filename: string | null;
   is_free: boolean;
   created_at: string;
 };

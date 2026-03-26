@@ -355,16 +355,16 @@ export default function QuizScreen() {
           <ThemedText style={[styles.questionText, { color: textColor }]}>
             {getTranslatedQuestion()}
           </ThemedText>
-
-          {currentQuestion?.image_url && (
+          {currentQuestion?.image_filename && (
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
               <Image
-                source={{ uri: currentQuestion.image_url }}
+                source={{ uri: `${process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL}/${currentQuestion.image_filename}` }}
                 style={styles.questionImage}
                 resizeMode="contain"
               />
             </View>
           )}
+
 
           {getSecondaryTranslation('text') && (
             <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
