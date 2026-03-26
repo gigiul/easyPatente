@@ -1,37 +1,19 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-
-import { storage } from '@/lib/storage';
-
-const SECONDARY_LANGUAGE_KEY = 'secondary_language';
+import { useUserProfileStore } from '@/store/user';
 
 export function useLanguage() {
   const { i18n } = useTranslation();
-  const [secondaryLanguage, setSecondaryLanguageState] = useState('none');
-
-  useEffect(() => {
-    // Load secondary language preference on mount
-    const loadSecondaryLanguage = async () => {
-      const savedLanguage = await storage.get(SECONDARY_LANGUAGE_KEY);
-      if (savedLanguage) {
-        setSecondaryLanguageState(savedLanguage);
-      }
-    };
-    loadSecondaryLanguage();
-  }, []);
+  const userProfile = useUserProfileStore((state) => state.user);
+  const secondaryLanguage = userProfile?.lang_secondary || null;
 
   const setLanguage = async (language: string) => {
     await i18n.changeLanguage(language);
   };
 
+  // We keep this but it might need to also update the database if used elsewhere
   const setSecondaryLanguagePreference = async (language: string | null) => {
-    if (language) {
-      await storage.set(SECONDARY_LANGUAGE_KEY, language);
-      setSecondaryLanguageState(language);
-    } else {
-      await storage.delete(SECONDARY_LANGUAGE_KEY);
-      setSecondaryLanguageState('none');
-    }
+    // This hook is now reactive to the store, so it will update when the profile changes.
+    // However, if we need to call database update from here, we could.
   };
 
   return {

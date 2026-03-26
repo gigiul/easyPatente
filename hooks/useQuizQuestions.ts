@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 export function useQuizQuestions(
   batchId: string,
   langCode: string,
-  secondaryLangCode?: string
+  secondaryLangCode?: string | null
 ) {
   const questions = useQuizQuestionsStore((state) => state.questions);
   const setQuestions = useQuizQuestionsStore((state) => state.setQuestions);

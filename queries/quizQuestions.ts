@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-export async function fetchQuestionsByBatch(batchId: string, langCode: string, secondaryLangCode?: string) {
+export async function fetchQuestionsByBatch(batchId: string, langCode: string, secondaryLangCode?: string | null) {
   const { data, error } = await supabase
     .from('quiz_batch_questions')
     .select(`position, question_id, questions(id, code, image_filename, is_free, is_correct, category_id, created_at, question_translations(lang_code, text, explanation))`)
