@@ -53,7 +53,7 @@ export default function UserScreen() {
   const handleSecondaryLanguageChange = async (langCode: string) => {
     setSecondaryLanguage(langCode || null);
     //save on user profile
-    await updateUserLanguage(langCode || '', 'secondary')
+    await updateUserLanguage(langCode || null, 'secondary')
   };
 
   const handleLogout = async () => {

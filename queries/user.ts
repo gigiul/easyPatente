@@ -24,7 +24,7 @@ const sessionStr = await storage.get('@auth_session');
   return null;
 }
 
-export async function updateUserLanguage(languageId: string, type: 'primary' | 'secondary') {
+export async function updateUserLanguage(languageId: string | null, type: 'primary' | 'secondary') {
   const profile = useUserProfileStore.getState().user;
   if (!profile) throw new Error('User profile not found');
 
