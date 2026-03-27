@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
+import * as ScreenCapture from 'expo-screen-capture';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -43,6 +44,9 @@ export default function QuizScreen() {
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+
+  // Prevent screenshots
+  ScreenCapture.usePreventScreenCapture();
 
   // Theme colors
   const backgroundColor = useThemeColor({}, 'background');
