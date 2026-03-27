@@ -112,12 +112,18 @@ export default function QuizScreen() {
   };
 
   const handlePrevious = async () => {
+    if (quizCompleted) {
+      setQuizCompleted(false);
+      const newIndex = questions.length - 1;
+      setCurrentQuestionIndex(newIndex);
+      await updateQuizProgression(userId, String(batchId), answers, newIndex + 1, false);
+      return;
+    }
+
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-      await updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex, false);
-      if (currentQuestionIndex <= questions.length) {
-        setQuizCompleted(false);
-      }
+      const newIndex = currentQuestionIndex - 1;
+      setCurrentQuestionIndex(newIndex);
+      await updateQuizProgression(userId, String(batchId), answers, newIndex + 1, false);
     }
   };
 
@@ -195,6 +201,7 @@ export default function QuizScreen() {
         </View>
 
         <ScrollView
+          key="results-scroll"
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -338,6 +345,7 @@ export default function QuizScreen() {
 
       {/* ── Scrollable Question Content ── */}
       <ScrollView
+        key="quiz-scroll"
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
