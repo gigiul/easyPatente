@@ -184,6 +184,7 @@
     "back": "Back",
     "next": "Next",
     "submit": "Submit",
+    "incorrectQuestions": "Incorrect Questions",
     "history": {
       "title": "Exam History",
       "empty": "No exams taken yet. Start a simulation!",

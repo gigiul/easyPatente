@@ -184,6 +184,10 @@ export default function ExamQuizScreen() {
   if (quizCompleted) {
     const MAX_ERRORS = 3;
     const isPassed = incorrectCount <= MAX_ERRORS;
+    const incorrectQuestions = questions.filter((q: any) => {
+      const userAnswer = answers[q.id];
+      return typeof userAnswer !== 'undefined' && userAnswer !== q.is_correct;
+    });
 
     return (
       <ThemedView style={[styles.container, { backgroundColor }]}>
@@ -216,6 +220,60 @@ export default function ExamQuizScreen() {
               <ThemedButton title={t('exam.results.backToHome')} onPress={() => router.replace('/(tabs)')} />
             </View>
           </View>
+
+          {/* ── ERRORS LIST ────────────────────────────────────────── */}
+          {incorrectQuestions.length > 0 && (
+            <View style={styles.errorsSection}>
+              <ThemedText style={[styles.errorsTitle, { color: textColor }]}>
+                {t('exam.incorrectQuestions')}
+              </ThemedText>
+              {incorrectQuestions.map((q: any, index: number) => (
+                <View 
+                  key={q.id} 
+                  style={[
+                    styles.errorItem, 
+                    { 
+                      backgroundColor: cardBackgroundColor, 
+                      borderColor: borderColor 
+                    }
+                  ]}
+                >
+                  <View style={styles.errorHeader}>
+                    <View style={styles.errorNumberBadge}>
+                      <ThemedText style={styles.errorNumberText}>{index + 1}</ThemedText>
+                    </View>
+                    <ThemedText style={[styles.errorQuestionText, { color: textColor }]} numberOfLines={3}>
+                      {q.translation?.text || ''}
+                    </ThemedText>
+                  </View>
+
+                  <View style={styles.errorAnswersRow}>
+                    <View style={[styles.errorAnswerBadge, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1 }]}>
+                      <Ionicons name="close-circle" size={16} color="#DC2626" />
+                      <ThemedText style={[styles.errorBadgeText, { color: '#B91C1C' }]}>
+                        {t('quiz.yourAnswer', { answer: answers[q.id] ? t('quiz.true') : t('quiz.false') })}
+                      </ThemedText>
+                    </View>
+                    <View style={[styles.errorAnswerBadge, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0', borderWidth: 1 }]}>
+                      <Ionicons name="checkmark-circle" size={16} color="#059669" />
+                      <ThemedText style={[styles.errorBadgeText, { color: '#047857' }]}>
+                        {t('quiz.correctAnswerIs', { answer: q.is_correct ? t('quiz.true') : t('quiz.false') })}
+                      </ThemedText>
+                    </View>
+                  </View>
+
+                  {q.translation?.explanation && (
+                    <View style={[styles.errorExplanationContainer, { backgroundColor: secondaryBackgroundColor }]}>
+                      <Ionicons name="bulb" size={14} color="#F59E0B" />
+                      <ThemedText style={[styles.errorExplanation, { color: iconColor }]}>
+                        {q.translation.explanation}
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
         </ScrollView>
       </ThemedView>
     );
@@ -419,4 +477,79 @@ const styles = StyleSheet.create({
   scorePillValue: { fontSize: 28, fontWeight: '800', marginVertical: 4 },
   scorePillLabel: { fontSize: 14, fontWeight: '600' },
   restartContainer: { width: '100%', marginTop: 10 },
+  errorsSection: {
+    marginTop: 20,
+    paddingBottom: 40,
+    gap: 12,
+  },
+  errorsTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  errorItem: {
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  errorHeader: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  errorNumberBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#059669',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorNumberText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  errorQuestionText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '600',
+  },
+  errorAnswersRow: {
+    flexDirection: 'column',
+    gap: 8,
+    marginBottom: 12,
+  },
+  errorAnswerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  errorBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  errorExplanationContainer: {
+    flexDirection: 'row',
+    padding: 10,
+    borderRadius: 10,
+    gap: 8,
+    alignItems: 'flex-start',
+  },
+  errorExplanation: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
 });

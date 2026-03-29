@@ -155,5 +155,70 @@
     "required": "Premium",
     "upgrade": "Passa a Premium",
     "unlockAll": "Sblocca tutte le categorie"
+  },
+  "exam": {
+    "title": "Simulazione Esame",
+    "subtitle": "Mettiti alla prova con una simulazione reale",
+    "info": {
+      "questions": {
+        "title": "30 Domande",
+        "description": "Miste da tutti gli argomenti d'esame"
+      },
+      "time": {
+        "title": "20 Minuti",
+        "description": "Al termine del tempo, l'esame finisce automaticamente"
+      },
+      "errors": {
+        "title": "Max 3 Errori",
+        "description": "Al quarto errore la simulazione è considerata fallita"
+      }
+    },
+    "start": "INIZIA ESAME",
+    "alerts": {
+      "error": "Errore",
+      "notLoggedIn": "Devi effettuare l'accesso per iniziare un esame.",
+      "startFailed": "Impossibile iniziare l'esame. Riprova.",
+      "unexpected": "Si è verificato un errore imprevisto.",
+      "submitTitle": "Consegna Esame",
+      "submitConfirm": "Sei sicuro di voler consegnare?",
+      "submitIncomplete": "Hai risposto a {{answered}} su {{total}} domande. Le risposte vuote saranno considerate errate. Consegnare comunque?",
+      "cancel": "Annulla",
+      "submit": "Consegna",
+      "timeOutTitle": "Tempo Scaduto",
+      "timeOutMessage": "Il tempo per l'esame è terminato. Il tuo esame è stato consegnato automaticamente."
+    },
+    "results": {
+      "title": "Risultato Esame",
+      "timeTaken": "Tempo impiegato: {{time}}",
+      "passed": "ESAME SUPERATO",
+      "failed": "ESAME FALLITO",
+      "passedMessage": "Congratulazioni! Con questo risultato avresti superato l'esame.",
+      "failedMessage": "Hai commesso {{incorrect}} errori su {{total}}. Il limite è {{max}}.",
+      "correct": "Corrette",
+      "incorrect": "Errori",
+      "backToHome": "Torna alla Home"
+    },
+    "questionOf": "Domanda {{current}}/{{total}}",
+    "true": "Vero",
+    "false": "Falso",
+    "back": "Indietro",
+    "next": "Avanti",
+    "submit": "Consegna",
+    "incorrectQuestions": "Domande Sbagliate",
+    "history": {
+      "title": "Cronologia Esami",
+      "empty": "Nessun esame sostenuto. Inizia una simulazione!",
+      "passed": "SUPERATO",
+      "failed": "FALLITO",
+      "errors": "{{count}} Errori",
+      "score": "{{correct}}/{{total}} Corrette",
+      "date": "{{date}}",
+      "abandoned": "ABBANDONATO"
+    }
+  },
+  "tabs": {
+    "quiz": "Quiz",
+    "exam": "Esame",
+    "user": "Profilo"
   }
 }
