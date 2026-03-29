@@ -1,12 +1,25 @@
 import { supabase } from '@/lib/supabase';
 import { Category } from '@/types/categories';
 
-export async function fetchCategories(): Promise<Category[]> {
+export async function fetchCategories(langCode: string = 'it'): Promise<Category[]> {
   const { data, error } = await supabase
     .from('categories')
-    .select('id, name, code, icon_url, created_at, is_active, is_premium')
+    .select(`
+      id, code, icon_url, created_at, is_active, is_premium,
+      category_translations!inner (
+        title,
+        description
+      )
+    `)
     .eq('is_active', true)
+    .eq('category_translations.lang_code', langCode)
     .order('created_at', { ascending: true });
+  
   if (error) throw error;
-  return data as Category[];
+  
+  return (data as any[]).map(cat => ({
+    ...cat,
+    name: cat.category_translations[0]?.title || cat.code,
+    description: cat.category_translations[0]?.description || ''
+  })) as Category[];
 }

@@ -28,7 +28,8 @@ export default function QuizBatchScreen() {
   const borderColor = useThemeColor({}, 'icon');
   const iconColor = useThemeColor({}, 'icon');
 
-  const handleBatchPress = (batchId: string, batchTitle: string) => {
+  const handleBatchPress = (batchId: string, moduleIndex: number) => {
+    const batchTitle = t('quiz.moduleName', { number: moduleIndex });
     router.push({ pathname: '/quiz', params: { batchId, batchTitle } });
   };
 
@@ -55,12 +56,12 @@ export default function QuizBatchScreen() {
                   shadowColor: borderColor,
                 }
               ]}
-              onPress={() => handleBatchPress(batch.id, batch.title)}
+              onPress={() => handleBatchPress(batch.id, batch.moduleIndex)}
             >
               <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
                   <ThemedText style={styles.batchTitle}>
-                    {String(t(`quiz.batches.${batch.title}`, batch.title))}
+                    {t('quiz.moduleName', { number: batch.moduleIndex })}
                   </ThemedText>
                   <View style={styles.statusContainer}>
                     {batch.isCompleted ? (

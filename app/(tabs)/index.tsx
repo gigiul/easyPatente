@@ -70,10 +70,10 @@ export default function HomeScreen() {
                   )}
                 </View>
                 <ThemedText style={styles.categoryTitle}>
-                  {t(`quiz.categories.${category.code}.title`)}
+                  {category.name}
                 </ThemedText>
                 <ThemedText style={styles.categoryDescription}>
-                  {t(`quiz.categories.${category.code}.description`)}
+                  {category.description}
                 </ThemedText>
                 {isLocked && (
                   <ThemedText style={styles.premiumLabel}>

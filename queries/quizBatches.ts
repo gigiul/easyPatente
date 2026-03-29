@@ -9,7 +9,11 @@ export async function fetchQuizBatchesByCategory(categoryId: string) {
     .eq('category_id', categoryId)
     .order('created_at', { ascending: true });
   if (error) throw error;
-  return data;
+  
+  return (data || []).map((batch, index) => ({
+    ...batch,
+    moduleIndex: index + 1
+  }));
 }
 
 export async function fetchQuizBatchesWithProgress(categoryId: string, userId: string) {
@@ -37,7 +41,7 @@ export async function fetchQuizBatchesWithProgress(categoryId: string, userId: s
 
   if (error) throw error;
 
-  return data?.map(batch => {
+  return data?.map((batch, index) => {
     const progress = batch.user_quiz_progress?.[0] || null;
     const answers: Record<string, boolean> = progress?.answers || {};
 
@@ -61,6 +65,7 @@ export async function fetchQuizBatchesWithProgress(categoryId: string, userId: s
       isPassed: progress?.completed ? incorrectCount <= MAX_ALLOWED_ERRORS : null,
       incorrectCount: progress?.completed ? incorrectCount : null,
       progress,
+      moduleIndex: index + 1
     };
   }) || [];
 }

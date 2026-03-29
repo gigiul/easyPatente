@@ -100,19 +100,7 @@
         }
       }
     },
-    "batches": {
-      "QB_VEHICLES_1": "Veicoli 1",
-      "QB_VEHICLES_2": "Veicoli 2",
-      "QB_VEHICLES_3": "Veicoli 3",
-      "QB_VEHICLES_4": "Veicoli 4",
-      "QB_VEHICLES_5": "Veicoli 5",
-      "QB_VEHICLES_6": "Veicoli 6",
-      "QB_VEHICLES_7": "Veicoli 7",
-      "QB_VEHICLES_8": "Veicoli 8",
-      "QB_VEHICLES_9": "Veicoli 9",
-      "QB_VEHICLES_10": "Veicoli 10",
-      "QB_VEHICLES_11": "Veicoli 11"
-    }
+    "moduleName": "Modulo {{number}}"
   },
   "user": {
     "title": "Impostazioni Utente",
