@@ -222,7 +222,7 @@ export default function ExamQuizScreen() {
             </View>
 
             <View style={styles.restartContainer}>
-              <ThemedButton title={t('exam.results.backToHome')} onPress={() => router.replace('/(tabs)')} />
+              <ThemedButton title={t('exam.results.backToHome')} onPress={() => router.replace('/(tabs)/exam')} />
             </View>
           </View>
 

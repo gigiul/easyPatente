@@ -35,7 +35,12 @@ export default function QuizBatchScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.headerTitle}>{categoryName || t('quiz.chooseQuiz')}</ThemedText>
+      <View style={styles.header}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#2563EB" />
+        </Pressable>
+        <ThemedText type="title" style={styles.headerTitle}>{categoryName || t('quiz.chooseQuiz')}</ThemedText>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {loading ? (
           <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
@@ -110,7 +115,18 @@ export default function QuizBatchScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  headerTitle: { marginTop: 60, marginBottom: 8, paddingHorizontal: 16 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  backButton: {
+    padding: 4,
+    marginTop: 4,
+  },
+  headerTitle: { flex: 1 },
   scrollViewContent: { padding: 16 },
   loader: { marginTop: 50 },
   emptyState: {
