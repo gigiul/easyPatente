@@ -39,7 +39,7 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   Schermata profilo utente.
   - Permette di modificare la **Lingua Primaria** (usata per l'interfaccia e la traduzione del quiz) e una **Lingua Secondaria** opzionale (con cui visualizzare testo parallelo nei quiz per utenti stranieri).
   - Gestisce l'aggiornamento simultaneo dell'UI via `i18n` e del profilo utente su database remoto.
-  - Include il pulsante di configurazione e Logout.
+  - Include il pulsante di configurazione, Logout ed **Eliminazione Account**. L'eliminazione pulisce tutti i dati sensibili dell'utente in un solo passaggio sul DB chiamando l'RPC `delete_user_account`.
 - **`app/(tabs)/exam.tsx` (Exam Screen)**: 
   - Hub dedicato alle simulazioni d'esame.
   - Permette di generare un nuovo esame da 30 domande casuali collegate a un timer di 20 minuti, chiamando la RPC Supabase `generate_exam_batch`.
@@ -77,6 +77,25 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 2. Vengono elaborati/messi in cache all'interno della cartella `store/` utilizzando **Zustand**.
 3. Gli strati della logica sono isolati nella directory `hooks/`, in cui viene consumato lo Store e incapsulata unicità della logica di business.
 4. Ogni "pagina" in `app/` espone solo la View collegata a questi hooks. Questo pattern architetturale (Separation of Concerns tra UI component e State) garantisce grandissima facilità di manutenzione e mocking.
+
+## 🛠️ Funzioni RPC (Remote Procedure Calls)
+
+Il progetto sfrutta le funzioni PostgreSQL eseguite lato DB (tramite `supabase.rpc()`) per isolare la logica complessa, garantire sicurezza tramite `SECURITY DEFINER` e ridurre le latenze. Le attuali procedure includono:
+
+- **`delete_user_account()`**
+  Elimina in modo sicuro un utente procedendo alla pulizia manuale autonoma dei suoi *quiz_batches* personali (esami e revisioni), dei log di progressione, degli errori registrati e del profilo, per poi cancellare la chiave in `auth.users`.
+- **`generate_exam_batch(p_user_id)`**
+  Crea in automatico un nuovo esame prelevando 30 domande miste per argomento, le rimescola casualmente inserendole in un batch temporaneo e inizializza il `user_quiz_progress`.
+- **`generate_mistakes_review_batch()`**
+  Verifica se un utente ha commesso errori storici e genera un batch (`review`) contenente esclusivamente quelle domande in ordine cronologico dal più recente, pronte da ripassare.
+- **`record_exam_mistakes(p_batch_id)`**
+  Innescato alla consegna di un esame, scansiona le risposte fornite: le risposte errate o non fornite vengono aggregate in log nel tracker `user_mistakes`. Se una domanda precedentemente errata viene corretta in una revisione, essa viene purificata dalla lista.
+- **`get_mistakes_count()`**
+  Ritorna istantaneamente un contatore aggiornato (count query) degli ultimi errori accumulati per l'utente loggato, per le badge visive UI.
+- **`get_user_exam_history(p_user_id)`**
+  Restituisce lo storico completo degli esami (completati e abbandonati) del singolo utente. Aggrega tutto ricalcolando il punteggio in tempo reale alla velocità nativa di SQL.
+- **`check_registration_email_domain()` / `handle_new_user()`**
+  Hook pre e post-registrazione. Assicurano che i domini e-mail rispettino whitelist (es. bloccano spammer) tramite trigger DB, e creano nativamente l'anagrafica (`public.profiles`) reattiva.
 
 ## DB Schema SQL
 

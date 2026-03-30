@@ -96,7 +96,10 @@
     "secondaryLanguage": {
       "title": "Secondary Language",
       "description": "Show translations in a second language to help with learning"
-    }
+    },
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirm": "Are you sure you want to permanently delete your account and all your data? This action cannot be undone.",
+    "cancel": "Cancel"
   },
   "auth": {
     "login": {

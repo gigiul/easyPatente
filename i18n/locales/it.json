@@ -116,7 +116,10 @@
     "secondaryLanguage": {
       "title": "Lingua Secondaria",
       "description": "Mostra le traduzioni in una seconda lingua per facilitare l'apprendimento"
-    }
+    },
+    "deleteAccount": "Elimina Account",
+    "deleteAccountConfirm": "Sei sicuro di voler eliminare permanentemente il tuo account e tutti i tuoi dati? Questa azione è irreversibile.",
+    "cancel": "Annulla"
   },
   "auth": {
     "login": {

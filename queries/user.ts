@@ -42,3 +42,8 @@ export async function updateUserLanguage(languageId: string | null, type: 'prima
   }
   return null;
 }
+
+export async function deleteUserAccount() {
+  const { error } = await supabase.rpc('delete_user_account');
+  if (error) throw error;
+}

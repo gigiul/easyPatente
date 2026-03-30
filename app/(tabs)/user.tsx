@@ -8,7 +8,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
 import i18n from '@/i18n';
-import { updateUserLanguage } from '@/queries/user';
+import { deleteUserAccount, updateUserLanguage } from '@/queries/user';
 import { useLanguagesStore } from '@/store/languages';
 import { useUserProfileStore } from '@/store/user';
 
@@ -81,6 +81,32 @@ export default function UserScreen() {
     );
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('user.deleteAccount'),
+      t('user.deleteAccountConfirm'),
+      [
+        {
+          text: t('user.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('user.deleteAccount'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteUserAccount();
+              await signOut();
+              router.replace('/login');
+            } catch (error: any) {
+              Alert.alert('Error', error.message);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.headerTitle}>{t('user.title')}</ThemedText>
@@ -129,6 +155,10 @@ export default function UserScreen() {
         >
           <ThemedText style={styles.logoutButtonText}>Logout</ThemedText>
         </Pressable>
+
+        <Pressable onPress={handleDeleteAccount} style={styles.deleteAccountButton}>
+          <ThemedText style={styles.deleteAccountText}>{t('user.deleteAccount')}</ThemedText>
+        </Pressable>
       </View>
     </ThemedView>
   );
@@ -171,5 +201,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  deleteAccountButton: {
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  deleteAccountText: {
+    color: '#FF3B30',
+    fontSize: 14,
   },
 });
