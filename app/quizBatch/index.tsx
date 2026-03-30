@@ -11,7 +11,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'reac
 
 export default function QuizBatchScreen() {
   const { t } = useTranslation();
-  const { categoryId } = useLocalSearchParams();
+  const { categoryId, categoryName } = useLocalSearchParams();
   const router = useRouter();
   const { session } = useAuth();
   const userId = session?.user?.id || '';
@@ -35,7 +35,7 @@ export default function QuizBatchScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.headerTitle}>{t('quiz.chooseQuiz')}</ThemedText>
+      <ThemedText type="title" style={styles.headerTitle}>{categoryName || t('quiz.chooseQuiz')}</ThemedText>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         {loading ? (
           <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />

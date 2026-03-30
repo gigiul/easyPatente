@@ -32,9 +32,13 @@ export default function HomeScreen() {
             return;
     }
     
+    const category = categories.find(c => c.id === categoryId);
     router.push({
       pathname: '/quizBatch',
-      params: { categoryId },
+      params: { 
+        categoryId,
+        categoryName: category?.name 
+      },
     });
   };
 
