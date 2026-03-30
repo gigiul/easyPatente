@@ -12,7 +12,7 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 - **`components/`**: Componenti visivi riutilizzabili. Sono presenti varianti tematizzate per la Dark/Light Mode (es: `ThemedText`, `ThemedView`, `ThemedButton`) e Picker personalizzati.
 - **`constants/`**: Valori costanti trasversali allo sviluppo (come i design token su `Colors.ts`).
 - **`hooks/`**: Custom hooks React che contengono la logica di business. Qui avviene la comunicazione tra UI, Zustand stores e le chiamate Supabase (es: `useAuth`, `useCategories`, `useQuizQuestions`).
-- **`queries/`**: Funzioni specifiche per eseguire query al database Supabase (separazione della query logic dal resto del frontend).
+- **`queries/`**: Funzioni specifiche per eseguire query al database Supabase (separazione della query logic dal resto del frontend). Contiene moduli dedicati a progressione, errori (`mistakes.ts`) e dati generali.
 - **`store/`**: Gestione dello state globale dell'app con **Zustand**. Ci sono store dedicati a settori logici (`user`, `languages`, `quizBatches`, `categories`, `quizQuestions`).
 - **`i18n/`**: Configurazioni e file per la localizzazione (i18next). Contiene la cartella `locales` con i file JSON per le varie lingue (`it`, `en`, `es`, `bn`, ecc.).
 - **`types/`**: Definizioni dei tipi TypeScript che descrivono i modelli dei dati in arrivo da Supabase e altre interfacce dell'app.
@@ -31,9 +31,10 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   Funge da wrapper per la navigazione a "Bottom Tabs". 
 - **`app/(tabs)/index.tsx` (Home Screen)**: 
   La dashboard principale dell'utente.
-  - Carica le categorie dei quiz dal database (`useCategories`).
+  - Carica le categorie dei quiz dal database passando la lingua corrente (`useCategories`).
+  - Utilizza le traduzioni dinamiche (**`category_translations`**) per mostrare Titolo e Descrizione di ogni categoria.
   - Mostra una griglia di pulsanti per ogni categoria tematica (con un sistema di colori per ogni card).
-  - Al tap su una categoria, effettua un `router.push('/quizBatch')` delegando i parametri della categoria cliccata.
+  - Al tap su una categoria, effettua un `router.push('/quizBatch')` passando l'ID della categoria.
 - **`app/(tabs)/user.tsx` (User Screen)**: 
   Schermata profilo utente.
   - Permette di modificare la **Lingua Primaria** (usata per l'interfaccia e la traduzione del quiz) e una **Lingua Secondaria** opzionale (con cui visualizzare testo parallelo nei quiz per utenti stranieri).
@@ -42,14 +43,16 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 - **`app/(tabs)/exam.tsx` (Exam Screen)**: 
   - Hub dedicato alle simulazioni d'esame.
   - Permette di generare un nuovo esame da 30 domande casuali collegate a un timer di 20 minuti, chiamando la RPC Supabase `generate_exam_batch`.
+  - **Revisione Errori**: Include una sezione dinamica che mostra il numero di errori accumulati negli esami precedenti. Un pulsante dedicato permette di avviare un quiz di revisione personalizzato basato sulla tabella `user_mistakes`, utilizzando la RPC `generate_mistakes_review_batch`.
   - Mostra lo **"Storico Esami"** dell'utente, con logica di ricalcolo del punteggio super ottimizzata interrogando direttamente via RPC (`get_user_exam_history`).
   - Mostra le status card dinamicamente formattate (*Abandoned*, *Passed*, *Failed*) avvalendosi del nuovo custom hook `useQuizTheme` per l'adattamento perfetto della UI in Light/Dark mode.
 
 ### 3. Selezione Quiz Batch (Blocchi)
 - **`app/quizBatch/index.tsx` (Quiz Batch Screen)**:
   - Recupera i blocchi di domande associati alla categoria selezionata (parametro `categoryId`) e allo stato di avanzamento utente (grazie all'hook `useQuizBatches`).
-  - L'UI elenca i batch sotto forma di card indicando le metriche dello svolgimento ("Inizia", "In corso 5/30", "Completato").
-  - Un tap porta l'utente dentro il quiz effettivo passandogli il `batchId`.
+  - I blocchi (Batch) sono chiamati genericamente **"Moduli"** (es. "Modulo 1", "Modulo 2") e numerati sequenzialmente in base all'ordine di creazione.
+  - L'UI elenca i moduli sotto forma di card indicando le metriche dello svolgimento ("Inizia", "In corso 5/30", "Completato").
+  - Un tap porta l'utente dentro il quiz effettivo passandogli il `batchId` e il titolo formattato.
 
 ### 4. Svolgimento del Quiz ed Esame
 - **`app/quiz.tsx` (Quiz Screen)**:
@@ -79,13 +82,24 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 
 CREATE TABLE public.categories (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  name text NOT NULL,
   code text NOT NULL UNIQUE,
   icon_url text,
   created_at timestamp with time zone DEFAULT now(),
   is_active boolean DEFAULT false,
   is_premium boolean NOT NULL DEFAULT false,
   CONSTRAINT categories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.category_translations (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  category_id uuid NOT NULL,
+  lang_code text NOT NULL,
+  title text NOT NULL,
+  description text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT category_translations_pkey PRIMARY KEY (id),
+  CONSTRAINT category_translations_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE CASCADE,
+  CONSTRAINT category_translations_lang_code_fkey FOREIGN KEY (lang_code) REFERENCES public.languages(code) ON DELETE CASCADE,
+  CONSTRAINT category_translations_unique_cat_lang UNIQUE (category_id, lang_code)
 );
 CREATE TABLE public.languages (
   code text NOT NULL,
@@ -121,7 +135,7 @@ CREATE TABLE public.question_translations (
 CREATE TABLE public.questions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   code text NOT NULL UNIQUE,
-  image_url text,
+  image_filename text,
   is_free boolean NOT NULL DEFAULT true,
   category_id uuid NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
@@ -144,9 +158,21 @@ CREATE TABLE public.quiz_batches (
   category_id uuid,
   is_random boolean NOT NULL DEFAULT false,
   is_exam boolean NOT NULL DEFAULT false,
+  batch_type text NOT NULL DEFAULT 'exam',
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT quiz_batches_pkey PRIMARY KEY (id),
   CONSTRAINT quiz_batches_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
+);
+CREATE TABLE public.user_mistakes (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  question_id uuid NOT NULL,
+  incorrect_count integer DEFAULT 1,
+  last_incorrect_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_mistakes_pkey PRIMARY KEY (id),
+  CONSTRAINT user_mistakes_user_id_question_id_key UNIQUE (user_id, question_id),
+  CONSTRAINT user_mistakes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
+  CONSTRAINT user_mistakes_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.questions(id) ON DELETE CASCADE
 );
 CREATE TABLE public.user_quiz_progress (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

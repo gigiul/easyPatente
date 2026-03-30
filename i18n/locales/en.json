@@ -154,6 +154,7 @@
       }
     },
     "start": "START EXAM",
+    "reviewMistakes": "Review Mistakes ({{count}})",
     "alerts": {
       "error": "Error",
       "notLoggedIn": "You must be logged in to start an exam.",
@@ -165,7 +166,8 @@
       "cancel": "Cancel",
       "submit": "Submit",
       "timeOutTitle": "Time Up",
-      "timeOutMessage": "Exam time has run out. Your exam has been submitted automatically."
+      "timeOutMessage": "Exam time has run out. Your exam has been submitted automatically.",
+      "reviewStartFailed": "Failed to start the review. Please try again."
     },
     "results": {
       "title": "Exam Result",

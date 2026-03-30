@@ -25,6 +25,7 @@ import { useQuizScore } from '@/hooks/useQuizScore';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { updateQuizProgression } from '@/queries/quizProgression';
+import { recordExamMistakes } from '@/queries/mistakes';
 
 const EXAM_DURATION_SECONDS = 20 * 60; // 20 minutes
 
@@ -169,6 +170,10 @@ export default function ExamQuizScreen() {
     }
     setQuizCompleted(true);
     await updateQuizProgression(userId, String(batchId), finalAnswers, currentQuestionIndex + 1, true);
+    // Record mistakes in the background (non-blocking)
+    recordExamMistakes(String(batchId)).catch((err) =>
+      console.warn('Could not record exam mistakes:', err)
+    );
   };
 
   // --- Rendering ---

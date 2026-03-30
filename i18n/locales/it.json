@@ -174,6 +174,7 @@
       }
     },
     "start": "INIZIA ESAME",
+    "reviewMistakes": "Revisiona Errori ({{count}})",
     "alerts": {
       "error": "Errore",
       "notLoggedIn": "Devi effettuare l'accesso per iniziare un esame.",
@@ -185,7 +186,8 @@
       "cancel": "Annulla",
       "submit": "Consegna",
       "timeOutTitle": "Tempo Scaduto",
-      "timeOutMessage": "Il tempo per l'esame è terminato. Il tuo esame è stato consegnato automaticamente."
+      "timeOutMessage": "Il tempo per l'esame è terminato. Il tuo esame è stato consegnato automaticamente.",
+      "reviewStartFailed": "Impossibile avviare la revisione. Riprova."
     },
     "results": {
       "title": "Risultato Esame",

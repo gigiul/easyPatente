@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
 import { supabase } from '@/lib/supabase';
 import { fetchExamHistory } from '@/queries/quizProgression';
+import { fetchMistakesCount, startMistakesReview } from '@/queries/mistakes';
 
 export default function ExamTab() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function ExamTab() {
   const [loading, setLoading] = useState(false);
   const [examHistory, setExamHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [mistakesCount, setMistakesCount] = useState(0);
+  const [loadingReview, setLoadingReview] = useState(false);
   const themeColors = useQuizTheme();
 
   useFocusEffect(
@@ -28,8 +31,13 @@ export default function ExamTab() {
           .then(setExamHistory)
           .catch((err) => console.error('Error fetching history:', err))
           .finally(() => setLoadingHistory(false));
+
+        fetchMistakesCount()
+          .then(setMistakesCount)
+          .catch((err) => console.warn('Error fetching mistakes count:', err));
       } else {
         setExamHistory([]);
+        setMistakesCount(0);
         setLoadingHistory(false);
       }
     }, [session?.user?.id])
@@ -62,6 +70,28 @@ export default function ExamTab() {
       Alert.alert(t('exam.alerts.error'), t('exam.alerts.unexpected'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startReview = async () => {
+    if (!session?.user?.id) {
+      Alert.alert(t('exam.alerts.error'), t('exam.alerts.notLoggedIn'));
+      return;
+    }
+    if (mistakesCount === 0) return;
+
+    setLoadingReview(true);
+    try {
+      const batchId = await startMistakesReview();
+      router.push({
+        pathname: '/examQuiz',
+        params: { batchId },
+      });
+    } catch (err: any) {
+      console.error('Error starting review:', err);
+      Alert.alert(t('exam.alerts.error'), t('exam.alerts.reviewStartFailed'));
+    } finally {
+      setLoadingReview(false);
     }
   };
 
@@ -120,6 +150,29 @@ export default function ExamTab() {
               </>
             )}
           </Pressable>
+
+          {mistakesCount > 0 && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.reviewButton,
+                pressed && styles.startButtonPressed,
+                loadingReview && styles.startButtonDisabled,
+              ]}
+              onPress={startReview}
+              disabled={loadingReview}
+            >
+              {loadingReview ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="refresh-circle" size={24} color="#fff" />
+                  <ThemedText style={styles.reviewButtonText}>
+                    {t('exam.reviewMistakes', { count: mistakesCount })}
+                  </ThemedText>
+                </>
+              )}
+            </Pressable>
+          )}
         </View>
 
         {/* Exam History Section */}
@@ -265,6 +318,27 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     letterSpacing: 1,
+  },
+  reviewButton: {
+    backgroundColor: '#D97706', // Amber — visually distinct from the green exam button
+    borderRadius: 16,
+    paddingVertical: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 12,
+    shadowColor: '#D97706',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  reviewButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   historyContainer: {
     marginTop: 32,
