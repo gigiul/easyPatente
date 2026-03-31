@@ -2,15 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View, useColorScheme } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/lib/supabase';
-import { fetchExamHistory } from '@/queries/quizProgression';
 import { fetchMistakesCount, startMistakesReview } from '@/queries/mistakes';
+import { fetchExamHistory } from '@/queries/quizProgression';
 
 export default function ExamTab() {
   const router = useRouter();
@@ -22,6 +23,9 @@ export default function ExamTab() {
   const [mistakesCount, setMistakesCount] = useState(0);
   const [loadingReview, setLoadingReview] = useState(false);
   const themeColors = useQuizTheme();
+
+  // Secondary text color for description
+  const secondaryTextColor = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
 
   useFocusEffect(
     useCallback(() => {
@@ -101,35 +105,39 @@ export default function ExamTab() {
       <ThemedText style={styles.subtitle}>{t('exam.subtitle')}</ThemedText>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.infoCard}>
+        <ThemedView
+          style={styles.infoCard}
+          lightColor="#F3F4F6"
+          darkColor="#1F2937"
+        >
           <View style={styles.infoRow}>
             <Ionicons name="document-text" size={32} color="#2563EB" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoTitle}>{t('exam.info.questions.title')}</ThemedText>
-              <ThemedText style={styles.infoDescription}>{t('exam.info.questions.description')}</ThemedText>
+              <ThemedText style={[styles.infoDescription, { color: secondaryTextColor }]}>{t('exam.info.questions.description')}</ThemedText>
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <ThemedView style={styles.divider} lightColor="#E5E7EB" darkColor="#374151" />
 
           <View style={styles.infoRow}>
             <Ionicons name="timer" size={32} color="#F59E0B" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoTitle}>{t('exam.info.time.title')}</ThemedText>
-              <ThemedText style={styles.infoDescription}>{t('exam.info.time.description')}</ThemedText>
+              <ThemedText style={[styles.infoDescription, { color: secondaryTextColor }]}>{t('exam.info.time.description')}</ThemedText>
             </View>
           </View>
 
-          <View style={styles.divider} />
+          <ThemedView style={styles.divider} lightColor="#E5E7EB" darkColor="#374151" />
 
           <View style={styles.infoRow}>
             <Ionicons name="close-circle" size={32} color="#EF4444" />
             <View style={styles.infoTextContainer}>
               <ThemedText style={styles.infoTitle}>{t('exam.info.errors.title')}</ThemedText>
-              <ThemedText style={styles.infoDescription}>{t('exam.info.errors.description')}</ThemedText>
+              <ThemedText style={[styles.infoDescription, { color: secondaryTextColor }]}>{t('exam.info.errors.description')}</ThemedText>
             </View>
           </View>
-        </View>
+        </ThemedView>
 
         <View style={styles.buttonContainer}>
           <Pressable
@@ -190,7 +198,12 @@ export default function ExamTab() {
               const isPassed = exam.incorrect_count <= 3;
               if (!exam.completed) {
                 return (
-                  <View key={exam.batch_id} style={[styles.historyCard, { backgroundColor: themeColors.abandoned.bg, borderColor: themeColors.abandoned.border }]}>
+                  <ThemedView
+                    key={exam.batch_id}
+                    style={styles.historyCard}
+                    lightColor={themeColors.abandoned.bg}
+                    darkColor={themeColors.abandoned.bg}
+                  >
                     <View style={styles.historyCardHeader}>
                       <ThemedText style={styles.historyDate}>
                         {new Date(exam.started_at).toLocaleDateString()}
@@ -201,14 +214,19 @@ export default function ExamTab() {
                         </ThemedText>
                       </View>
                     </View>
-                  </View>
+                  </ThemedView>
                 );
               }
 
               const colors = isPassed ? themeColors.passed : themeColors.failed;
 
               return (
-                <View key={exam.batch_id} style={[styles.historyCard, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                <ThemedView
+                  key={exam.batch_id}
+                  style={styles.historyCard}
+                  lightColor={colors.bg || "#FFFFFF"}
+                  darkColor={colors.bg || "#1F2937"}
+                >
                   <View style={styles.historyCardHeader}>
                     <ThemedText style={styles.historyDate}>
                       {new Date(exam.started_at).toLocaleDateString()}
@@ -227,7 +245,7 @@ export default function ExamTab() {
                       {t('exam.history.errors', { count: exam.incorrect_count })}
                     </ThemedText>
                   </View>
-                </View>
+                </ThemedView>
               );
             })
           )}
@@ -256,7 +274,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   infoCard: {
-    backgroundColor: '#1F2937', // We should use Theme colors but for now let's keep it similar
     borderRadius: 16,
     padding: 24,
     shadowColor: '#000',
@@ -285,7 +302,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#374151',
     marginVertical: 16,
   },
   buttonContainer: {
@@ -357,7 +373,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   historyCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
