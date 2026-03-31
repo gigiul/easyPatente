@@ -36,10 +36,11 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   - Mostra una griglia di pulsanti per ogni categoria tematica (con un sistema di colori per ogni card).
   - Al tap su una categoria, effettua un `router.push('/quizBatch')` passando l'ID della categoria.
 - **`app/(tabs)/user.tsx` (User Screen)**: 
-  Schermata profilo utente.
-  - Permette di modificare la **Lingua Primaria** (usata per l'interfaccia e la traduzione del quiz) e una **Lingua Secondaria** opzionale (con cui visualizzare testo parallelo nei quiz per utenti stranieri).
-  - Gestisce l'aggiornamento simultaneo dell'UI via `i18n` e del profilo utente su database remoto.
-  - Include il pulsante di configurazione, Logout ed **Eliminazione Account**. L'eliminazione pulisce tutti i dati sensibili dell'utente in un solo passaggio sul DB chiamando l'RPC `delete_user_account`.
+  Schermata profilo utente, riprogettata con una UI a card per una gestione "premium" delle preferenze.
+  - **Impostazioni Lingua (Fulcro)**: Permette di modificare la **Lingua Primaria** (interfaccia e quiz) e una **Lingua Secondaria** opzionale (testo parallelo).
+  - **Account & Supporto**: Include badge per il piano (Premium/Free), link rapidi per contattare il **Supporto** e valutare l'app.
+  - **Legale & Info**: Link a **Privacy Policy**, **Termini di Servizio** e indicazione della versione dell'app (`v1.0.0`).
+  - **Azioni di Sicurezza**: Gestisce Logout ed **Eliminazione Account** (tramite RPC `delete_user_account`).
 - **`app/(tabs)/exam.tsx` (Exam Screen)**: 
   - Hub dedicato alle simulazioni d'esame.
   - Permette di generare un nuovo esame da 30 domande casuali collegate a un timer di 20 minuti, chiamando la RPC Supabase `generate_exam_batch`.
