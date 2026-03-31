@@ -3,6 +3,7 @@ export interface QuizBatch {
   title: string;
   category_id?: string | null;
   is_random: boolean;
+  batch_type: string;
   created_at: string;
   moduleIndex: number;
   // Progress information (added when fetching with user context)

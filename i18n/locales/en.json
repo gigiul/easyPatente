@@ -83,11 +83,17 @@
     }
   },
   "user": {
-    "title": "User Settings",
-    "subtitle": "Customize your learning experience",
+    "title": "Profile",
+    "subtitle": "Customize your experience",
+    "sections": {
+      "language": "Language Settings",
+      "account": "Account Information",
+      "support": "Support & Feedback",
+      "legal": "Legal & About"
+    },
     "language": {
       "title": "Primary Language",
-      "description": "Choose your preferred language for the app interface",
+      "description": "Preferred language for the app interface",
       "en": "English",
       "it": "Italian",
       "es": "Spanish",
@@ -95,8 +101,24 @@
     },
     "secondaryLanguage": {
       "title": "Secondary Language",
-      "description": "Show translations in a second language to help with learning"
+      "description": "Show translations in a second language"
     },
+    "account": {
+      "email": "Email",
+      "status": "Account Status",
+      "premium": "Premium User",
+      "free": "Free Plan"
+    },
+    "support": {
+      "rate": "Rate the App",
+      "contact": "Contact Support"
+    },
+    "legal": {
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "version": "App Version"
+    },
+    "logout": "Log Out",
     "deleteAccount": "Delete Account",
     "deleteAccountConfirm": "Are you sure you want to permanently delete your account and all your data? This action cannot be undone.",
     "cancel": "Cancel"

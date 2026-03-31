@@ -83,7 +83,7 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 Il progetto sfrutta le funzioni PostgreSQL eseguite lato DB (tramite `supabase.rpc()`) per isolare la logica complessa, garantire sicurezza tramite `SECURITY DEFINER` e ridurre le latenze. Le attuali procedure includono:
 
 - **`delete_user_account()`**
-  Elimina in modo sicuro un utente procedendo alla pulizia manuale autonoma dei suoi *quiz_batches* personali (esami e revisioni), dei log di progressione, degli errori registrati e del profilo, per poi cancellare la chiave in `auth.users`.
+  Elimina in modo sicuro un utente procedendo alla pulizia manuale dei suoi log di progressione (`user_quiz_progress`), degli errori registrati (`user_mistakes`) e del suo record `profiles`, per poi eliminare in modo nativo e definitivo la sua identità in `auth.users`. (Nota: Questa funzione è stata semplificata per evitare l'eliminazione accidentale di dati globali come le `questions` collegate ai blocchi esame o revisione).
 - **`generate_exam_batch(p_user_id)`**
   Crea in automatico un nuovo esame prelevando 30 domande miste per argomento, le rimescola casualmente inserendole in un batch temporaneo e inizializza il `user_quiz_progress`.
 - **`generate_mistakes_review_batch()`**
@@ -176,8 +176,7 @@ CREATE TABLE public.quiz_batches (
   title text NOT NULL,
   category_id uuid,
   is_random boolean NOT NULL DEFAULT false,
-  is_exam boolean NOT NULL DEFAULT false,
-  batch_type text NOT NULL DEFAULT 'exam',
+  batch_type text NOT NULL DEFAULT 'module',
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT quiz_batches_pkey PRIMARY KEY (id),
   CONSTRAINT quiz_batches_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
