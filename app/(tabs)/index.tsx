@@ -8,18 +8,26 @@ import { ThemedView } from '@/components/ThemedView';
 import { useCategories } from '@/hooks/useCategories';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 
-// Helper to map category code to color
-const CATEGORY_COLORS: Record<string, string> = {
-  roadSigns: '#FF6B6B',
-  rightOfWay: '#4ECDC4',
-  speedLimits: '#FFD93D',
-  roadSafety: '#95E1D3',
-  maintenance: '#FF8B94',
-  complete: '#6C5CE7',
+const colors = [
+  "#FF7F50",
+  "#2ECC71",
+  "#F39C12",
+  "#1ABC9C",
+  "#E84393",
+  "#0984E3",
+  "#00B894",
+  "#FAB1A0",
+  "#6AB04C",
+  "#A29BFE"
+]
+
+const getCategoryColor = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
 };
-function getCategoryColor(code: string) {
-  return CATEGORY_COLORS[code] || '#ccc';
-}
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -29,15 +37,15 @@ export default function HomeScreen() {
 
   const handleCategoryPress = (categoryId: string, isCategoryPremium: boolean) => {
     if (isCategoryPremium && !isUserPremium) {
-            return;
+      return;
     }
-    
+
     const category = categories.find(c => c.id === categoryId);
     router.push({
       pathname: '/quizBatch',
-      params: { 
+      params: {
         categoryId,
-        categoryName: category?.name 
+        categoryName: category?.name
       },
     });
   };
@@ -46,7 +54,7 @@ export default function HomeScreen() {
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.headerTitle}>{t('quiz.title')}</ThemedText>
       <ThemedText style={styles.subtitle}>{t('quiz.subtitle')}</ThemedText>
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
@@ -55,38 +63,38 @@ export default function HomeScreen() {
           {categories
             .filter((category) => category.code !== 'complete')
             .map((category) => {
-            const isLocked = category.is_premium && !isUserPremium;
-            return (
-              <Pressable
-                key={category.id}
-                style={({ pressed }) => [
-                  styles.categoryCard,
-                  { backgroundColor: getCategoryColor(category.code) },
-                  pressed && styles.categoryCardPressed,
-                  isLocked && styles.categoryCardLocked,
-                ]}
-                onPress={() => handleCategoryPress(category.id, category.is_premium)}
-              >
-                <View style={styles.categoryHeader}>
-                  <Ionicons name={category.icon_url as any} size={32} color="#fff" />
-                  {isLocked && (
-                    <Ionicons name="lock-closed" size={20} color="#fff" style={styles.lockIcon} />
-                  )}
-                </View>
-                <ThemedText style={styles.categoryTitle}>
-                  {category.name}
-                </ThemedText>
-                <ThemedText style={styles.categoryDescription}>
-                  {category.description}
-                </ThemedText>
-                {isLocked && (
-                  <ThemedText style={styles.premiumLabel}>
-                    {t('premium.required')}
+              const isLocked = category.is_premium && !isUserPremium;
+              return (
+                <Pressable
+                  key={category.id}
+                  style={({ pressed }) => [
+                    styles.categoryCard,
+                    { backgroundColor: category.color || getCategoryColor(category.id) },
+                    pressed && styles.categoryCardPressed,
+                    isLocked && styles.categoryCardLocked,
+                  ]}
+                  onPress={() => handleCategoryPress(category.id, category.is_premium)}
+                >
+                  <View style={styles.categoryHeader}>
+                    <Ionicons name={category.icon_url as any} size={32} color="#fff" />
+                    {isLocked && (
+                      <Ionicons name="lock-closed" size={20} color="#fff" style={styles.lockIcon} />
+                    )}
+                  </View>
+                  <ThemedText style={styles.categoryTitle}>
+                    {category.name}
                   </ThemedText>
-                )}
-              </Pressable>
-            );
-          })}
+                  <ThemedText style={styles.categoryDescription}>
+                    {category.description}
+                  </ThemedText>
+                  {isLocked && (
+                    <ThemedText style={styles.premiumLabel}>
+                      {t('premium.required')}
+                    </ThemedText>
+                  )}
+                </Pressable>
+              );
+            })}
         </View>
       </ScrollView>
     </ThemedView>

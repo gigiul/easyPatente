@@ -3,6 +3,8 @@ export interface Category {
   name: string;
   description?: string;
   code: string;
+  color?: string | null;
+  sort_order?: number | null;
   icon_url?: string | null;
   created_at: string;
   is_active: boolean;

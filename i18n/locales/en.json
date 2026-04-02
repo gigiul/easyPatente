@@ -4,32 +4,6 @@
     "subtitle": "Test your knowledge with interactive quizzes",
     "comingSoon": "Quiz coming soon...",
     "chooseQuiz": "Choose a quiz",
-    "categories": {
-      "roadSigns": {
-        "title": "Road Signs",
-        "description": "Learn about traffic signs and their meanings"
-      },
-      "rightOfWay": {
-        "title": "Right of Way",
-        "description": "Understand who has priority in different situations"
-      },
-      "speedLimits": {
-        "title": "Speed Limits",
-        "description": "Learn about speed limits in different areas"
-      },
-      "roadSafety": {
-        "title": "Road Safety",
-        "description": "Essential safety rules and best practices"
-      },
-      "maintenance": {
-        "title": "Vehicle Maintenance",
-        "description": "Basic maintenance and vehicle requirements"
-      },
-      "complete": {
-        "title": "Complete Test",
-        "description": "Practice with a full exam simulation"
-      }
-    },
     "moduleName": "Module {{number}}",
     "question": "Question",
     "explanation": "Explanation",

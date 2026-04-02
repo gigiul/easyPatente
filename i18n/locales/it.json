@@ -4,32 +4,6 @@
     "subtitle": "Metti alla prova le tue conoscenze del codice della strada",
     "comingSoon": "Quiz in arrivo...",
     "chooseQuiz": "Scegli un quiz",
-    "categories": {
-      "roadSigns": {
-        "title": "Segnaletica Stradale",
-        "description": "Impara a conoscere i segnali stradali e il loro significato"
-      },
-      "rightOfWay": {
-        "title": "Precedenza",
-        "description": "Comprendi chi ha la precedenza in diverse situazioni"
-      },
-      "speedLimits": {
-        "title": "Limiti di Velocità",
-        "description": "Impara i limiti di velocità nelle diverse aree"
-      },
-      "roadSafety": {
-        "title": "Sicurezza Stradale",
-        "description": "Regole di sicurezza essenziali e buone pratiche"
-      },
-      "maintenance": {
-        "title": "Manutenzione Veicolo",
-        "description": "Manutenzione di base e requisiti del veicolo"
-      },
-      "complete": {
-        "title": "Esame Completo",
-        "description": "Esercitati con una simulazione dell'esame completo"
-      }
-    },
     "question": "Domanda",
     "explanation": "Spiegazione",
     "next": "Successiva",
