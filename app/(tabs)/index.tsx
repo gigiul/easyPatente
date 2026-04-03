@@ -62,37 +62,37 @@ export default function HomeScreen() {
         <View style={styles.categoriesGrid}>
           {categories.map((category) => {
             const isLocked = category.is_premium && !isUserPremium;
-              return (
-                <Pressable
-                  key={category.id}
-                  style={({ pressed }) => [
-                    styles.categoryCard,
-                    { backgroundColor: category.color || getCategoryColor(category.id) },
-                    pressed && styles.categoryCardPressed,
-                    isLocked && styles.categoryCardLocked,
-                  ]}
-                  onPress={() => handleCategoryPress(category.id, category.is_premium)}
-                >
-                  <View style={styles.categoryHeader}>
-                    <Ionicons name={category.icon_url as any} size={32} color="#fff" />
-                    {isLocked && (
-                      <Ionicons name="lock-closed" size={20} color="#fff" style={styles.lockIcon} />
-                    )}
-                  </View>
-                  <ThemedText style={styles.categoryTitle}>
-                    {category.name}
-                  </ThemedText>
-                  <ThemedText style={styles.categoryDescription}>
-                    {category.description}
-                  </ThemedText>
+            return (
+              <Pressable
+                key={category.id}
+                style={({ pressed }) => [
+                  styles.categoryCard,
+                  { backgroundColor: category.color || getCategoryColor(category.id) },
+                  pressed && styles.categoryCardPressed,
+                  isLocked && styles.categoryCardLocked,
+                ]}
+                onPress={() => handleCategoryPress(category.id, category.is_premium)}
+              >
+                <View style={styles.categoryHeader}>
+                  <Ionicons name={category.icon_url as any} size={32} color="#fff" />
                   {isLocked && (
-                    <ThemedText style={styles.premiumLabel}>
-                      {t('premium.required')}
-                    </ThemedText>
+                    <Ionicons name="lock-closed" size={20} color="#fff" style={styles.lockIcon} />
                   )}
-                </Pressable>
-              );
-            })}
+                </View>
+                <ThemedText style={styles.categoryTitle}>
+                  {category.name}
+                </ThemedText>
+                <ThemedText style={styles.categoryDescription}>
+                  {category.description}
+                </ThemedText>
+                {isLocked && (
+                  <ThemedText style={styles.premiumLabel}>
+                    {t('premium.required')}
+                  </ThemedText>
+                )}
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
     </ThemedView>
@@ -128,7 +128,6 @@ const styles = StyleSheet.create({
     width: '47%',
     padding: 16,
     borderRadius: 12,
-    marginBottom: 16,
   },
   categoryCardPressed: {
     opacity: 0.8,

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,7 @@ export default function UserScreen() {
   const userProfile = useUserProfileStore((state) => state.user);
   const [primaryLanguage, setPrimaryLanguage] = useState<string>('');
   const [secondaryLanguage, setSecondaryLanguage] = useState<string | null>('');
+  const appVersion = Constants.expoConfig?.version || '1.0.0';
 
   // Theme colors
   const backgroundColor = useThemeColor({}, 'background');
@@ -151,7 +153,7 @@ export default function UserScreen() {
           <ThemedText style={[styles.userEmail, { color: secondaryTextColor }]}>
             {session?.user?.email}
           </ThemedText>
-          
+
           <View style={[styles.badge, { backgroundColor: userProfile?.is_premium ? '#F59E0B' : borderColor }]}>
             <Ionicons name={userProfile?.is_premium ? "star" : "person"} size={12} color={userProfile?.is_premium ? "#FFF" : accentColor} />
             <ThemedText style={[styles.badgeText, { color: userProfile?.is_premium ? "#FFF" : accentColor }]}>
@@ -202,7 +204,7 @@ export default function UserScreen() {
         <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
           {renderSettingRow('document-text-outline', t('user.legal.terms'), undefined, () => openLink('https://easypatente.it/terms'))}
           {renderSettingRow('shield-checkmark-outline', t('user.legal.privacy'), undefined, () => openLink('https://easypatente.it/privacy'))}
-          {renderSettingRow('information-circle-outline', t('user.legal.version'), '1.0.0')}
+          {renderSettingRow('information-circle-outline', t('user.legal.version'), appVersion)}
         </View>
 
         {/* Danger Zone */}
@@ -227,7 +229,7 @@ export default function UserScreen() {
             </ThemedText>
           </Pressable>
         </View>
-        
+
         <View style={{ height: 40 }} />
       </ScrollView>
     </ThemedView>
