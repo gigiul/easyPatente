@@ -44,3 +44,6 @@ app-example
 
 #apk
 *.apk
+
+#android
+android/*
