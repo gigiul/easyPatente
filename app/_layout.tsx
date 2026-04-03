@@ -32,13 +32,16 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-      // Fetch user profile and languages
-      const fetchData = async () => {
-        await fetchUserProfile();
-        await fetchLanguages();
-      };
-      fetchData();
+    // Initial fetch of languages - can be done without session now that RLS is open
+    fetchLanguages().catch(console.error);
   }, []);
+
+  useEffect(() => {
+    // Fetch profile whenever session changes
+    if (session?.user?.id) {
+      fetchUserProfile(session.user.id).catch(console.error);
+    }
+  }, [session]);
 
     useEffect(() => {
     // retrieve userProfile languages if set

@@ -3,11 +3,14 @@ import { supabase } from '../lib/supabase';
 import { useUserProfileStore } from '../store/user';
 
 
-export async function fetchUserProfile() {
-const sessionStr = await storage.get('@auth_session');  
-  if (!sessionStr) return null;
-  const session = JSON.parse(sessionStr);
-  const userId = session?.user?.id || session?.id;
+export async function fetchUserProfile(userId?: string) {
+  if (!userId) {
+    const sessionStr = await storage.get('@auth_session');  
+    if (!sessionStr) return null;
+    const session = JSON.parse(sessionStr);
+    userId = session?.user?.id || session?.id;
+  }
+  
   if (!userId) return null;
 
   const { data, error } = await supabase
