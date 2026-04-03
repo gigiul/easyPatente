@@ -1,6 +1,6 @@
-# EasyPatente - Struttura e Architettura del Progetto
+# Quiz Patente 2026 - Struttura e Architettura del Progetto
 
-Questo documento descrive in dettaglio la struttura delle cartelle e delle schermate dell'app EasyPatente, creata con **Expo React Native** (utilizzando **Expo Router**) e integrata con **Supabase** per l'autenticazione e i dati.
+Questo documento descrive in dettaglio la struttura delle cartelle e delle schermate dell'app Quiz Patente 2026, creata con **Expo React Native** (utilizzando **Expo Router**) e integrata con **Supabase** per l'autenticazione e i dati.
 
 ---
 

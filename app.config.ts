@@ -3,8 +3,9 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'easyPatente',
+  name: 'Quiz Patente 2026',
   slug: 'easyPatente',
+  description: 'Quiz patente multilingua',
   version: '1.0.1',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
