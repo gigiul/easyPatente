@@ -33,7 +33,7 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   La dashboard principale dell'utente.
   - Carica le categorie dei quiz dal database passando la lingua corrente (`useCategories`).
   - Utilizza le traduzioni dinamiche (**`category_translations`**) per mostrare Titolo e Descrizione di ogni categoria.
-  - Mostra una griglia di pulsanti per ogni categoria tematica (con un sistema di colori per ogni card).
+  - Mostra una griglia di pulsanti per ogni categoria tematica, configurata per adattarsi dinamicamente ai colori e all'ordine definiti nel database (`sort_order`, `color`).
   - Al tap su una categoria, effettua un `router.push('/quizBatch')` passando l'ID della categoria.
 - **`app/(tabs)/user.tsx` (User Screen)**: 
   Schermata profilo utente, riprogettata con una UI a card per una gestione "premium" delle preferenze.
@@ -102,8 +102,9 @@ Il progetto sfrutta le funzioni PostgreSQL eseguite lato DB (tramite `supabase.r
 
 CREATE TABLE public.categories (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
-  code text NOT NULL UNIQUE,
   icon_url text,
+  color text,
+  sort_order integer,
   created_at timestamp with time zone DEFAULT now(),
   is_active boolean DEFAULT false,
   is_premium boolean NOT NULL DEFAULT false,

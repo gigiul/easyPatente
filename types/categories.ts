@@ -2,7 +2,6 @@ export interface Category {
   id: string;
   name: string;
   description?: string;
-  code: string;
   color?: string | null;
   sort_order?: number | null;
   icon_url?: string | null;

@@ -5,7 +5,7 @@ export async function fetchCategories(langCode: string = 'it'): Promise<Category
   const { data, error } = await supabase
     .from('categories')
     .select(`
-      id, code, color, sort_order, icon_url, created_at, is_active, is_premium,
+      id, color, sort_order, icon_url, created_at, is_active, is_premium,
       category_translations!inner (
         title,
         description
@@ -19,7 +19,7 @@ export async function fetchCategories(langCode: string = 'it'): Promise<Category
 
   return (data as any[]).map(cat => ({
     ...cat,
-    name: cat.category_translations[0]?.title || cat.code,
+    name: cat.category_translations[0]?.title || '',
     description: cat.category_translations[0]?.description || ''
   })) as Category[];
 }

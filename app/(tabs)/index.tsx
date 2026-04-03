@@ -60,10 +60,8 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.categoriesGrid}>
-          {categories
-            .filter((category) => category.code !== 'complete')
-            .map((category) => {
-              const isLocked = category.is_premium && !isUserPremium;
+          {categories.map((category) => {
+            const isLocked = category.is_premium && !isUserPremium;
               return (
                 <Pressable
                   key={category.id}
