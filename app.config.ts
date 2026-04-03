@@ -56,5 +56,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
       process.env.SUPABASE_ANON_KEY ??
       '',
+    supabaseStorageUrl:
+      process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL ??
+      process.env.SUPABASE_STORAGE_URL ??
+      '',
   },
 });

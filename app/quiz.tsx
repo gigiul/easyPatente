@@ -18,6 +18,7 @@ import * as ScreenCapture from 'expo-screen-capture';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { supabase, supabaseStorageUrl } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useQuizProgression } from '@/hooks/useQuizProgression';
@@ -431,13 +432,13 @@ export default function QuizScreen() {
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
               <Pressable onPress={() => setIsImageViewerVisible(true)}>
                 <Image
-                  source={{ uri: `${process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL}/${currentQuestion.image_filename}` }}
+                  source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }}
                   style={styles.questionImage}
                   resizeMode="contain"
                 />
               </Pressable>
               <ImageViewing
-                images={[{ uri: `${process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL}/${currentQuestion.image_filename}` }]}
+                images={[{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }]}
                 imageIndex={0}
                 visible={isImageViewerVisible}
                 onRequestClose={() => setIsImageViewerVisible(false)}

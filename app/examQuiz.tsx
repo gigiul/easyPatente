@@ -26,6 +26,7 @@ import { useQuizTheme } from '@/hooks/useQuizTheme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { updateQuizProgression } from '@/queries/quizProgression';
 import { recordExamMistakes } from '@/queries/mistakes';
+import { supabaseStorageUrl } from '@/lib/supabase';
 
 const EXAM_DURATION_SECONDS = 20 * 60; // 20 minutes
 
@@ -321,10 +322,10 @@ export default function ExamQuizScreen() {
           {currentQuestion?.image_filename && (
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
               <Pressable onPress={() => setIsImageViewerVisible(true)}>
-                <Image source={{ uri: `${process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL}/${currentQuestion.image_filename}` }} style={styles.questionImage} resizeMode="contain" />
+                <Image source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }} style={styles.questionImage} resizeMode="contain" />
               </Pressable>
               <ImageViewing
-                images={[{ uri: `${process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL}/${currentQuestion.image_filename}` }]}
+                images={[{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }]}
                 imageIndex={0}
                 visible={isImageViewerVisible}
                 onRequestClose={() => setIsImageViewerVisible(false)}
