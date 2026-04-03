@@ -1,98 +1,100 @@
 {
   "quiz": {
-    "title": "Quiz",
-    "subtitle": "Metti alla prova le tue conoscenze del codice della strada",
+    "title": "Quiz per categoria",
+    "subtitle": "Metti alla prova le tue conoscenze con quiz interattivi",
     "comingSoon": "Quiz in arrivo...",
     "chooseQuiz": "Scegli un quiz",
+    "moduleName": "Modulo {{number}}",
     "question": "Domanda",
     "explanation": "Spiegazione",
-    "next": "Successiva",
-    "previous": "Precedente",
+    "next": "Avanti",
+    "previous": "Indietro",
     "true": "Vero",
     "false": "Falso",
     "questionCount": "Domanda {{current}} di {{total}}",
-    "completed": "Quiz Completato!",
+    "completed": "Quiz completato!",
     "score": "Punteggio: {{score}} su {{total}}",
     "restart": "Ricomincia",
     "percentCompleted": "{{percent}}% completato",
     "questionOf": "{{current}} di {{total}}",
     "selectAnswer": "Seleziona la tua risposta:",
-    "correctAnswer": "Risposta Corretta!",
-    "incorrectAnswer": "Risposta Errata",
+    "correctAnswer": "Risposta corretta!",
+    "incorrectAnswer": "Risposta errata",
     "yourAnswer": "Hai risposto: {{answer}}",
     "correctAnswerIs": "Risposta corretta: {{answer}}",
-    "nextQuestion": "Successiva",
+    "nextQuestion": "Avanti",
     "skipQuestion": "Salta",
     "home": "Home",
-    "incorrectQuestions": "Domande Sbagliate",
-    "reviewIncorrect": "Ripassa Errori",
+    "incorrectQuestions": "Domande sbagliate",
+    "reviewIncorrect": "Rivedi errori",
     "noIncorrectQuestions": "Nessuna domanda sbagliata!",
     "inProgress": "In corso",
     "start": "Inizia",
     "currentQuestion": "Domanda corrente: {{current}}",
-    "questions": {
-      "roadSigns": {
-        "rs1": {
-          "question": "Il segnale di divieto di sosta indica che è vietata la sosta del veicolo in quel tratto di strada.",
-          "explanation": "Il segnale di divieto di sosta (cerchio rosso con barra diagonale) indica che è vietata la sosta del veicolo in quel tratto di strada, ma è consentita la fermata."
-        },
-        "rs2": {
-          "question": "Il segnale di precedenza obbliga a dare la precedenza ai veicoli provenienti sia da destra che da sinistra.",
-          "explanation": "Il segnale di precedenza (triangolo rosso) indica che bisogna dare la precedenza ai veicoli provenienti dalle strade laterali."
-        },
-        "rs3": {
-          "question": "Il segnale di limite massimo di velocità di 50 km/h si applica solo in presenza di traffico intenso.",
-          "explanation": "Il segnale di limite massimo di velocità si applica sempre, indipendentemente dalle condizioni del traffico."
-        },
-        "rs4": {
-          "question": "Il segnale di pericolo triangolare con bordo rosso indica un pericolo generico.",
-          "explanation": "I segnali di pericolo sono sempre triangolari con bordo rosso e indicano un pericolo generico o specifico."
-        },
-        "rs5": {
-          "question": "Il segnale di divieto di sorpasso vieta il sorpasso solo per i veicoli a motore.",
-          "explanation": "Il segnale di divieto di sorpasso vieta il sorpasso per tutti i veicoli, non solo per quelli a motore."
-        },
-        "rs6": {
-          "question": "Il segnale di obbligo di direzione obbliga a proseguire nella direzione indicata.",
-          "explanation": "I segnali di obbligo di direzione (cerchio blu con freccia) indicano che è obbligatorio proseguire nella direzione indicata."
-        },
-        "rs7": {
-          "question": "Il segnale di divieto di transito si applica solo ai veicoli a motore.",
-          "explanation": "Il segnale di divieto di transito si applica a tutti i veicoli, compresi quelli non a motore."
-        },
-        "rs8": {
-          "question": "Il segnale di pericolo per lavori in corso indica la presenza di cantieri stradali.",
-          "explanation": "Il segnale di pericolo per lavori in corso (triangolo con bordo rosso e simbolo di lavori) indica la presenza di cantieri stradali."
-        },
-        "rs9": {
-          "question": "Il segnale di divieto di accesso vieta l'accesso a tutti i veicoli, compresi i pedoni.",
-          "explanation": "Il segnale di divieto di accesso vieta l'accesso ai veicoli, ma non ai pedoni."
-        },
-        "rs10": {
-          "question": "Il segnale di obbligo di catene da neve indica che è obbligatorio montare le catene da neve o avere pneumatici invernali.",
-          "explanation": "Il segnale di obbligo di catene da neve (cerchio blu con simbolo di catene) indica che è obbligatorio montare le catene da neve o avere pneumatici invernali."
-        }
-      }
+    "passed": "Superato",
+    "failed": "Non superato",
+    "errors": "err.",
+    "results": {
+      "passed": {
+        "title": "Quiz superato!",
+        "subtitle": "Ottimo lavoro! Hai risposto correttamente alla maggior parte delle domande."
+      },
+      "failed": {
+        "title": "Quiz non superato",
+        "subtitle": "Hai fatto {{incorrect}} errori su {{total}} domande. Il massimo consentito è {{max}}. Riprova!"
+      },
+      "correct": "Corrette",
+      "incorrect": "Errori",
+      "scoreLabel": "Punteggio",
+      "errorLimit": "Massimo {{max}} errori consentiti per superare il quiz"
     },
-    "moduleName": "Modulo {{number}}"
+    "retry": "Riprova",
+    "finishAlert": {
+      "title": "Termina quiz",
+      "message": "Vuoi terminare il quiz e vedere i risultati? Le domande senza risposta saranno considerate errate.",
+      "confirm": "Termina",
+      "cancel": "Annulla"
+    }
   },
   "user": {
-    "title": "Impostazioni Utente",
-    "subtitle": "Personalizza la tua esperienza di apprendimento",
+    "title": "Profilo",
+    "subtitle": "Personalizza la tua esperienza",
+    "sections": {
+      "language": "Impostazioni lingua",
+      "account": "Informazioni account",
+      "support": "Supporto e feedback",
+      "legal": "Legale e informazioni"
+    },
     "language": {
-      "title": "Lingua Principale",
-      "description": "Scegli la lingua preferita per l'interfaccia dell'app",
+      "title": "Lingua principale",
+      "description": "Lingua preferita per l'interfaccia",
       "en": "Inglese",
       "it": "Italiano",
       "es": "Spagnolo",
       "bn": "Bengalese"
     },
     "secondaryLanguage": {
-      "title": "Lingua Secondaria",
-      "description": "Mostra le traduzioni in una seconda lingua per facilitare l'apprendimento"
+      "title": "Lingua secondaria",
+      "description": "Mostra traduzioni in una seconda lingua"
     },
-    "deleteAccount": "Elimina Account",
-    "deleteAccountConfirm": "Sei sicuro di voler eliminare permanentemente il tuo account e tutti i tuoi dati? Questa azione è irreversibile.",
+    "account": {
+      "email": "Email",
+      "status": "Stato account",
+      "premium": "Utente Premium",
+      "free": "Piano gratuito"
+    },
+    "support": {
+      "rate": "Valuta l'app",
+      "contact": "Contatta il supporto"
+    },
+    "legal": {
+      "privacy": "Informativa sulla privacy",
+      "terms": "Termini di servizio",
+      "version": "Versione app"
+    },
+    "logout": "Esci",
+    "deleteAccount": "Elimina account",
+    "deleteAccountConfirm": "Sei sicuro di voler eliminare definitivamente il tuo account e tutti i tuoi dati? Questa azione non può essere annullata.",
     "cancel": "Annulla"
   },
   "auth": {
@@ -111,19 +113,19 @@
       }
     },
     "signup": {
-      "title": "Crea Account",
+      "title": "Crea account",
       "subtitle": "Registrati per iniziare",
       "email": "Email",
       "password": "Password",
-      "confirmPassword": "Conferma Password",
-      "createAccount": "Crea Account",
+      "confirmPassword": "Conferma password",
+      "createAccount": "Crea account",
       "hasAccount": "Hai già un account?",
       "signIn": "Accedi",
       "errors": {
         "fillFields": "Compila tutti i campi",
         "passwordsMatch": "Le password non coincidono",
-        "passwordLength": "La password deve essere di almeno 6 caratteri",
-        "invalidDomain": "Registrazione consentita solo con domini email conosciuti (es. Gmail, Outlook, Yahoo)",
+        "passwordLength": "La password deve avere almeno 6 caratteri",
+        "invalidDomain": "Registrazione consentita solo con domini email comuni (es. Gmail, Outlook, Yahoo)",
         "unexpected": "Si è verificato un errore imprevisto"
       }
     }
@@ -134,8 +136,8 @@
     "unlockAll": "Sblocca tutte le categorie"
   },
   "exam": {
-    "title": "Simulazione Esame",
-    "subtitle": "Mettiti alla prova con una simulazione reale",
+    "title": "Simulazione esame",
+    "subtitle": "Mettiti alla prova con un esame reale",
     "info": {
       "questions": {
         "title": "30 Domande",
@@ -143,54 +145,54 @@
       },
       "time": {
         "title": "20 Minuti",
-        "description": "Al termine del tempo, l'esame finisce automaticamente"
+        "description": "Se il tempo scade, l'esame termina automaticamente"
       },
       "errors": {
-        "title": "Max 3 Errori",
-        "description": "Al quarto errore la simulazione è considerata fallita"
+        "title": "Max 3 errori",
+        "description": "Al quarto errore la simulazione è considerata non superata"
       }
     },
     "start": "INIZIA ESAME",
-    "reviewMistakes": "Revisiona Errori ({{count}})",
+    "reviewMistakes": "Rivedi errori ({{count}})",
     "alerts": {
       "error": "Errore",
       "notLoggedIn": "Devi effettuare l'accesso per iniziare un esame.",
-      "startFailed": "Impossibile iniziare l'esame. Riprova.",
+      "startFailed": "Avvio esame non riuscito. Riprova.",
       "unexpected": "Si è verificato un errore imprevisto.",
-      "submitTitle": "Consegna Esame",
-      "submitConfirm": "Sei sicuro di voler consegnare?",
-      "submitIncomplete": "Hai risposto a {{answered}} su {{total}} domande. Le risposte vuote saranno considerate errate. Consegnare comunque?",
+      "submitTitle": "Invia esame",
+      "submitConfirm": "Sei sicuro di voler inviare?",
+      "submitIncomplete": "Hai risposto a {{answered}} su {{total}} domande. Le risposte vuote saranno considerate errate. Vuoi comunque inviare?",
       "cancel": "Annulla",
-      "submit": "Consegna",
-      "timeOutTitle": "Tempo Scaduto",
-      "timeOutMessage": "Il tempo per l'esame è terminato. Il tuo esame è stato consegnato automaticamente.",
-      "reviewStartFailed": "Impossibile avviare la revisione. Riprova."
+      "submit": "Invia",
+      "timeOutTitle": "Tempo scaduto",
+      "timeOutMessage": "Il tempo è terminato. L'esame è stato inviato automaticamente.",
+      "reviewStartFailed": "Avvio revisione non riuscito. Riprova."
     },
     "results": {
-      "title": "Risultato Esame",
-      "timeTaken": "Tempo impiegato: {{time}}",
+      "title": "Risultato esame",
+      "timeTaken": "{{time}} impiegati",
       "passed": "ESAME SUPERATO",
-      "failed": "ESAME FALLITO",
-      "passedMessage": "Congratulazioni! Con questo risultato avresti superato l'esame.",
-      "failedMessage": "Hai commesso {{incorrect}} errori su {{total}}. Il limite è {{max}}.",
+      "failed": "ESAME NON SUPERATO",
+      "passedMessage": "Congratulazioni! Con questo risultato passeresti.",
+      "failedMessage": "Hai fatto {{incorrect}} errori su {{total}}. Il limite è {{max}}.",
       "correct": "Corrette",
       "incorrect": "Errori",
-      "backToHome": "Torna alla Home"
+      "backToHome": "Torna alla home"
     },
     "questionOf": "Domanda {{current}}/{{total}}",
     "true": "Vero",
     "false": "Falso",
     "back": "Indietro",
     "next": "Avanti",
-    "submit": "Consegna",
-    "incorrectQuestions": "Domande Sbagliate",
+    "submit": "Invia",
+    "incorrectQuestions": "Domande sbagliate",
     "history": {
-      "title": "Cronologia Esami",
-      "empty": "Nessun esame sostenuto. Inizia una simulazione!",
+      "title": "Storico esami",
+      "empty": "Nessun esame svolto. Inizia una simulazione!",
       "passed": "SUPERATO",
-      "failed": "FALLITO",
-      "errors": "{{count}} Errori",
-      "score": "{{correct}}/{{total}} Corrette",
+      "failed": "NON SUPERATO",
+      "errors": "{{count}} errori",
+      "score": "{{correct}}/{{total}} corrette",
       "date": "{{date}}",
       "abandoned": "ABBANDONATO"
     }
@@ -198,6 +200,6 @@
   "tabs": {
     "quiz": "Quiz",
     "exam": "Esame",
-    "user": "Profilo"
+    "user": "Utente"
   }
 }

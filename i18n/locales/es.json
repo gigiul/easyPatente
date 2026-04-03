@@ -1,92 +1,10 @@
 {
   "quiz": {
-    "title": "Cuestionario",
-    "subtitle": "Pon a prueba tus conocimientos con cuestionarios interactivos",
-    "comingSoon": "Cuestionario próximamente...",
-    "chooseQuiz": "Elige un cuestionario",
-    "categories": {
-      "roadSigns": {
-        "title": "Señales de tránsito",
-        "description": "Aprende sobre las señales de tránsito y sus significados"
-      },
-      "rightOfWay": {
-        "title": "Derecho de paso",
-        "description": "Comprende quién tiene prioridad en diferentes situaciones"
-      },
-      "speedLimits": {
-        "title": "Límites de velocidad",
-        "description": "Aprende sobre los límites de velocidad en diferentes áreas"
-      },
-      "roadSafety": {
-        "title": "Seguridad vial",
-        "description": "Reglas esenciales de seguridad y buenas prácticas"
-      },
-      "maintenance": {
-        "title": "Mantenimiento del vehículo",
-        "description": "Mantenimiento básico y requisitos del vehículo"
-      },
-      "complete": {
-        "title": "Examen completo",
-        "description": "Practica con una simulación completa del examen"
-      }
-    },
-    "questions": {
-      "roadSigns": {
-        "rs1": {
-          "question": "La señal de prohibido estacionar indica que está prohibido estacionar en ese tramo de la vía.",
-          "explanation": "La señal de prohibido estacionar (círculo rojo con barra diagonal) indica que está prohibido estacionar en ese tramo, pero sí se permite detenerse."
-        },
-        "rs2": {
-          "question": "La señal de prioridad exige ceder el paso a los vehículos que vienen tanto de la derecha como de la izquierda.",
-          "explanation": "La señal de prioridad (triángulo rojo) indica que debes ceder el paso a los vehículos que vienen por vías laterales."
-        },
-        "rs3": {
-          "question": "La señal de límite de velocidad de 50 km/h solo aplica en condiciones de tráfico intenso.",
-          "explanation": "La señal de límite de velocidad aplica en todo momento, independientemente de las condiciones del tráfico."
-        },
-        "rs4": {
-          "question": "La señal triangular de peligro con borde rojo indica un peligro general.",
-          "explanation": "Las señales de peligro siempre son triangulares con borde rojo e indican un peligro general o específico."
-        },
-        "rs5": {
-          "question": "La señal de prohibido adelantar prohíbe adelantar solo a vehículos motorizados.",
-          "explanation": "La señal de prohibido adelantar prohíbe adelantar a todos los vehículos, no solo a los motorizados."
-        },
-        "rs6": {
-          "question": "La señal de dirección obligatoria exige continuar en la dirección indicada.",
-          "explanation": "Las señales de dirección obligatoria (círculo azul con flecha) indican que debes seguir en la dirección señalada."
-        },
-        "rs7": {
-          "question": "La señal de prohibido el paso aplica solo a vehículos motorizados.",
-          "explanation": "La señal de prohibido el paso aplica a todos los vehículos, incluidos los no motorizados."
-        },
-        "rs8": {
-          "question": "La señal de peligro por obras indica la presencia de trabajos en la vía.",
-          "explanation": "La señal de obras (triángulo con borde rojo y símbolo de construcción) indica la presencia de trabajos en la vía."
-        },
-        "rs9": {
-          "question": "La señal de acceso prohibido prohíbe el acceso a todos los vehículos, incluidos los peatones.",
-          "explanation": "La señal de acceso prohibido prohíbe el acceso a los vehículos, pero no a los peatones."
-        },
-        "rs10": {
-          "question": "La señal de cadenas obligatorias indica que se requieren cadenas para nieve o neumáticos de invierno.",
-          "explanation": "La señal de cadenas obligatorias (círculo azul con símbolo de cadenas) indica que se requieren cadenas o neumáticos de invierno."
-        }
-      }
-    },
-    "batches": {
-      "QB_VEHICLES_1": "Vehículos 1",
-      "QB_VEHICLES_2": "Vehículos 2",
-      "QB_VEHICLES_3": "Vehículos 3",
-      "QB_VEHICLES_4": "Vehículos 4",
-      "QB_VEHICLES_5": "Vehículos 5",
-      "QB_VEHICLES_6": "Vehículos 6",
-      "QB_VEHICLES_7": "Vehículos 7",
-      "QB_VEHICLES_8": "Vehículos 8",
-      "QB_VEHICLES_9": "Vehículos 9",
-      "QB_VEHICLES_10": "Vehículos 10",
-      "QB_VEHICLES_11": "Vehículos 11"
-    },
+    "title": "Quiz por categoría",
+    "subtitle": "Pon a prueba tus conocimientos con quizzes interactivos",
+    "comingSoon": "Quiz próximamente...",
+    "chooseQuiz": "Elige un quiz",
+    "moduleName": "Módulo {{number}}",
     "question": "Pregunta",
     "explanation": "Explicación",
     "next": "Siguiente",
@@ -94,7 +12,7 @@
     "true": "Verdadero",
     "false": "Falso",
     "questionCount": "Pregunta {{current}} de {{total}}",
-    "completed": "¡Cuestionario completado!",
+    "completed": "¡Quiz completado!",
     "score": "Puntuación: {{score}} de {{total}}",
     "restart": "Reiniciar",
     "percentCompleted": "{{percent}}% completado",
@@ -102,48 +20,54 @@
     "selectAnswer": "Selecciona tu respuesta:",
     "correctAnswer": "¡Respuesta correcta!",
     "incorrectAnswer": "Respuesta incorrecta",
-    "yourAnswer": "Tu respuesta: {{answer}}",
+    "yourAnswer": "Respondiste: {{answer}}",
     "correctAnswerIs": "Respuesta correcta: {{answer}}",
     "nextQuestion": "Siguiente",
-    "skipQuestion": "Omitir",
+    "skipQuestion": "Saltar",
     "home": "Inicio",
     "incorrectQuestions": "Preguntas incorrectas",
     "reviewIncorrect": "Revisar errores",
-    "noIncorrectQuestions": "¡No hay preguntas incorrectas!",
+    "noIncorrectQuestions": "¡Sin preguntas incorrectas!",
     "inProgress": "En progreso",
-    "start": "Comenzar",
+    "start": "Iniciar",
     "currentQuestion": "Pregunta actual: {{current}}",
     "passed": "Aprobado",
     "failed": "Reprobado",
     "errors": "err.",
     "results": {
       "passed": {
-        "title": "¡Cuestionario aprobado!",
-        "subtitle": "¡Buen trabajo! Respondiste la mayoría correctamente."
+        "title": "¡Quiz aprobado!",
+        "subtitle": "¡Buen trabajo! Respondiste correctamente la mayoría de las preguntas."
       },
       "failed": {
-        "title": "Cuestionario reprobado",
+        "title": "Quiz no aprobado",
         "subtitle": "Cometiste {{incorrect}} errores de {{total}} preguntas. El máximo permitido es {{max}}. ¡Inténtalo de nuevo!"
       },
       "correct": "Correctas",
       "incorrect": "Errores",
       "scoreLabel": "Puntuación",
-      "errorLimit": "Máximo de {{max}} errores permitidos para aprobar"
+      "errorLimit": "Máximo de {{max}} errores permitidos para aprobar el quiz"
     },
     "retry": "Intentar de nuevo",
     "finishAlert": {
-      "title": "Finalizar cuestionario",
-      "message": "¿Quieres terminar el cuestionario y ver tus resultados? Las preguntas sin responder se contarán como incorrectas.",
+      "title": "Finalizar quiz",
+      "message": "¿Deseas terminar el quiz y ver tus resultados? Las preguntas sin responder se contarán como incorrectas.",
       "confirm": "Finalizar",
-      "cancel": "Continuar"
+      "cancel": "Cancelar"
     }
   },
   "user": {
-    "title": "Configuración de usuario",
-    "subtitle": "Personaliza tu experiencia de aprendizaje",
+    "title": "Perfil",
+    "subtitle": "Personaliza tu experiencia",
+    "sections": {
+      "language": "Configuración de idioma",
+      "account": "Información de la cuenta",
+      "support": "Soporte y comentarios",
+      "legal": "Legal y acerca de"
+    },
     "language": {
       "title": "Idioma principal",
-      "description": "Elige tu idioma preferido para la interfaz",
+      "description": "Idioma preferido para la interfaz",
       "en": "Inglés",
       "it": "Italiano",
       "es": "Español",
@@ -151,8 +75,27 @@
     },
     "secondaryLanguage": {
       "title": "Idioma secundario",
-      "description": "Muestra traducciones en un segundo idioma para ayudar en el aprendizaje"
-    }
+      "description": "Mostrar traducciones en un segundo idioma"
+    },
+    "account": {
+      "email": "Correo electrónico",
+      "status": "Estado de la cuenta",
+      "premium": "Usuario Premium",
+      "free": "Plan gratuito"
+    },
+    "support": {
+      "rate": "Calificar la app",
+      "contact": "Contactar soporte"
+    },
+    "legal": {
+      "privacy": "Política de privacidad",
+      "terms": "Términos de servicio",
+      "version": "Versión de la app"
+    },
+    "logout": "Cerrar sesión",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteAccountConfirm": "¿Estás seguro de que deseas eliminar permanentemente tu cuenta y todos tus datos? Esta acción no se puede deshacer.",
+    "cancel": "Cancelar"
   },
   "auth": {
     "login": {
@@ -189,27 +132,28 @@
   },
   "premium": {
     "required": "Premium",
-    "upgrade": "Mejorar a Premium",
+    "upgrade": "Actualizar a Premium",
     "unlockAll": "Desbloquear todas las categorías"
   },
   "exam": {
     "title": "Simulación de examen",
-    "subtitle": "Pon a prueba con un examen real",
+    "subtitle": "Ponte a prueba con un examen real",
     "info": {
       "questions": {
         "title": "30 preguntas",
-        "description": "Mezcla de todos los temas del examen"
+        "description": "Mezcladas de todos los temas del examen"
       },
       "time": {
         "title": "20 minutos",
         "description": "Si el tiempo se agota, el examen termina automáticamente"
       },
       "errors": {
-        "title": "Máx. 3 errores",
+        "title": "Máx 3 errores",
         "description": "Al cuarto error, la simulación se considera reprobada"
       }
     },
     "start": "INICIAR EXAMEN",
+    "reviewMistakes": "Revisar errores ({{count}})",
     "alerts": {
       "error": "Error",
       "notLoggedIn": "Debes iniciar sesión para comenzar un examen.",
@@ -217,18 +161,19 @@
       "unexpected": "Ocurrió un error inesperado.",
       "submitTitle": "Enviar examen",
       "submitConfirm": "¿Estás seguro de que deseas enviar?",
-      "submitIncomplete": "Respondiste {{answered}} de {{total}} preguntas. Las vacías se considerarán incorrectas. ¿Enviar de todos modos?",
+      "submitIncomplete": "Respondiste {{answered}} de {{total}} preguntas. Las respuestas vacías se considerarán incorrectas. ¿Enviar de todos modos?",
       "cancel": "Cancelar",
       "submit": "Enviar",
-      "timeOutTitle": "Tiempo terminado",
-      "timeOutMessage": "El tiempo del examen ha terminado. Tu examen se envió automáticamente."
+      "timeOutTitle": "Tiempo agotado",
+      "timeOutMessage": "El tiempo del examen ha terminado. Tu examen fue enviado automáticamente.",
+      "reviewStartFailed": "No se pudo iniciar la revisión. Inténtalo de nuevo."
     },
     "results": {
       "title": "Resultado del examen",
-      "timeTaken": "{{time}} transcurrido",
+      "timeTaken": "{{time}} utilizados",
       "passed": "EXAMEN APROBADO",
       "failed": "EXAMEN REPROBADO",
-      "passedMessage": "¡Felicidades! Aprobarías con este resultado.",
+      "passedMessage": "¡Felicidades! Con este resultado aprobarías.",
       "failedMessage": "Cometiste {{incorrect}} errores de {{total}}. El límite es {{max}}.",
       "correct": "Correctas",
       "incorrect": "Errores",
@@ -240,9 +185,10 @@
     "back": "Atrás",
     "next": "Siguiente",
     "submit": "Enviar",
+    "incorrectQuestions": "Preguntas incorrectas",
     "history": {
       "title": "Historial de exámenes",
-      "empty": "Aún no has hecho exámenes. ¡Comienza una simulación!",
+      "empty": "Aún no has realizado exámenes. ¡Inicia una simulación!",
       "passed": "APROBADO",
       "failed": "REPROBADO",
       "errors": "{{count}} errores",
@@ -252,7 +198,7 @@
     }
   },
   "tabs": {
-    "quiz": "Cuestionario",
+    "quiz": "Quiz",
     "exam": "Examen",
     "user": "Usuario"
   }
