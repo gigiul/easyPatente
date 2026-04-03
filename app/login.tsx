@@ -6,6 +6,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleShee
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export default function LoginScreen() {
@@ -17,6 +18,14 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const inputBackgroundColor = useThemeColor({ light: '#f5f5f5', dark: '#1c1c1e' }, 'background');
+  const textColor = useThemeColor({}, 'text');
+  const iconColor = useThemeColor({}, 'icon');
+  const placeholderColor = useThemeColor({ light: '#999', dark: '#666' }, 'icon');
+  const errorBackgroundColor = useThemeColor({ light: '#FEE2E2', dark: '#3D1A1A' }, 'background');
+  const errorTextColor = '#EF4444'; // Semantic Danger Color
+  const primaryColor = '#2563EB'; // Semantic Primary Color
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -61,16 +70,17 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
           {error && (
-            <View style={styles.errorContainer}>
-              <ThemedText style={styles.errorText}>{error}</ThemedText>
+            <View style={[styles.errorContainer, { backgroundColor: errorBackgroundColor }]}>
+              <ThemedText style={[styles.errorText, { color: errorTextColor }]}>{error}</ThemedText>
             </View>
           )}
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
+            <Ionicons name="mail-outline" size={20} color={iconColor} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: textColor }]}
               placeholder={t('auth.login.email')}
+              placeholderTextColor={placeholderColor}
               value={email}
               onChangeText={(text) => {
                 setEmail(text);
@@ -83,11 +93,12 @@ export default function LoginScreen() {
             />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+          <View style={[styles.inputContainer, { backgroundColor: inputBackgroundColor }]}>
+            <Ionicons name="lock-closed-outline" size={20} color={iconColor} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: textColor }]}
               placeholder={t('auth.login.password')}
+              placeholderTextColor={placeholderColor}
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
@@ -100,28 +111,35 @@ export default function LoginScreen() {
             />
             <Pressable
               onPress={() => setShowPassword(!showPassword)}
-              style={styles.eyeIcon}
+              style={({ pressed }) => [
+              styles.eyeIcon,
+              pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
+            ]}
               disabled={loading}
             >
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                 size={20}
-                color="#666"
+                color={iconColor}
               />
             </Pressable>
           </View>
 
           <Pressable 
-            style={styles.forgotPassword}
+            style={({ pressed }) => [
+              styles.forgotPassword,
+              pressed && { opacity: 0.7 }
+            ]}
             disabled={loading}
           >
-            <ThemedText style={styles.forgotPasswordText}>{t('auth.login.forgotPassword')}</ThemedText>
+            <ThemedText style={[styles.forgotPasswordText, { color: primaryColor }]}>{t('auth.login.forgotPassword')}</ThemedText>
           </Pressable>
 
           <Pressable
             style={({ pressed }) => [
               styles.loginButton,
-              pressed && styles.loginButtonPressed,
+              { backgroundColor: primaryColor },
+              pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 },
               loading && styles.loginButtonDisabled,
             ]}
             onPress={handleLogin}
@@ -139,8 +157,9 @@ export default function LoginScreen() {
             <Pressable 
               onPress={handleSignUp}
               disabled={loading}
+              style={({ pressed }) => pressed && { opacity: 0.7 }}
             >
-              <ThemedText style={styles.signUpLink}>{t('auth.login.signUp')}</ThemedText>
+              <ThemedText style={[styles.signUpLink, { color: primaryColor }]}>{t('auth.login.signUp')}</ThemedText>
             </Pressable>
           </View>
         </View>
@@ -180,13 +199,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    color: '#d32f2f',
     fontSize: 14,
+    fontWeight: '500',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
     borderRadius: 12,
     marginBottom: 16,
     paddingHorizontal: 16,
@@ -208,19 +226,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   forgotPasswordText: {
-    color: '#007AFF',
     fontSize: 14,
+    fontWeight: '500',
   },
   loginButton: {
-    backgroundColor: '#007AFF',
     borderRadius: 12,
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-  },
-  loginButtonPressed: {
-    opacity: 0.8,
   },
   loginButtonDisabled: {
     opacity: 0.5,
@@ -239,7 +253,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   signUpLink: {
-    color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
   },
