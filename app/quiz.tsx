@@ -27,6 +27,7 @@ import { useQuizScore } from '@/hooks/useQuizScore';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { updateQuizProgression } from '@/queries/quizProgression';
+import { useLanguagesStore } from '@/store/languages';
 import { ThemedButton } from '../components/ThemedButton';
 
 export default function QuizScreen() {
@@ -42,6 +43,7 @@ export default function QuizScreen() {
   const [answers, setAnswers] = useState<any>({});
   const [isResetting, setIsResetting] = useState(false);
   const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
+  const { languages } = useLanguagesStore();
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -145,10 +147,13 @@ export default function QuizScreen() {
   const getSecondaryTranslation = (type: 'text' | 'explanation') =>
     currentQuestion?.secondaryTranslation?.[type] || null;
 
-  const speakText = async (text: string, language: string) => {
+  const speakText = async (text: string, langCode: string) => {
     try {
       await Speech.stop();
-      const ttsLanguage = language === 'es' ? 'es-MX' : language;
+      
+      const lang = languages.find(l => l.code === langCode);
+      const ttsLanguage = lang?.tts_locale || langCode;
+      
       Speech.speak(text, { language: ttsLanguage, pitch: 1.0, rate: 0.9, volume: 1.0 });
     } catch (error) {
       console.error('Error speaking text:', error);

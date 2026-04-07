@@ -4,14 +4,10 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
-    "ios": "expo run:ios",
-    "web": "expo start --web",
     "lint": "expo lint",
-    "build:android": "eas build --platform android --profile preview",
-    "build:android-local": "eas build --platform android --profile preview --local",
-    "android:preview": "npx expo run:android --variant release"
+    "build:preview": "NODE_ENV=development eas build --platform android --profile preview --local",
+    "build:release": "NODE_ENV=production eas build --platform android --profile production --local"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
