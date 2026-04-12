@@ -152,6 +152,9 @@
         "description": "At the fourth error, the simulation is considered failed"
       }
     },
+    "forceItalian": {
+      "title": "Questions in Italian"
+    },
     "start": "START EXAM",
     "reviewMistakes": "Review Mistakes ({{count}})",
     "alerts": {

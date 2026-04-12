@@ -19,6 +19,7 @@ import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizScore } from '@/hooks/useQuizScore';
@@ -32,13 +33,19 @@ const EXAM_DURATION_SECONDS = 20 * 60; // 20 minutes
 
 export default function ExamQuizScreen() {
   const { t, i18n } = useTranslation();
-  const { batchId } = useLocalSearchParams<{ batchId: string }>();
+  const { batchId, forceItalian } = useLocalSearchParams<{ batchId: string, forceItalian?: string }>();
+  const isForcedItalian = forceItalian === 'true';
   const router = useRouter();
   const { session } = useAuth();
   const userId = session?.user?.id || '';
 
   const { progress: quizProgress, loading: progressLoading } = useQuizProgression(userId, String(batchId));
-  const { questions } = useQuizQuestions(String(batchId), i18n.language, undefined);
+  const { secondaryLanguage } = useLanguage();
+  const { questions } = useQuizQuestions(
+    String(batchId),
+    isForcedItalian ? 'it' : i18n.language,
+    isForcedItalian ? null : secondaryLanguage
+  );
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<any>({});
@@ -112,6 +119,8 @@ export default function ExamQuizScreen() {
   };
 
   const getTranslatedQuestion = () => currentQuestion?.translation?.text || '';
+  const getSecondaryTranslation = (type: 'text' | 'explanation') =>
+    currentQuestion?.secondaryTranslation?.[type] || null;
 
   // --- Actions ---
   const handleAnswer = async (answer: boolean) => {
@@ -276,6 +285,26 @@ export default function ExamQuizScreen() {
                       </ThemedText>
                     </View>
                   )}
+
+                  {q.secondaryTranslation?.text && (
+                    <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor, marginTop: 12 }]}>
+                      <View style={styles.secondaryHeader}>
+                        <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
+                          <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
+                            {t(`user.language.${secondaryLanguage}`)}
+                          </ThemedText>
+                        </View>
+                      </View>
+                      <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
+                        {q.secondaryTranslation.text}
+                      </ThemedText>
+                      {q.secondaryTranslation.explanation && (
+                        <ThemedText style={[styles.secondaryExplanation, { color: iconColor }]}>
+                          {q.secondaryTranslation.explanation}
+                        </ThemedText>
+                      )}
+                    </View>
+                  )}
                 </View>
               ))}
             </View>
@@ -318,6 +347,21 @@ export default function ExamQuizScreen() {
           <ThemedText style={[styles.questionText, { color: textColor }]}>
             {getTranslatedQuestion()}
           </ThemedText>
+
+          {getSecondaryTranslation('text') && (
+            <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor, marginTop: 16 }]}>
+              <View style={styles.secondaryHeader}>
+                <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
+                  <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
+                    {t(`user.language.${secondaryLanguage}`)}
+                  </ThemedText>
+                </View>
+              </View>
+              <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
+                {getSecondaryTranslation('text')}
+              </ThemedText>
+            </View>
+          )}
 
           {currentQuestion?.image_filename && (
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
@@ -557,5 +601,36 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontStyle: 'italic',
+  },
+  secondaryLanguageCard: {
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  secondaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  languageBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  languageBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  secondaryText: {
+    fontSize: 15,
+    lineHeight: 21,
+  },
+  secondaryExplanation: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontStyle: 'italic',
+    marginTop: 8,
+    opacity: 0.8,
   },
 });

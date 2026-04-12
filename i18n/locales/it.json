@@ -152,6 +152,9 @@
         "description": "Al quarto errore la simulazione è considerata non superata"
       }
     },
+    "forceItalian": {
+      "title": "Domande in Italiano"
+    },
     "start": "INIZIA ESAME",
     "reviewMistakes": "Rivedi errori ({{count}})",
     "alerts": {

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -22,6 +22,7 @@ export default function ExamTab() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [mistakesCount, setMistakesCount] = useState(0);
   const [loadingReview, setLoadingReview] = useState(false);
+  const [forceItalian, setForceItalian] = useState(false);
   const themeColors = useQuizTheme();
 
   // Secondary text color for description
@@ -66,7 +67,7 @@ export default function ExamTab() {
         // Navigate to the exam screen
         router.push({
           pathname: '/examQuiz',
-          params: { batchId },
+          params: { batchId, forceItalian: forceItalian.toString() },
         });
       }
     } catch (err) {
@@ -138,6 +139,16 @@ export default function ExamTab() {
             </View>
           </View>
         </ThemedView>
+
+        <View style={styles.settingsRow}>
+          <ThemedText style={styles.settingsTitle}>{t('exam.forceItalian.title')}</ThemedText>
+          <Switch
+            value={forceItalian}
+            onValueChange={setForceItalian}
+            trackColor={{ false: '#9CA3AF', true: '#059669' }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
 
         <View style={styles.buttonContainer}>
           <Pressable
@@ -281,7 +292,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
-    marginBottom: 32,
+    marginBottom: 20,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 12,
+    paddingHorizontal: 8,
+  },
+  settingsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 2,
   },
   infoRow: {
     flexDirection: 'row',

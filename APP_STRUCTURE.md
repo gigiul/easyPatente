@@ -212,10 +212,13 @@ CREATE TABLE public.user_quiz_progress (
 
 ## 🚀 Roadmap e Implementazioni Future
 
--**Maintenance mode**:
+- **Tasto per segnalare problemi di traduzione/immagini**:
+Si potrebbe aggiungere una tabella con le segnalazioni degli utenti con un limite di 1 segnalazione per domanda per utente. In questo modo si potrebbe implementare un sistema di feedback per migliorare la qualità delle traduzioni e delle immagini.
+
+- **Maintenance mode**:
 Implmentare un hook che nel caso venga flaggato a true un parametro nel db visualizzi una schermata di maintenance mode durante la quale non è possibile utilizzare l'app tranne per gli admin ( creare nuova colonna nella tabella profiles per flaggare gli admin )
 
--**Scelta lingua in italiano per l'esame**:
+- **Scelta lingua in italiano per l'esame**:
 Aggiungere un toggle per forzare le domande dell'esame in italiano anche se l'utente ha impostato un'altra lingua come lingua principale o secondaria.
 
 - **AI Assistant Integrato (RAG)**:
