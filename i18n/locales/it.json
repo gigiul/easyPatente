@@ -2,6 +2,9 @@
   "quiz": {
     "title": "Quiz per categoria",
     "subtitle": "Metti alla prova le tue conoscenze con quiz interattivi",
+    "tabCategories": "Per categoria",
+    "tabHard": "Quiz difficili",
+    "hardEmpty": "Nessun quiz difficile disponibile al momento.",
     "comingSoon": "Quiz in arrivo...",
     "chooseQuiz": "Scegli un quiz",
     "moduleName": "Modulo {{number}}",

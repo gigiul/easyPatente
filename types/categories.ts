@@ -8,4 +8,5 @@ export interface Category {
   created_at: string;
   is_active: boolean;
   is_premium: boolean;
+  is_hard: boolean;
 }
