@@ -21,6 +21,7 @@ export default function ExamTab() {
   const [examHistory, setExamHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [mistakesCount, setMistakesCount] = useState(0);
+  const [loadingMistakes, setLoadingMistakes] = useState(true);
   const [loadingReview, setLoadingReview] = useState(false);
   const [forceItalian, setForceItalian] = useState(false);
   const [isInfoExpanded, setIsInfoExpanded] = useState(false);
@@ -40,11 +41,13 @@ export default function ExamTab() {
 
         fetchMistakesCount()
           .then(setMistakesCount)
-          .catch((err) => console.warn('Error fetching mistakes count:', err));
+          .catch((err) => console.warn('Error fetching mistakes count:', err))
+          .finally(() => setLoadingMistakes(false));
       } else {
         setExamHistory([]);
         setMistakesCount(0);
         setLoadingHistory(false);
+        setLoadingMistakes(false);
       }
     }, [session?.user?.id])
   );
@@ -112,8 +115,8 @@ export default function ExamTab() {
           lightColor="#F3F4F6"
           darkColor="#1F2937"
         >
-          <Pressable 
-            style={styles.accordionHeader} 
+          <Pressable
+            style={styles.accordionHeader}
             onPress={() => setIsInfoExpanded(!isInfoExpanded)}
           >
             <View style={styles.accordionTitleContainer}>
@@ -186,28 +189,26 @@ export default function ExamTab() {
             )}
           </Pressable>
 
-          {mistakesCount > 0 && (
-            <Pressable
-              style={({ pressed }) => [
-                styles.reviewButton,
-                pressed && styles.startButtonPressed,
-                loadingReview && styles.startButtonDisabled,
-              ]}
-              onPress={startReview}
-              disabled={loadingReview}
-            >
-              {loadingReview ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Ionicons name="refresh-circle" size={24} color="#fff" />
-                  <ThemedText style={styles.reviewButtonText}>
-                    {t('exam.reviewMistakes', { count: mistakesCount })}
-                  </ThemedText>
-                </>
-              )}
-            </Pressable>
-          )}
+          <Pressable
+            style={({ pressed }) => [
+              styles.reviewButton,
+              pressed && styles.startButtonPressed,
+              (loadingReview || loadingMistakes || mistakesCount === 0) && styles.startButtonDisabled,
+            ]}
+            onPress={startReview}
+            disabled={loadingReview || loadingMistakes || mistakesCount === 0}
+          >
+            {loadingReview || loadingMistakes ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Ionicons name="refresh-circle" size={24} color="#fff" />
+                <ThemedText style={styles.reviewButtonText}>
+                  {t('exam.reviewMistakes', { count: mistakesCount })}
+                </ThemedText>
+              </>
+            )}
+          </Pressable>
         </View>
 
         {/* Exam History Section */}
@@ -215,7 +216,25 @@ export default function ExamTab() {
           <ThemedText style={styles.historyTitle}>{t('exam.history.title')}</ThemedText>
 
           {loadingHistory ? (
-            <ActivityIndicator color="#059669" style={{ marginVertical: 20 }} />
+            <View style={{ gap: 12 }}>
+              {[1, 2, 3].map((key) => (
+                <ThemedView
+                  key={key}
+                  style={styles.historyCard}
+                  lightColor="#F3F4F6"
+                  darkColor="#1F2937"
+                >
+                  <View style={styles.historyCardHeader}>
+                    <View style={{ width: 120, height: 16, backgroundColor: secondaryTextColor, opacity: 0.2, borderRadius: 4 }} />
+                    <View style={{ width: 80, height: 24, backgroundColor: secondaryTextColor, opacity: 0.2, borderRadius: 12 }} />
+                  </View>
+                  <View style={styles.historyCardBody}>
+                    <View style={{ width: 150, height: 20, backgroundColor: secondaryTextColor, opacity: 0.2, borderRadius: 4, marginBottom: 6 }} />
+                    <View style={{ width: 100, height: 16, backgroundColor: secondaryTextColor, opacity: 0.2, borderRadius: 4 }} />
+                  </View>
+                </ThemedView>
+              ))}
+            </View>
           ) : examHistory.length === 0 ? (
             <ThemedText style={styles.emptyHistory}>
               {t('exam.history.empty')}
@@ -417,6 +436,7 @@ const styles = StyleSheet.create({
   historyContainer: {
     marginTop: 32,
     marginBottom: 20,
+    minHeight: 300,
   },
   historyTitle: {
     fontSize: 20,
