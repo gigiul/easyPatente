@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { CATEGORY_COLOR_MAP } from '@/constants/Colors';
 import { useCategories } from '@/hooks/useCategories';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -26,12 +27,23 @@ const colors = [
   '#A29BFE',
 ];
 
-const getCategoryColor = (str: string) => {
+const getCategoryStyle = (str: string) => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
-  return colors[Math.abs(hash) % colors.length];
+  return CATEGORY_COLOR_MAP[Math.abs(hash) % CATEGORY_COLOR_MAP.length];
+};
+
+const getContrastTextColor = (hexColor: string | undefined) => {
+  if (!hexColor) return '#FFFFFF';
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  // YIQ formula for perceived luminance
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? '#111827' : '#FFFFFF';
 };
 
 export default function HomeScreen() {
@@ -64,7 +76,7 @@ export default function HomeScreen() {
         <View style={styles.emptyState}>
           <Ionicons name="layers-outline" size={48} color={tabInactiveText} />
           <ThemedText style={[styles.emptyText, { color: secondaryTextColor }]}>
-            {t('quiz.hardEmwty')}
+            {t('quiz.hardEmpty')}
           </ThemedText>
         </View>
       );
@@ -74,27 +86,41 @@ export default function HomeScreen() {
       <View style={styles.categoriesGrid}>
         {list.map((category) => {
           const isLocked = category.is_premium && !isUserPremium;
+          const style = getCategoryStyle(category.id) || { bg: category.color, text: getContrastTextColor(category.color) };
+
+          const bgColor = style.bg;
+          const textColor = style.text;
+          const iconBgColor = textColor === '#FFFFFF' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
+          const lockBgColor = textColor === '#FFFFFF' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.5)';
+
           return (
             <Pressable
               key={category.id}
               style={({ pressed }) => [
-                styles.categoryCard,
-                { backgroundColor: category.color || getCategoryColor(category.id) },
+                styles.categoryRowCard,
+                { backgroundColor: bgColor },
                 pressed && styles.categoryCardPressed,
                 isLocked && styles.categoryCardLocked,
               ]}
               onPress={() => handleCategoryPress(category.id, category.is_premium)}
             >
-              <View style={styles.categoryHeader}>
-                <Ionicons name={category.icon_url as any} size={32} color="#fff" />
-                {isLocked && (
-                  <Ionicons name="lock-closed" size={20} color="#fff" style={styles.lockIcon} />
-                )}
+              <View style={[styles.categoryIconContainer, { backgroundColor: iconBgColor }]}>
+                <Ionicons name={category.icon_url as any} size={28} color={textColor} />
               </View>
-              <ThemedText style={styles.categoryTitle}>{category.name}</ThemedText>
-              <ThemedText style={styles.categoryDescription}>{category.description}</ThemedText>
-              {isLocked && (
-                <ThemedText style={styles.premiumLabel}>{t('premium.required')}</ThemedText>
+
+              <View style={styles.categoryContentContainer}>
+                <ThemedText style={[styles.categoryTitle, { color: textColor }]} numberOfLines={1}>{category.name}</ThemedText>
+                <ThemedText style={[styles.categoryDescription, { color: textColor }]} numberOfLines={3}>{category.description}</ThemedText>
+              </View>
+
+              {isLocked ? (
+                <View style={styles.categoryRightAction}>
+                  <Ionicons name="lock-closed" size={20} color={textColor} style={[styles.lockIcon, { backgroundColor: lockBgColor }]} />
+                </View>
+              ) : (
+                <View style={styles.categoryRightAction}>
+                  <Ionicons name="chevron-forward" size={20} color={textColor} style={{ opacity: 0.8 }} />
+                </View>
               )}
             </Pressable>
           );
@@ -224,22 +250,42 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // ── Grid ──
+  // ── List (ex-Grid) ──
   scrollView: {
     flex: 1,
   },
   scrollViewContent: {
     padding: 16,
+    paddingBottom: 40,
   },
   categoriesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
+    flexDirection: 'column',
+    gap: 12,
   },
-  categoryCard: {
-    width: '47%',
+  categoryRowCard: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
     borderRadius: 12,
+  },
+  categoryIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  categoryContentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  categoryRightAction: {
+    marginLeft: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 32,
   },
   categoryCardPressed: {
     opacity: 0.8,
@@ -248,38 +294,19 @@ const styles = StyleSheet.create({
   categoryCardLocked: {
     opacity: 0.7,
   },
-  categoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
   lockIcon: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 10,
-    padding: 2,
+    padding: 4,
   },
   categoryTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 2,
   },
   categoryDescription: {
-    color: '#fff',
-    opacity: 0.9,
-    fontSize: 14,
-  },
-  premiumLabel: {
-    color: '#fff',
+    opacity: 0.85,
     fontSize: 12,
-    fontWeight: '700',
-    marginTop: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    textAlign: 'center',
+    lineHeight: 16,
   },
 
   // ── Empty State ──
