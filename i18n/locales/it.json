@@ -140,6 +140,7 @@
   },
   "exam": {
     "title": "Simulazione esame",
+    "reviewTitle": "Revisione errori",
     "subtitle": "Mettiti alla prova con un esame reale",
     "info": {
       "accordionTitle": "Info esame",

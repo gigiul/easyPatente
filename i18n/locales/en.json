@@ -140,6 +140,7 @@
   },
   "exam": {
     "title": "Exam Simulation",
+    "reviewTitle": "Mistake review",
     "subtitle": "Test yourself with a real exam",
     "info": {
       "accordionTitle": "Exam info",

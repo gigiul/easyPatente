@@ -262,6 +262,16 @@ export default function ExamQuizScreen() {
                     </ThemedText>
                   </View>
 
+                  {q.image_filename && (
+                    <View style={styles.errorImageContainer}>
+                      <Image 
+                        source={{ uri: `${supabaseStorageUrl}/${q.image_filename}` }} 
+                        style={styles.errorImage} 
+                        resizeMode="contain" 
+                      />
+                    </View>
+                  )}
+
                   <View style={styles.errorAnswersRow}>
                     <View style={[styles.errorAnswerBadge, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1 }]}>
                       <Ionicons name="close-circle" size={16} color="#DC2626" />
@@ -571,6 +581,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     fontWeight: '600',
+  },
+  errorImageContainer: {
+    width: '100%',
+    height: 120,
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    borderRadius: 8,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  errorImage: {
+    width: '100%',
+    height: '100%',
   },
   errorAnswersRow: {
     flexDirection: 'column',

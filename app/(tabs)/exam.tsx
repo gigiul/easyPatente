@@ -250,10 +250,14 @@ export default function ExamTab() {
                     lightColor={themeColors.abandoned.bg}
                     darkColor={themeColors.abandoned.bg}
                   >
-                    <View style={styles.historyCardHeader}>
+                    <View style={styles.historyCardTextContainer}>
+                      <ThemedText style={styles.historyTitleText} numberOfLines={1}>
+                        {t(exam.title || 'exam.title')}
+                      </ThemedText>
                       <ThemedText style={styles.historyDate}>
                         {new Date(exam.started_at).toLocaleDateString()}
                       </ThemedText>
+
                       <View style={[styles.statusBadge, { backgroundColor: themeColors.abandoned.badge }]}>
                         <ThemedText style={[styles.statusText, { color: themeColors.abandoned.text }]}>
                           {t('exam.history.abandoned')}
@@ -274,9 +278,14 @@ export default function ExamTab() {
                   darkColor={colors.bg || "#1F2937"}
                 >
                   <View style={styles.historyCardHeader}>
-                    <ThemedText style={styles.historyDate}>
-                      {new Date(exam.started_at).toLocaleDateString()}
-                    </ThemedText>
+                    <View style={styles.historyCardTextContainer}>
+                      <ThemedText style={styles.historyTitleText} numberOfLines={1}>
+                        {t(exam.title || 'exam.title')}
+                      </ThemedText>
+                      <ThemedText style={styles.historyDate}>
+                        {new Date(exam.started_at).toLocaleDateString()}
+                      </ThemedText>
+                    </View>
                     <View style={[styles.statusBadge, { backgroundColor: colors.badge }]}>
                       <ThemedText style={[styles.statusText, { color: colors.text }]}>
                         {isPassed ? t('exam.history.passed') : t('exam.history.failed')}
@@ -464,13 +473,20 @@ const styles = StyleSheet.create({
   historyCardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 8,
   },
+  historyCardTextContainer: {
+    flex: 1,
+  },
+  historyTitleText: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
   historyDate: {
-    fontSize: 14,
-    fontWeight: '600',
-    opacity: 0.8,
+    fontSize: 13,
+    opacity: 0.6,
   },
   statusBadge: {
     paddingHorizontal: 8,

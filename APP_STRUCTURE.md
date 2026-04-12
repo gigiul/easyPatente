@@ -44,9 +44,10 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 - **`app/(tabs)/exam.tsx` (Exam Screen)**: 
   - Hub dedicato alle simulazioni d'esame.
   - Permette di generare un nuovo esame da 30 domande casuali collegate a un timer di 20 minuti, chiamando la RPC Supabase `generate_exam_batch`.
-  - **Revisione Errori**: Include una sezione dinamica che mostra il numero di errori accumulati negli esami precedenti. Un pulsante dedicato permette di avviare un quiz di revisione personalizzato basato sulla tabella `user_mistakes`, utilizzando la RPC `generate_mistakes_review_batch`.
-  - Mostra lo **"Storico Esami"** dell'utente, con logica di ricalcolo del punteggio super ottimizzata interrogando direttamente via RPC (`get_user_exam_history`).
-  - Mostra le status card dinamicamente formattate (*Abandoned*, *Passed*, *Failed*) avvalendosi del nuovo custom hook `useQuizTheme` per l'adattamento perfetto della UI in Light/Dark mode.
+  - **Revisione Errori**: Include una sezione dinamica che mostra il numero di errori accumulati negli esami precedenti. Un pulsante dedicato permette di avviare un quiz di revisione personalizzato (limitato alle ultime 30 domande per simulare un esame reale) basato sulla tabella `user_mistakes`, utilizzando la RPC `generate_mistakes_review_batch`.
+  - Mostra lo **"Storico Esami"** dell'utente (incluso le sessioni di revisione errori), con logica di ricalcolo del punteggio super ottimizzata interrogando direttamente via RPC (`get_user_exam_history`).
+  - **Interfaccia Dinamica**: Include una sezione informativa collassabile per ottimizzare lo spazio e utilizza skeleton loaders per eliminare i layout shift durante il caricamento dello storico.
+  - Carica i titoli dei batch dinamicamente mediante chiavi i18n memorizzate nel database, garantendo una localizzazione perfetta.
 
 ### 3. Selezione Quiz Batch (Blocchi)
 - **`app/quizBatch/index.tsx` (Quiz Batch Screen)**:
@@ -86,15 +87,17 @@ Il progetto sfrutta le funzioni PostgreSQL eseguite lato DB (tramite `supabase.r
 - **`delete_user_account()`**
   Elimina in modo sicuro un utente procedendo alla pulizia manuale dei suoi log di progressione (`user_quiz_progress`), degli errori registrati (`user_mistakes`) e del suo record `profiles`, per poi eliminare in modo nativo e definitivo la sua identità in `auth.users`. (Nota: Questa funzione è stata semplificata per evitare l'eliminazione accidentale di dati globali come le `questions` collegate ai blocchi esame o revisione).
 - **`generate_exam_batch(p_user_id)`**
-  Crea in automatico un nuovo esame prelevando 30 domande miste per argomento, le rimescola casualmente inserendole in un batch temporaneo e inizializza il `user_quiz_progress`.
+  Crea in automatico un nuovo esame prelevando 30 domande miste per argomento, le rimescola casualmente inserendole in un batch temporaneo e inizializza il `user_quiz_progress`. Memorizza la chiave i18n (`exam.title`) per il titolo del batch.
 - **`generate_mistakes_review_batch()`**
-  Verifica se un utente ha commesso errori storici e genera un batch (`review`) contenente esclusivamente quelle domande in ordine cronologico dal più recente, pronte da ripassare.
+  Verifica se un utente ha commesso errori storici e genera un batch di tipo `'exam'` (per apparire nello storico) contenente il set delle ultime 30 domande errate (o meno se il totale è inferiore), pronte da ripassare sotto forma di simulazione. Memorizza la chiave i18n (`exam.reviewTitle`) per il titolo.
 - **`record_exam_mistakes(p_batch_id)`**
-  Innescato alla consegna di un esame, scansiona le risposte fornite: le risposte errate o non fornite vengono aggregate in log nel tracker `user_mistakes`. Se una domanda precedentemente errata viene corretta in una revisione, essa viene purificata dalla lista.
+  Trigger automatico alla consegna di un esame. Scansiona le risposte: le errate o non fornite vengono aggregate in `user_mistakes`. Se una domanda precedentemente errata viene corretta in una sessione di revisione, essa viene rimossa dalla lista degli errori.
+- **`record_batch_mistakes(p_batch_id)`**
+  Procedura manuale per registrare errori da sessioni di quiz per categoria. Utilizza una logica di confronto booleano robusta per identificare le discrepanze tra risposta utente e risposta corretta.
 - **`get_mistakes_count()`**
   Ritorna istantaneamente un contatore aggiornato (count query) degli ultimi errori accumulati per l'utente loggato, per le badge visive UI.
 - **`get_user_exam_history(p_user_id)`**
-  Restituisce lo storico completo degli esami (completati e abbandonati) del singolo utente. Aggrega tutto ricalcolando il punteggio in tempo reale alla velocità nativa di SQL.
+  Restituisce lo storico completo degli esami e delle revisioni errori (`batch_type` in `'exam'`, `'review'`) del singolo utente. Aggrega punteggio, numero errori e totale domande ricalcolandoli in tempo reale. Include il campo `title` (chiave i18n) per la localizzazione dinamica nel frontend.
 - **`check_registration_email_domain()` / `handle_new_user()`**
   Hook pre e post-registrazione. Assicurano che i domini e-mail rispettino whitelist (es. bloccano spammer) tramite trigger DB, e creano nativamente l'anagrafica (`public.profiles`) reattiva.
 

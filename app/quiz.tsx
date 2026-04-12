@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as ScreenCapture from 'expo-screen-capture';
 import * as Speech from 'expo-speech';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,11 +15,9 @@ import {
   View,
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
-import * as ScreenCapture from 'expo-screen-capture';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { supabase, supabaseStorageUrl } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useQuizProgression } from '@/hooks/useQuizProgression';
@@ -26,6 +25,7 @@ import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizScore } from '@/hooks/useQuizScore';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { supabaseStorageUrl } from '@/lib/supabase';
 import { updateQuizProgression } from '@/queries/quizProgression';
 import { useLanguagesStore } from '@/store/languages';
 import { ThemedButton } from '../components/ThemedButton';
@@ -150,10 +150,10 @@ export default function QuizScreen() {
   const speakText = async (text: string, langCode: string) => {
     try {
       await Speech.stop();
-      
+
       const lang = languages.find(l => l.code === langCode);
       const ttsLanguage = lang?.tts_locale || langCode;
-      
+
       Speech.speak(text, { language: ttsLanguage, pitch: 1.0, rate: 0.9, volume: 1.0 });
     } catch (error) {
       console.error('Error speaking text:', error);
@@ -308,13 +308,13 @@ export default function QuizScreen() {
                 {t('quiz.incorrectQuestions')}
               </ThemedText>
               {incorrectQuestions.map((q: any, index: number) => (
-                <View 
-                  key={q.id} 
+                <View
+                  key={q.id}
                   style={[
-                    styles.errorItem, 
-                    { 
-                      backgroundColor: cardBackgroundColor, 
-                      borderColor: borderColor 
+                    styles.errorItem,
+                    {
+                      backgroundColor: cardBackgroundColor,
+                      borderColor: borderColor
                     }
                   ]}
                 >
@@ -326,6 +326,16 @@ export default function QuizScreen() {
                       {q.translation?.text || ''}
                     </ThemedText>
                   </View>
+
+                  {q.image_filename && (
+                    <View style={styles.errorImageContainer}>
+                      <Image
+                        source={{ uri: `${supabaseStorageUrl}/${q.image_filename}` }}
+                        style={styles.errorImage}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  )}
 
                   <View style={styles.errorAnswersRow}>
                     <View style={[styles.errorAnswerBadge, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1 }]}>
@@ -348,6 +358,26 @@ export default function QuizScreen() {
                       <ThemedText style={[styles.errorExplanation, { color: iconColor }]}>
                         {q.translation.explanation}
                       </ThemedText>
+                    </View>
+                  )}
+
+                  {q.secondaryTranslation?.text && (
+                    <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor, marginTop: 12 }]}>
+                      <View style={styles.secondaryHeader}>
+                        <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
+                          <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
+                            {t(`user.language.${secondaryLanguage}`)}
+                          </ThemedText>
+                        </View>
+                      </View>
+                      <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
+                        {q.secondaryTranslation.text}
+                      </ThemedText>
+                      {q.secondaryTranslation.explanation && (
+                        <ThemedText style={[styles.secondaryExplanation, { color: iconColor }]}>
+                          {q.secondaryTranslation.explanation}
+                        </ThemedText>
+                      )}
                     </View>
                   )}
                 </View>
@@ -752,6 +782,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 21,
   },
+  secondaryExplanation: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontStyle: 'italic',
+    marginTop: 8,
+    opacity: 0.8,
+  },
   speakButtonSmall: {
     padding: 5,
     borderRadius: 8,
@@ -1036,6 +1073,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     fontWeight: '600',
+  },
+  errorImageContainer: {
+    width: '100%',
+    height: 120,
+    backgroundColor: 'rgba(0,0,0,0.02)',
+    borderRadius: 8,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  errorImage: {
+    width: '100%',
+    height: '100%',
   },
   errorAnswersRow: {
     flexDirection: 'column',
