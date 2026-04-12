@@ -2,6 +2,9 @@
   "quiz": {
     "title": "Quiz por categoría",
     "subtitle": "Pon a prueba tus conocimientos con quizzes interactivos",
+    "tabCategories": "Por categoría",
+    "tabHard": "Quizzes difíciles",
+    "hardEmpty": "No hay quizzes difíciles disponibles en este momento.",
     "comingSoon": "Quiz próximamente...",
     "chooseQuiz": "Elige un quiz",
     "moduleName": "Módulo {{number}}",
@@ -137,6 +140,7 @@
   },
   "exam": {
     "title": "Simulación de examen",
+    "reviewTitle": "Revisión de errores",
     "subtitle": "Ponte a prueba con un examen real",
     "info": {
       "questions": {
@@ -151,6 +155,9 @@
         "title": "Máx 3 errores",
         "description": "Al cuarto error, la simulación se considera reprobada"
       }
+    },
+    "forceItalian": {
+      "title": "Preguntas en italiano"
     },
     "start": "INICIAR EXAMEN",
     "reviewMistakes": "Revisar errores ({{count}})",

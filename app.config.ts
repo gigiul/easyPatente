@@ -6,9 +6,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Quiz Patente 2026',
   slug: 'easyPatente',
   description: 'Quiz patente multilingua',
-  version: '1.0.1',
+  version: '1.0.2',
   orientation: 'portrait',
-  icon: './assets/images/icon.png',
+  icon: './assets/images/IOSquizpatente.png',
   scheme: 'easypatente',
   userInterfaceStyle: 'automatic',
   ios: {
@@ -18,14 +18,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.gigiul.easyPatente',
     adaptiveIcon: {
-      foregroundImage: './assets/images/adaptive-icon.png',
-      backgroundColor: '#ffffff',
+      foregroundImage: './assets/images/android-quizpatente.png',
+      backgroundColor: '#f5a4cc',
     },
-  },
-  web: {
-    bundler: 'metro',
-    output: 'static',
-    favicon: './assets/images/favicon.png',
   },
   plugins: [
     'expo-router',
@@ -35,7 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         image: './assets/images/splash-icon.png',
         imageWidth: 200,
         resizeMode: 'contain',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#f5a4cc',
       },
     ],
   ],
