@@ -142,6 +142,7 @@
     "title": "Simulazione esame",
     "subtitle": "Mettiti alla prova con un esame reale",
     "info": {
+      "accordionTitle": "Info esame",
       "questions": {
         "title": "30 Domande",
         "description": "Miste da tutti gli argomenti d'esame"

@@ -23,6 +23,7 @@ export default function ExamTab() {
   const [mistakesCount, setMistakesCount] = useState(0);
   const [loadingReview, setLoadingReview] = useState(false);
   const [forceItalian, setForceItalian] = useState(false);
+  const [isInfoExpanded, setIsInfoExpanded] = useState(false);
   const themeColors = useQuizTheme();
 
   // Secondary text color for description
@@ -111,33 +112,48 @@ export default function ExamTab() {
           lightColor="#F3F4F6"
           darkColor="#1F2937"
         >
-          <View style={styles.infoRow}>
-            <Ionicons name="document-text" size={32} color="#2563EB" />
-            <View style={styles.infoTextContainer}>
-              <ThemedText style={styles.infoTitle}>{t('exam.info.questions.title')}</ThemedText>
-              <ThemedText style={[styles.infoDescription, { color: secondaryTextColor }]}>{t('exam.info.questions.description')}</ThemedText>
+          <Pressable 
+            style={styles.accordionHeader} 
+            onPress={() => setIsInfoExpanded(!isInfoExpanded)}
+          >
+            <View style={styles.accordionTitleContainer}>
+              <Ionicons name="information-circle-outline" size={24} color={secondaryTextColor} />
+              <ThemedText style={styles.accordionTitle}>{t('exam.info.accordionTitle')}</ThemedText>
             </View>
-          </View>
+            <Ionicons name={isInfoExpanded ? "chevron-up" : "chevron-down"} size={20} color={secondaryTextColor} />
+          </Pressable>
 
-          <ThemedView style={styles.divider} lightColor="#E5E7EB" darkColor="#374151" />
+          {isInfoExpanded && (
+            <View style={styles.accordionContent}>
+              <View style={styles.infoRow}>
+                <Ionicons name="document-text" size={32} color="#2563EB" />
+                <View style={styles.infoTextContainer}>
+                  <ThemedText style={styles.infoTitle}>{t('exam.info.questions.title')}</ThemedText>
+                  <ThemedText style={[styles.infoDescription, { color: secondaryTextColor }]}>{t('exam.info.questions.description')}</ThemedText>
+                </View>
+              </View>
 
-          <View style={styles.infoRow}>
-            <Ionicons name="timer" size={32} color="#F59E0B" />
-            <View style={styles.infoTextContainer}>
-              <ThemedText style={styles.infoTitle}>{t('exam.info.time.title')}</ThemedText>
-              <ThemedText style={[styles.infoDescription, { color: secondaryTextColor }]}>{t('exam.info.time.description')}</ThemedText>
+              <ThemedView style={styles.divider} lightColor="#E5E7EB" darkColor="#374151" />
+
+              <View style={styles.infoRow}>
+                <Ionicons name="timer" size={32} color="#F59E0B" />
+                <View style={styles.infoTextContainer}>
+                  <ThemedText style={styles.infoTitle}>{t('exam.info.time.title')}</ThemedText>
+                  <ThemedText style={[styles.infoDescription, { color: secondaryTextColor }]}>{t('exam.info.time.description')}</ThemedText>
+                </View>
+              </View>
+
+              <ThemedView style={styles.divider} lightColor="#E5E7EB" darkColor="#374151" />
+
+              <View style={styles.infoRow}>
+                <Ionicons name="close-circle" size={32} color="#EF4444" />
+                <View style={styles.infoTextContainer}>
+                  <ThemedText style={styles.infoTitle}>{t('exam.info.errors.title')}</ThemedText>
+                  <ThemedText style={[styles.infoDescription, { color: secondaryTextColor }]}>{t('exam.info.errors.description')}</ThemedText>
+                </View>
+              </View>
             </View>
-          </View>
-
-          <ThemedView style={styles.divider} lightColor="#E5E7EB" darkColor="#374151" />
-
-          <View style={styles.infoRow}>
-            <Ionicons name="close-circle" size={32} color="#EF4444" />
-            <View style={styles.infoTextContainer}>
-              <ThemedText style={styles.infoTitle}>{t('exam.info.errors.title')}</ThemedText>
-              <ThemedText style={[styles.infoDescription, { color: secondaryTextColor }]}>{t('exam.info.errors.description')}</ThemedText>
-            </View>
-          </View>
+          )}
         </ThemedView>
 
         <View style={styles.settingsRow}>
@@ -286,13 +302,32 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     borderRadius: 16,
-    padding: 24,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
-    elevation: 5,
+    elevation: 3,
     marginBottom: 20,
+  },
+  accordionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+  },
+  accordionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  accordionTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  accordionContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   settingsRow: {
     flexDirection: 'row',

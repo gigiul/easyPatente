@@ -142,6 +142,7 @@
     "title": "Exam Simulation",
     "subtitle": "Test yourself with a real exam",
     "info": {
+      "accordionTitle": "Exam info",
       "questions": {
         "title": "30 Questions",
         "description": "Mixed from all exam topics"
