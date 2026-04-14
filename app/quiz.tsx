@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ScreenCapture from 'expo-screen-capture';
 import * as Speech from 'expo-speech';
@@ -8,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -332,7 +332,7 @@ export default function QuizScreen() {
                       <Image
                         source={{ uri: `${supabaseStorageUrl}/${q.image_filename}` }}
                         style={styles.errorImage}
-                        resizeMode="contain"
+                        contentFit="contain"
                       />
                     </View>
                   )}
@@ -469,7 +469,7 @@ export default function QuizScreen() {
                 <Image
                   source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }}
                   style={styles.questionImage}
-                  resizeMode="contain"
+                  contentFit="contain"
                 />
               </Pressable>
               <ImageViewing
