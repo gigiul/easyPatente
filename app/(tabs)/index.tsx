@@ -49,7 +49,7 @@ const getContrastTextColor = (hexColor: string | undefined) => {
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { categories, hardCategories } = useCategories();
+  const { categories, hardCategories, loading } = useCategories();
   const { isPremium: isUserPremium } = usePremiumStatus();
   const [activeTab, setActiveTab] = useState<ActiveTab>('categories');
 
@@ -58,6 +58,7 @@ export default function HomeScreen() {
   const tabActiveText = useThemeColor({ light: '#111827', dark: '#F9FAFB' }, 'text');
   const tabInactiveText = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
   const secondaryTextColor = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
+  const skeletonColor = useThemeColor({ light: '#E5E7EB', dark: '#374151' }, 'background');
 
   const handleCategoryPress = (categoryId: string, isCategoryPremium: boolean) => {
     if (isCategoryPremium && !isUserPremium) return;
@@ -129,6 +130,22 @@ export default function HomeScreen() {
     );
   };
 
+  const renderSkeleton = () => {
+    return (
+      <View style={styles.categoriesGrid}>
+        {[1, 2, 3, 4, 5].map((key) => (
+          <View key={key} style={[styles.categoryRowCard, { backgroundColor: skeletonColor, opacity: 0.6 }]}>
+            <View style={[styles.categoryIconContainer, { backgroundColor: 'rgba(0,0,0,0.05)' }]} />
+            <View style={styles.categoryContentContainer}>
+              <View style={[styles.skeletonLine, { width: '60%', height: 16, marginBottom: 8, backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 4 }]} />
+              <View style={[styles.skeletonLine, { width: '90%', height: 12, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 4 }]} />
+            </View>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="title" style={styles.headerTitle}>
@@ -181,9 +198,13 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
-        {activeTab === 'categories'
-          ? renderCategoryGrid(categories)
-          : renderCategoryGrid(hardCategories)}
+        {loading ? (
+          renderSkeleton()
+        ) : activeTab === 'categories' ? (
+          renderCategoryGrid(categories)
+        ) : (
+          renderCategoryGrid(hardCategories)
+        )}
       </ScrollView>
     </ThemedView>
   );
