@@ -35,7 +35,7 @@ const getCategoryStyle = (str: string) => {
   return CATEGORY_COLOR_MAP[Math.abs(hash) % CATEGORY_COLOR_MAP.length];
 };
 
-const getContrastTextColor = (hexColor: string | undefined) => {
+const getContrastTextColor = (hexColor: string | null | undefined) => {
   if (!hexColor) return '#FFFFFF';
   const hex = hexColor.replace('#', '');
   const r = parseInt(hex.substring(0, 2), 16);
@@ -108,9 +108,8 @@ export default function HomeScreen() {
               <View style={[styles.categoryIconContainer, { backgroundColor: iconBgColor }]}>
                 <Ionicons name={category.icon_url as any} size={28} color={textColor} />
               </View>
-
               <View style={styles.categoryContentContainer}>
-                <ThemedText style={[styles.categoryTitle, { color: textColor }]} numberOfLines={1}>{category.name}</ThemedText>
+                <ThemedText style={[styles.categoryTitle, { color: textColor }]} numberOfLines={2}>{category.sort_order}. {category.name}</ThemedText>
                 <ThemedText style={[styles.categoryDescription, { color: textColor }]} numberOfLines={3}>{category.description}</ThemedText>
               </View>
 
@@ -342,5 +341,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.7,
     paddingHorizontal: 24,
+  },
+  skeletonLine: {
+    borderRadius: 4,
   },
 });
