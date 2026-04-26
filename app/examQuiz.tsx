@@ -6,12 +6,12 @@ import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 import ImageViewing from 'react-native-image-viewing';
 import * as ScreenCapture from 'expo-screen-capture';
 
@@ -56,6 +56,7 @@ export default function ExamQuizScreen() {
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
 
   // Prevent screenshots
   ScreenCapture.usePreventScreenCapture();
@@ -267,7 +268,7 @@ export default function ExamQuizScreen() {
                       <Image 
                         source={{ uri: `${supabaseStorageUrl}/${q.image_filename}` }} 
                         style={styles.errorImage} 
-                        resizeMode="contain" 
+                        contentFit="contain" 
                       />
                     </View>
                   )}
@@ -376,8 +377,21 @@ export default function ExamQuizScreen() {
           {currentQuestion?.image_filename && (
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
               <Pressable onPress={() => setIsImageViewerVisible(true)}>
-                <Image source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }} style={styles.questionImage} resizeMode="contain" />
+                <Image 
+                  key={currentQuestion.image_filename}
+                  source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }} 
+                  style={styles.questionImage} 
+                  contentFit="contain"
+                  onLoadStart={() => setIsImageLoading(true)}
+                  onLoad={() => setIsImageLoading(false)}
+                  onError={() => setIsImageLoading(false)}
+                />
               </Pressable>
+              {isImageLoading && (
+                <View style={[StyleSheet.absoluteFill, styles.imageLoader]}>
+                  <ActivityIndicator color="#059669" />
+                </View>
+              )}
               <ImageViewing
                 images={[{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }]}
                 imageIndex={0}
@@ -502,6 +516,11 @@ const styles = StyleSheet.create({
   questionText: { fontSize: 20, lineHeight: 30, fontWeight: '500', textAlign: 'center' },
   imageContainer: { marginTop: 20, borderRadius: 12, overflow: 'hidden' },
   questionImage: { width: '100%', height: 200 },
+  imageLoader: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.02)',
+  },
   stickyAnswerBar: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, borderTopWidth: 1 },
   answerButtons: { flexDirection: 'row', gap: 12 },
   answerButton: {

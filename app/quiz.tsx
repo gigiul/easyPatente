@@ -47,6 +47,7 @@ export default function QuizScreen() {
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
 
   // Prevent screenshots
   ScreenCapture.usePreventScreenCapture();
@@ -467,11 +468,20 @@ export default function QuizScreen() {
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
               <Pressable onPress={() => setIsImageViewerVisible(true)}>
                 <Image
+                  key={currentQuestion.image_filename}
                   source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }}
                   style={styles.questionImage}
                   contentFit="contain"
+                  onLoadStart={() => setIsImageLoading(true)}
+                  onLoad={() => setIsImageLoading(false)}
+                  onError={() => setIsImageLoading(false)}
                 />
               </Pressable>
+              {isImageLoading && (
+                <View style={[StyleSheet.absoluteFill, styles.imageLoader]}>
+                  <ActivityIndicator color="#2563EB" />
+                </View>
+              )}
               <ImageViewing
                 images={[{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }]}
                 imageIndex={0}
@@ -756,6 +766,11 @@ const styles = StyleSheet.create({
   questionImage: {
     width: '100%',
     height: 180,
+  },
+  imageLoader: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.02)',
   },
   secondaryLanguageCard: {
     marginTop: 14,
