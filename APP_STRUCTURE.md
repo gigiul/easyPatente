@@ -221,9 +221,6 @@ Si potrebbe aggiungere una tabella con le segnalazioni degli utenti con un limit
 - **Maintenance mode**:
 Implmentare un hook che nel caso venga flaggato a true un parametro nel db visualizzi una schermata di maintenance mode durante la quale non è possibile utilizzare l'app tranne per gli admin ( creare nuova colonna nella tabella profiles per flaggare gli admin )
 
-- **Scelta lingua in italiano per l'esame**:
-Aggiungere un toggle per forzare le domande dell'esame in italiano anche se l'utente ha impostato un'altra lingua come lingua principale o secondaria.
-
 - **AI Assistant Integrato (RAG)**:
   Implementazione pianificata di un assistente virtuale basato su AI che funge da Tutor per la teoria della patente. L'AI utilizzerà la tecnica RAG (Retrieval-Augmented Generation) fruttando **Supabase Edge Functions** e **pgvector** per ricercare nel database relazionale (o vettoriale) estratti esatti del Manuale di Teoria, in modo da poter fornire risposte ragionate, di contesto, prive di allucinazioni e pertinenti alle vere simulazioni d'esame.
 - **Statistiche Globali**:
