@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as ScreenCapture from 'expo-screen-capture';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,9 +13,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Image } from 'expo-image';
 import ImageViewing from 'react-native-image-viewing';
-import * as ScreenCapture from 'expo-screen-capture';
 
 import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedText } from '@/components/ThemedText';
@@ -25,9 +25,9 @@ import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizScore } from '@/hooks/useQuizScore';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { updateQuizProgression } from '@/queries/quizProgression';
-import { recordExamMistakes } from '@/queries/mistakes';
 import { supabaseStorageUrl } from '@/lib/supabase';
+import { recordExamMistakes } from '@/queries/mistakes';
+import { updateQuizProgression } from '@/queries/quizProgression';
 
 const EXAM_DURATION_SECONDS = 20 * 60; // 20 minutes
 
@@ -57,6 +57,15 @@ export default function ExamQuizScreen() {
   const currentQuestion = questions[currentQuestionIndex] as any;
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isPlayingGif, setIsPlayingGif] = useState(false);
+  const [playingErrorGifs, setPlayingErrorGifs] = useState<Record<string, boolean>>({});
+  const mainImageRef = useRef<any>(null);
+  const errorImageRefs = useRef<Record<string, any>>({});
+
+  // Reset GIF playing state when question changes
+  useEffect(() => {
+    setIsPlayingGif(false);
+  }, [currentQuestionIndex]);
 
   // Prevent screenshots
   ScreenCapture.usePreventScreenCapture();
@@ -187,6 +196,11 @@ export default function ExamQuizScreen() {
     );
   };
 
+  const toggleErrorGif = (id: string) => {
+    setPlayingErrorGifs(prev => ({ ...prev, [id]: true }));
+    errorImageRefs.current[id]?.startAnimating();
+  };
+
   // --- Rendering ---
   if (progressLoading || questions.length === 0) {
     return (
@@ -244,13 +258,13 @@ export default function ExamQuizScreen() {
                 {t('exam.incorrectQuestions')}
               </ThemedText>
               {incorrectQuestions.map((q: any, index: number) => (
-                <View 
-                  key={q.id} 
+                <View
+                  key={q.id}
                   style={[
-                    styles.errorItem, 
-                    { 
-                      backgroundColor: cardBackgroundColor, 
-                      borderColor: borderColor 
+                    styles.errorItem,
+                    {
+                      backgroundColor: cardBackgroundColor,
+                      borderColor: borderColor
                     }
                   ]}
                 >
@@ -265,11 +279,31 @@ export default function ExamQuizScreen() {
 
                   {q.image_filename && (
                     <View style={styles.errorImageContainer}>
-                      <Image 
-                        source={{ uri: `${supabaseStorageUrl}/${q.image_filename}` }} 
-                        style={styles.errorImage} 
-                        contentFit="contain" 
-                      />
+                      <Pressable
+                        style={{ flex: 1 }}
+                        onPress={() => {
+                          if (q.image_filename.toLowerCase().endsWith('.gif') && !playingErrorGifs[q.id]) {
+                            toggleErrorGif(q.id);
+                          }
+                        }}
+                      >
+                        <Image
+                          ref={(el) => {
+                            if (el) errorImageRefs.current[q.id] = el;
+                          }}
+                          source={{ uri: `${supabaseStorageUrl}/${q.image_filename}` }}
+                          style={styles.errorImage}
+                          contentFit="contain"
+                          autoplay={!q.image_filename.toLowerCase().endsWith('.gif') || playingErrorGifs[q.id]}
+                        />
+                        {q.image_filename.toLowerCase().endsWith('.gif') && !playingErrorGifs[q.id] && (
+                          <View style={[StyleSheet.absoluteFill, styles.playOverlay]}>
+                            <View style={styles.playButtonBackgroundSmall}>
+                              <Ionicons name="play" size={24} color="#fff" style={{ marginLeft: 2 }} />
+                            </View>
+                          </View>
+                        )}
+                      </Pressable>
                     </View>
                   )}
 
@@ -329,6 +363,7 @@ export default function ExamQuizScreen() {
   const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
   const userAnswer = answers[currentQuestion?.id];
   const hasAnswered = typeof userAnswer !== 'undefined';
+  const isGif = currentQuestion?.image_filename?.toLowerCase().endsWith('.gif');
 
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
@@ -376,16 +411,32 @@ export default function ExamQuizScreen() {
 
           {currentQuestion?.image_filename && (
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
-              <Pressable onPress={() => setIsImageViewerVisible(true)}>
-                <Image 
+              <Pressable onPress={() => {
+                if (isGif && !isPlayingGif) {
+                  setIsPlayingGif(true);
+                  mainImageRef.current?.startAnimating();
+                } else {
+                  setIsImageViewerVisible(true);
+                }
+              }}>
+                <Image
+                  ref={mainImageRef}
                   key={currentQuestion.image_filename}
-                  source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }} 
-                  style={styles.questionImage} 
+                  source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }}
+                  style={styles.questionImage}
                   contentFit="contain"
+                  autoplay={!isGif || isPlayingGif}
                   onLoadStart={() => setIsImageLoading(true)}
                   onLoad={() => setIsImageLoading(false)}
                   onError={() => setIsImageLoading(false)}
                 />
+                {isGif && !isPlayingGif && (
+                  <View style={[StyleSheet.absoluteFill, styles.playOverlay]}>
+                    <View style={styles.playButtonBackground}>
+                      <Ionicons name="play" size={36} color="#fff" style={{ marginLeft: 4 }} />
+                    </View>
+                  </View>
+                )}
               </Pressable>
               {isImageLoading && (
                 <View style={[StyleSheet.absoluteFill, styles.imageLoader]}>
@@ -673,5 +724,26 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 8,
     opacity: 0.8,
+  },
+  playOverlay: {
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+    padding: 12,
+  },
+  playButtonBackground: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButtonBackgroundSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

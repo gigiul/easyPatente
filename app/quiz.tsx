@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ScreenCapture from 'expo-screen-capture';
 import * as Speech from 'expo-speech';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -48,6 +48,10 @@ export default function QuizScreen() {
   const currentQuestion = questions[currentQuestionIndex] as any;
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
+  const [isPlayingGif, setIsPlayingGif] = useState(false);
+  const [playingErrorGifs, setPlayingErrorGifs] = useState<Record<string, boolean>>({});
+  const mainImageRef = useRef<any>(null);
+  const errorImageRefs = useRef<Record<string, any>>({});
 
   // Prevent screenshots
   ScreenCapture.usePreventScreenCapture();
@@ -70,7 +74,12 @@ export default function QuizScreen() {
     setQuizCompleted(false);
     setAnswers({});
     setIsResetting(false);
+    setIsPlayingGif(false);
   }, [batchId]);
+
+  useEffect(() => {
+    setIsPlayingGif(false);
+  }, [currentQuestionIndex]);
 
   // Popola answers da quizProgress se presente
   useEffect(() => {
@@ -143,6 +152,11 @@ export default function QuizScreen() {
     await updateQuizProgression(userId, String(batchId), {}, 1, false);
     refreshProgression();
     setTimeout(() => setIsResetting(false), 500);
+  };
+
+  const toggleErrorGif = (id: string) => {
+    setPlayingErrorGifs(prev => ({ ...prev, [id]: true }));
+    errorImageRefs.current[id]?.startAnimating();
   };
 
   const getSecondaryTranslation = (type: 'text' | 'explanation') =>
@@ -330,11 +344,31 @@ export default function QuizScreen() {
 
                   {q.image_filename && (
                     <View style={styles.errorImageContainer}>
-                      <Image
-                        source={{ uri: `${supabaseStorageUrl}/${q.image_filename}` }}
-                        style={styles.errorImage}
-                        contentFit="contain"
-                      />
+                      <Pressable
+                        style={{ flex: 1 }}
+                        onPress={() => {
+                          if (q.image_filename.toLowerCase().endsWith('.gif') && !playingErrorGifs[q.id]) {
+                            toggleErrorGif(q.id);
+                          }
+                        }}
+                      >
+                        <Image
+                          ref={(el) => {
+                            if (el) errorImageRefs.current[q.id] = el;
+                          }}
+                          source={{ uri: `${supabaseStorageUrl}/${q.image_filename}` }}
+                          style={styles.errorImage}
+                          contentFit="contain"
+                          autoplay={!q.image_filename.toLowerCase().endsWith('.gif') || playingErrorGifs[q.id]}
+                        />
+                        {q.image_filename.toLowerCase().endsWith('.gif') && !playingErrorGifs[q.id] && (
+                          <View style={[StyleSheet.absoluteFill, styles.playOverlay]}>
+                            <View style={styles.playButtonBackgroundSmall}>
+                              <Ionicons name="play" size={24} color="#fff" style={{ marginLeft: 2 }} />
+                            </View>
+                          </View>
+                        )}
+                      </Pressable>
                     </View>
                   )}
 
@@ -418,6 +452,7 @@ export default function QuizScreen() {
   const hasAnswered = typeof answers[currentQuestion?.id] !== 'undefined';
   const userAnswer = answers[currentQuestion?.id];
   const isCorrect = userAnswer === currentQuestion?.is_correct;
+  const isGif = currentQuestion?.image_filename?.toLowerCase().endsWith('.gif');
 
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
@@ -466,16 +501,32 @@ export default function QuizScreen() {
           </ThemedText>
           {currentQuestion?.image_filename && (
             <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
-              <Pressable onPress={() => setIsImageViewerVisible(true)}>
+              <Pressable onPress={() => {
+                if (isGif && !isPlayingGif) {
+                  setIsPlayingGif(true);
+                  mainImageRef.current?.startAnimating();
+                } else {
+                  setIsImageViewerVisible(true);
+                }
+              }}>
                 <Image
+                  ref={mainImageRef}
                   key={currentQuestion.image_filename}
                   source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }}
                   style={styles.questionImage}
                   contentFit="contain"
+                  autoplay={!isGif || isPlayingGif}
                   onLoadStart={() => setIsImageLoading(true)}
                   onLoad={() => setIsImageLoading(false)}
                   onError={() => setIsImageLoading(false)}
                 />
+                {isGif && !isPlayingGif && (
+                  <View style={[StyleSheet.absoluteFill, styles.playOverlay]}>
+                    <View style={styles.playButtonBackground}>
+                      <Ionicons name="play" size={36} color="#fff" style={{ marginLeft: 4 }} />
+                    </View>
+                  </View>
+                )}
               </Pressable>
               {isImageLoading && (
                 <View style={[StyleSheet.absoluteFill, styles.imageLoader]}>
@@ -803,6 +854,27 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 8,
     opacity: 0.8,
+  },
+  playOverlay: {
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+    padding: 12,
+  },
+  playButtonBackground: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButtonBackgroundSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   speakButtonSmall: {
     padding: 5,
