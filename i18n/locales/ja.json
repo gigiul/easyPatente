@@ -1,0 +1,222 @@
+{
+  "quiz": {
+    "title": "カテゴリー別クイズ",
+    "subtitle": "インタラクティブなクイズで知識をテストしましょう",
+    "tabCategories": "カテゴリー別",
+    "tabHard": "難問クイズ",
+    "hardEmpty": "現在、利用可能な難問クイズはありません。",
+    "comingSoon": "クイズは近日公開予定です...",
+    "chooseQuiz": "クイズを選択",
+    "moduleName": "モジュール {{number}}",
+    "question": "質問",
+    "explanation": "解説",
+    "next": "次へ",
+    "previous": "前へ",
+    "true": "正しい",
+    "false": "間違い",
+    "questionCount": "質問 {{current}} / {{total}}",
+    "completed": "クイズ完了！",
+    "score": "スコア: {{total}} 中 {{score}}",
+    "restart": "再開する",
+    "percentCompleted": "{{percent}}% 完了",
+    "questionOf": "{{current}} / {{total}}",
+    "selectAnswer": "回答を選択してください：",
+    "correctAnswer": "正解です！",
+    "incorrectAnswer": "不正解です",
+    "yourAnswer": "あなたの回答：{{answer}}",
+    "correctAnswerIs": "正解：{{answer}}",
+    "nextQuestion": "次へ",
+    "skipQuestion": "スキップ",
+    "home": "ホーム",
+    "incorrectQuestions": "不正解の問題",
+    "reviewIncorrect": "間違いを確認する",
+    "noIncorrectQuestions": "不正解の問題はありません！",
+    "inProgress": "進行中",
+    "start": "開始",
+    "currentQuestion": "現在の質問：{{current}}",
+    "passed": "合格",
+    "failed": "不合格",
+    "errors": "エラー",
+    "results": {
+      "passed": {
+        "title": "クイズ合格！",
+        "subtitle": "素晴らしい！ほとんどの質問に正解しました。"
+      },
+      "failed": {
+        "title": "クイズ不合格",
+        "subtitle": "{{total}} 問中 {{incorrect}} 個のミスがありました。許容範囲は最大 {{max}} 個です。もう一度挑戦してください！"
+      },
+      "correct": "正解",
+      "incorrect": "エラー",
+      "scoreLabel": "スコア",
+      "errorLimit": "クイズ合格にはエラーを {{max}} 個以下に抑える必要があります"
+    },
+    "retry": "もう一度挑戦する",
+    "finishAlert": {
+      "title": "クイズを終了",
+      "message": "クイズを終了して結果を表示しますか？未回答の質問は不正解としてカウントされます。",
+      "confirm": "終了",
+      "cancel": "キャンセル"
+    }
+  },
+  "user": {
+    "title": "プロフィール",
+    "subtitle": "エクスペリエンスをカスタマイズ",
+    "sections": {
+      "language": "言語設定",
+      "account": "アカウント情報",
+      "support": "サポートとフィードバック",
+      "legal": "規約と情報"
+    },
+    "language": {
+      "title": "主要言語",
+      "description": "アプリのインターフェースに使用する優先言語",
+      "en": "英語",
+      "it": "イタリア語",
+      "es": "スペイン語",
+      "bn": "ベンガル語",
+      "fr": "フランス語",
+      "de": "ドイツ語",
+      "ar": "アラビア語",
+      "zh": "中国語",
+      "ja": "日本語",
+      "ko": "韓国語",
+      "pt": "ポルトガル語",
+      "ru": "ロシア語",
+      "si": "シンハラ語"
+    },
+    "secondaryLanguage": {
+      "title": "副次言語",
+      "description": "第2言語で翻訳を表示する"
+    },
+    "account": {
+      "email": "メールアドレス",
+      "status": "アカウントステータス",
+      "premium": "プレミアムユーザー",
+      "free": "無料プラン"
+    },
+    "support": {
+      "rate": "アプリを評価する",
+      "contact": "サポートに連絡"
+    },
+    "legal": {
+      "privacy": "プライバシーポリシー",
+      "terms": "利用規約",
+      "version": "アプリバージョン"
+    },
+    "logout": "ログアウト",
+    "deleteAccount": "アカウントを削除",
+    "deleteAccountConfirm": "アカウントとすべてのデータを永久に削除してもよろしいですか？この操作は取り消せません。",
+    "cancel": "キャンセル"
+  },
+  "auth": {
+    "login": {
+      "title": "おかえりなさい",
+      "subtitle": "続行するにはサインインしてください",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "forgotPassword": "パスワードを忘れましたか？",
+      "signIn": "サインイン",
+      "noAccount": "アカウントをお持ちでないですか？",
+      "signUp": "サインアップ",
+      "errors": {
+        "fillFields": "すべての項目を入力してください",
+        "unexpected": "予期しないエラーが発生しました"
+      }
+    },
+    "signup": {
+      "title": "アカウント作成",
+      "subtitle": "サインアップして始めましょう",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "confirmPassword": "パスワード（確認）",
+      "createAccount": "アカウント作成",
+      "hasAccount": "すでにアカウントをお持ちですか？",
+      "signIn": "サインイン",
+      "errors": {
+        "fillFields": "すべての項目を入力してください",
+        "passwordsMatch": "パスワードが一致しません",
+        "passwordLength": "パスワードは6文字以上である必要があります",
+        "invalidDomain": "一般的なメールードメイン（Gmail、Outlook、Yahooなど）でのみ登録可能です",
+        "unexpected": "予期しないエラーが発生しました"
+      }
+    }
+  },
+  "premium": {
+    "required": "プレミアム",
+    "upgrade": "プレミアムにアップグレード",
+    "unlockAll": "すべてのカテゴリーをアンロック"
+  },
+  "exam": {
+    "title": "模擬試験",
+    "reviewTitle": "間違いの確認",
+    "subtitle": "本番形式の試験で実力をテスト",
+    "info": {
+      "accordionTitle": "試験情報",
+      "questions": {
+        "title": "30問",
+        "description": "すべての試験トピックから混合出題"
+      },
+      "time": {
+        "title": "20分",
+        "description": "時間が終了すると、試験は自動的に終了します"
+      },
+      "errors": {
+        "title": "最大3ミスまで",
+        "description": "4回目のミスで不合格となります"
+      }
+    },
+    "forceItalian": {
+      "title": "イタリア語での質問"
+    },
+    "start": "試験開始",
+    "reviewMistakes": "間違いを確認 ({{count}})",
+    "alerts": {
+      "error": "エラー",
+      "notLoggedIn": "試験を開始するにはログインが必要です。",
+      "startFailed": "試験の開始に失敗しました。もう一度お試しください。",
+      "unexpected": "予期しないエラーが発生しました。",
+      "submitTitle": "試験を提出",
+      "submitConfirm": "提出してもよろしいですか？",
+      "submitIncomplete": "{{total}} 問中 {{answered}} 問回答しました。未回答の問題は不正解としてカウントされます。提出しますか？",
+      "cancel": "キャンセル",
+      "submit": "提出",
+      "timeOutTitle": "時間切れ",
+      "timeOutMessage": "試験時間が終了しました。試験は自動的に提出されました。",
+      "reviewStartFailed": "復習の開始に失敗しました。もう一度お試しください。"
+    },
+    "results": {
+      "title": "試験結果",
+      "timeTaken": "所要時間 {{time}}",
+      "passed": "試験合格",
+      "failed": "試験不合格",
+      "passedMessage": "おめでとうございます！この結果なら合格です。",
+      "failedMessage": "{{total}} 問中 {{incorrect}} 個のミスがありました。制限は {{max}} 個です。",
+      "correct": "正解",
+      "incorrect": "エラー",
+      "backToHome": "ホームに戻る"
+    },
+    "questionOf": "質問 {{current}}/{{total}}",
+    "true": "正しい",
+    "false": "間違い",
+    "back": "戻る",
+    "next": "次へ",
+    "submit": "提出",
+    "incorrectQuestions": "不正解の問題",
+    "history": {
+      "title": "試験履歴",
+      "empty": "まだ試験を受けていません。模擬試験を始めましょう！",
+      "passed": "合格",
+      "failed": "不合格",
+      "errors": "{{count}} ミス",
+      "score": "{{correct}}/{{total}} 正解",
+      "date": "{{date}}",
+      "abandoned": "中断"
+    }
+  },
+  "tabs": {
+    "quiz": "クイズ",
+    "exam": "試験",
+    "user": "ユーザー"
+  }
+}

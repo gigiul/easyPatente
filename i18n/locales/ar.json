@@ -1,0 +1,222 @@
+{
+  "quiz": {
+    "title": "اختبار حسب الفئة",
+    "subtitle": "اختبر معلوماتك من خلال اختبارات تفاعلية",
+    "tabCategories": "حسب الفئة",
+    "tabHard": "اختبارات صعبة",
+    "hardEmpty": "لا توجد اختبارات صعبة متاحة في الوقت الحالي.",
+    "comingSoon": "الاختبار قادم قريباً...",
+    "chooseQuiz": "اختر اختباراً",
+    "moduleName": "الوحدة {{number}}",
+    "question": "سؤال",
+    "explanation": "شرح",
+    "next": "التالي",
+    "previous": "السابق",
+    "true": "صح",
+    "false": "خطأ",
+    "questionCount": "السؤال {{current}} من {{total}}",
+    "completed": "اكتمل الاختبار!",
+    "score": "النتيجة: {{score}} من {{total}}",
+    "restart": "إعادة تشغيل",
+    "percentCompleted": "تم إكمال {{percent}}%",
+    "questionOf": "{{current}} من {{total}}",
+    "selectAnswer": "اختر إجابتك:",
+    "correctAnswer": "إجابة صحيحة!",
+    "incorrectAnswer": "إجابة خاطئة",
+    "yourAnswer": "لقد أجبت: {{answer}}",
+    "correctAnswerIs": "الإجابة الصحيحة: {{answer}}",
+    "nextQuestion": "التالي",
+    "skipQuestion": "تخطي",
+    "home": "الرئيسية",
+    "incorrectQuestions": "الأسئلة الخاطئة",
+    "reviewIncorrect": "مراجعة الأخطاء",
+    "noIncorrectQuestions": "لا توجد أسئلة خاطئة!",
+    "inProgress": "قيد التنفيذ",
+    "start": "ابدأ",
+    "currentQuestion": "السؤال الحالي: {{current}}",
+    "passed": "ناجح",
+    "failed": "راسب",
+    "errors": "أخطاء",
+    "results": {
+      "passed": {
+        "title": "ناجح في الاختبار!",
+        "subtitle": "عمل رائع! لقد أجبت على معظم الأسئلة بشكل صحيح."
+      },
+      "failed": {
+        "title": "فشل في الاختبار",
+        "subtitle": "لقد ارتكبت {{incorrect}} أخطاء من أصل {{total}} سؤال. الحد الأقصى المسموح به هو {{max}}. حاول مرة أخرى!"
+      },
+      "correct": "صحيح",
+      "incorrect": "أخطاء",
+      "scoreLabel": "النتيجة",
+      "errorLimit": "الحد الأقصى المسموح به هو {{max}} أخطاء لاجتياز الاختبار"
+    },
+    "retry": "حاول مرة أخرى",
+    "finishAlert": {
+      "title": "إنهاء الاختبار",
+      "message": "هل تريد إنهاء الاختبار ورؤية نتائجك؟ سيتم احتساب أي أسئلة لم يتم الرد عليها كخاطئة.",
+      "confirm": "إنهاء",
+      "cancel": "إلغاء"
+    }
+  },
+  "user": {
+    "title": "الملف الشخصي",
+    "subtitle": "خصص تجربتك",
+    "sections": {
+      "language": "إعدادات اللغة",
+      "account": "معلومات الحساب",
+      "support": "الدعم والملاحظات",
+      "legal": "قانوني وعن التطبيق"
+    },
+    "language": {
+      "title": "اللغة الأساسية",
+      "description": "اللغة المفضلة لواجهة التطبيق",
+      "en": "الإنجليزية",
+      "it": "الإيطالية",
+      "es": "الإسبانية",
+      "bn": "البنغالية",
+      "fr": "الفرنسية",
+      "de": "الألمانية",
+      "ar": "العربية",
+      "zh": "الصينية",
+      "ja": "اليابانية",
+      "ko": "الكورية",
+      "pt": "البرتغالية",
+      "ru": "الروسية",
+      "si": "السينهالية"
+    },
+    "secondaryLanguage": {
+      "title": "اللغة الثانوية",
+      "description": "عرض الترجمة بلغة ثانية"
+    },
+    "account": {
+      "email": "البريد الإلكتروني",
+      "status": "حالة الحساب",
+      "premium": "مستخدم بريميوم",
+      "free": "خطة مجانية"
+    },
+    "support": {
+      "rate": "قيم التطبيق",
+      "contact": "اتصل بالدعم"
+    },
+    "legal": {
+      "privacy": "سياسة الخصوصية",
+      "terms": "شروط الخدمة",
+      "version": "إصدار التطبيق"
+    },
+    "logout": "تسجيل الخروج",
+    "deleteAccount": "حذف الحساب",
+    "deleteAccountConfirm": "هل أنت متأكد أنك تريد حذف حسابك وجميع بياناتك نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
+    "cancel": "إلغاء"
+  },
+  "auth": {
+    "login": {
+      "title": "مرحباً بعودتك",
+      "subtitle": "سجل الدخول للمتابعة",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "forgotPassword": "هل نسيت كلمة المرور؟",
+      "signIn": "تسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "signUp": "إنشاء حساب",
+      "errors": {
+        "fillFields": "يرجى ملء جميع الحقول",
+        "unexpected": "حدث خطأ غير متوقع"
+      }
+    },
+    "signup": {
+      "title": "إنشاء حساب",
+      "subtitle": "سجل للحصول على حساب",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "createAccount": "إنشاء حساب",
+      "hasAccount": "لديك حساب بالفعل؟",
+      "signIn": "تسجيل الدخول",
+      "errors": {
+        "fillFields": "يرجى ملء جميع الحقول",
+        "passwordsMatch": "كلمات المرور غير متطابقة",
+        "passwordLength": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+        "invalidDomain": "التسجيل مسموح فقط بنطاقات البريد الإلكتروني الشائعة (مثل Gmail و Outlook و Yahoo)",
+        "unexpected": "حدث خطأ غير متوقع"
+      }
+    }
+  },
+  "premium": {
+    "required": "بريميوم",
+    "upgrade": "الترقية إلى بريميوم",
+    "unlockAll": "فتح جميع الفئات"
+  },
+  "exam": {
+    "title": "محاكاة الامتحان",
+    "reviewTitle": "مراجعة الأخطاء",
+    "subtitle": "اختبر نفسك مع امتحان حقيقي",
+    "info": {
+      "accordionTitle": "معلومات الامتحان",
+      "questions": {
+        "title": "30 سؤالاً",
+        "description": "مختلطة من جميع مواضيع الامتحان"
+      },
+      "time": {
+        "title": "20 دقيقة",
+        "description": "إذا انتهى الوقت، ينتهي الامتحان تلقائياً"
+      },
+      "errors": {
+        "title": "بحد أقصى 3 أخطاء",
+        "description": "عند الخطأ الرابع، تعتبر المحاكاة فاشلة"
+      }
+    },
+    "forceItalian": {
+      "title": "أسئلة باللغة الإيطالية"
+    },
+    "start": "بدء الامتحان",
+    "reviewMistakes": "مراجعة الأخطاء ({{count}})",
+    "alerts": {
+      "error": "خطأ",
+      "notLoggedIn": "يجب تسجيل الدخول لبدء الامتحان.",
+      "startFailed": "فشل بدء الامتحان. يرجى المحاولة مرة أخرى.",
+      "unexpected": "حدث خطأ غير متوقع.",
+      "submitTitle": "إرسال الامتحان",
+      "submitConfirm": "هل أنت متأكد أنك تريد الإرسال؟",
+      "submitIncomplete": "لقد أجبت على {{answered}} من أصل {{total}} سؤال. سيتم اعتبار الإجابات الفارغة خاطئة. هل تريد الإرسال على أي حال؟",
+      "cancel": "إلغاء",
+      "submit": "إرسال",
+      "timeOutTitle": "انتهى الوقت",
+      "timeOutMessage": "لقد انتهى وقت الامتحان. تم إرسال امتحانك تلقائياً.",
+      "reviewStartFailed": "فشل بدء المراجعة. يرجى المحاولة مرة أخرى."
+    },
+    "results": {
+      "title": "نتيجة الامتحان",
+      "timeTaken": "الوقت المستغرق {{time}}",
+      "passed": "ناجح في الامتحان",
+      "failed": "راسب في الامتحان",
+      "passedMessage": "تهانينا! لقد نجحت في هذا الامتحان.",
+      "failedMessage": "لقد ارتكبت {{incorrect}} أخطاء من أصل {{total}}. الحد المسموح به هو {{max}}.",
+      "correct": "صحيح",
+      "incorrect": "أخطاء",
+      "backToHome": "العودة إلى الرئيسية"
+    },
+    "questionOf": "السؤال {{current}}/{{total}}",
+    "true": "صح",
+    "false": "خطأ",
+    "back": "رجوع",
+    "next": "التالي",
+    "submit": "إرسال",
+    "incorrectQuestions": "الأسئلة الخاطئة",
+    "history": {
+      "title": "سجل الامتحانات",
+      "empty": "لم يتم إجراء أي امتحانات بعد. ابدأ محاكاة!",
+      "passed": "ناجح",
+      "failed": "راسب",
+      "errors": "{{count}} أخطاء",
+      "score": "{{correct}}/{{total}} صحيح",
+      "date": "{{date}}",
+      "abandoned": "تم التخلي عنه"
+    }
+  },
+  "tabs": {
+    "quiz": "الاختبار",
+    "exam": "الامتحان",
+    "user": "المستخدم"
+  }
+}

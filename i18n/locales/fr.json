@@ -1,0 +1,222 @@
+{
+    "quiz": {
+        "title": "Quiz par catégorie",
+        "subtitle": "Testez vos connaissances avec des quiz interactifs",
+        "tabCategories": "Par catégorie",
+        "tabHard": "Quiz difficiles",
+        "hardEmpty": "Aucun quiz difficile disponible pour le moment.",
+        "comingSoon": "Quiz bientôt disponible...",
+        "chooseQuiz": "Choisissez un quiz",
+        "moduleName": "Module {{number}}",
+        "question": "Question",
+        "explanation": "Explication",
+        "next": "Suivant",
+        "previous": "Précédent",
+        "true": "Vrai",
+        "false": "Faux",
+        "questionCount": "Question {{current}} sur {{total}}",
+        "completed": "Quiz terminé !",
+        "score": "Score : {{score}} sur {{total}}",
+        "restart": "Redémarrer",
+        "percentCompleted": "{{percent}}% terminé",
+        "questionOf": "{{current}} sur {{total}}",
+        "selectAnswer": "Sélectionnez votre réponse :",
+        "correctAnswer": "Bonne réponse !",
+        "incorrectAnswer": "Réponse incorrecte",
+        "yourAnswer": "Vous avez répondu : {{answer}}",
+        "correctAnswerIs": "Réponse correcte : {{answer}}",
+        "nextQuestion": "Suivant",
+        "skipQuestion": "Passer",
+        "home": "Accueil",
+        "incorrectQuestions": "Questions incorrectes",
+        "reviewIncorrect": "Revoir les erreurs",
+        "noIncorrectQuestions": "Aucune question incorrecte !",
+        "inProgress": "En cours",
+        "start": "Commencer",
+        "currentQuestion": "Question actuelle : {{current}}",
+        "passed": "Réussi",
+        "failed": "Échoué",
+        "errors": "err.",
+        "results": {
+            "passed": {
+                "title": "Quiz réussi !",
+                "subtitle": "Bravo ! Vous avez répondu correctement à la plupart des questions."
+            },
+            "failed": {
+                "title": "Quiz échoué",
+                "subtitle": "Vous avez fait {{incorrect}} erreurs sur {{total}} questions. Un maximum de {{max}} est autorisé. Réessayez !"
+            },
+            "correct": "Correct",
+            "incorrect": "Erreurs",
+            "scoreLabel": "Score",
+            "errorLimit": "Maximum de {{max}} erreurs autorisées pour réussir le quiz"
+        },
+        "retry": "Réessayer",
+        "finishAlert": {
+            "title": "Terminer le quiz",
+            "message": "Voulez-vous terminer le quiz et voir vos résultats ? Toutes les questions non répondues seront comptées comme incorrectes.",
+            "confirm": "Terminer",
+            "cancel": "Annuler"
+        }
+    },
+    "user": {
+        "title": "Profil",
+        "subtitle": "Personnalisez votre expérience",
+        "sections": {
+            "language": "Paramètres de langue",
+            "account": "Informations du compte",
+            "support": "Support et commentaires",
+            "legal": "Légal et à propos"
+        },
+        "language": {
+            "title": "Langue principale",
+            "description": "Langue préférée pour l'interface de l'application",
+            "en": "Anglais",
+            "it": "Italien",
+            "es": "Espagnol",
+            "bn": "Bengali",
+            "fr": "Français",
+            "de": "Allemand",
+            "ar": "Arabe",
+            "zh": "Chinois",
+            "ja": "Japonais",
+            "ko": "Coréen",
+            "pt": "Portugais",
+            "ru": "Russe",
+            "si": "Cinghalais"
+        },
+        "secondaryLanguage": {
+            "title": "Langue secondaire",
+            "description": "Afficher les traductions dans une deuxième langue"
+        },
+        "account": {
+            "email": "Email",
+            "status": "Statut du compte",
+            "premium": "Utilisateur Premium",
+            "free": "Plan gratuit"
+        },
+        "support": {
+            "rate": "Évaluer l'application",
+            "contact": "Contacter le support"
+        },
+        "legal": {
+            "privacy": "Politique de confidentialité",
+            "terms": "Conditions d'utilisation",
+            "version": "Version de l'application"
+        },
+        "logout": "Se déconnecter",
+        "deleteAccount": "Supprimer le compte",
+        "deleteAccountConfirm": "Êtes-vous sûr de vouloir supprimer définitivement votre compte et toutes vos données ? Cette action est irréversible.",
+        "cancel": "Annuler"
+    },
+    "auth": {
+        "login": {
+            "title": "Bon retour",
+            "subtitle": "Connectez-vous pour continuer",
+            "email": "Email",
+            "password": "Mot de passe",
+            "forgotPassword": "Mot de passe oublié ?",
+            "signIn": "Se connecter",
+            "noAccount": "Vous n'avez pas de compte ?",
+            "signUp": "Inscription",
+            "errors": {
+                "fillFields": "Veuillez remplir tous les champs",
+                "unexpected": "Une erreur inattendue s'est produite"
+            }
+        },
+        "signup": {
+            "title": "Créer un compte",
+            "subtitle": "Inscrivez-vous pour commencer",
+            "email": "Email",
+            "password": "Mot de passe",
+            "confirmPassword": "Confirmer le mot de passe",
+            "createAccount": "Créer un compte",
+            "hasAccount": "Vous avez déjà un compte ?",
+            "signIn": "Se connecter",
+            "errors": {
+                "fillFields": "Veuillez remplir tous les champs",
+                "passwordsMatch": "Les mots de passe ne correspondent pas",
+                "passwordLength": "Le mot de passe doit contenir au moins 6 caractères",
+                "invalidDomain": "L'inscription n'est autorisée qu'avec des domaines de messagerie courants (ex. Gmail, Outlook, Yahoo)",
+                "unexpected": "Une erreur inattendue s'est produite"
+            }
+        }
+    },
+    "premium": {
+        "required": "Premium",
+        "upgrade": "Passer à Premium",
+        "unlockAll": "Débloquer toutes les catégories"
+    },
+    "exam": {
+        "title": "Simulation d'examen",
+        "reviewTitle": "Revoir les erreurs",
+        "subtitle": "Testez-vous avec un examen réel",
+        "info": {
+            "accordionTitle": "Infos sur l'examen",
+            "questions": {
+                "title": "30 Questions",
+                "description": "Mixées de tous les sujets d'examen"
+            },
+            "time": {
+                "title": "20 minutes",
+                "description": "Si le temps s'écoule, l'examen se termine automatiquement"
+            },
+            "errors": {
+                "title": "Max 3 erreurs",
+                "description": "À la quatrième erreur, la simulation est considérée comme échouée"
+            }
+        },
+        "forceItalian": {
+            "title": "Questions en italien"
+        },
+        "start": "COMMENCER L'EXAMEN",
+        "reviewMistakes": "Revoir les erreurs ({{count}})",
+        "alerts": {
+            "error": "Erreur",
+            "notLoggedIn": "Vous devez être connecté pour commencer un examen.",
+            "startFailed": "Échec du démarrage de l'examen. Veuillez réessayer.",
+            "unexpected": "Une erreur inattendue s'est produite.",
+            "submitTitle": "Soumettre l'examen",
+            "submitConfirm": "Êtes-vous sûr de vouloir soumettre ?",
+            "submitIncomplete": "Vous avez répondu à {{answered}} sur {{total}} questions. Les réponses vides seront considérées comme incorrectes. Soumettre quand même ?",
+            "cancel": "Annuler",
+            "submit": "Soumettre",
+            "timeOutTitle": "Temps écoulé",
+            "timeOutMessage": "Le temps de l'examen est écoulé. Votre examen a été soumis automatiquement.",
+            "reviewStartFailed": "Échec du démarrage de la révision. Veuillez réessayer."
+        },
+        "results": {
+            "title": "Résultat de l'examen",
+            "timeTaken": "{{time}} écoulé",
+            "passed": "EXAMEN RÉUSSI",
+            "failed": "EXAMEN ÉCHOUÉ",
+            "passedMessage": "Félicitations ! Vous auriez réussi avec ce résultat.",
+            "failedMessage": "Vous avez fait {{incorrect}} erreurs sur {{total}}. La limite est {{max}}.",
+            "correct": "Correct",
+            "incorrect": "Erreurs",
+            "backToHome": "Retour à l'accueil"
+        },
+        "questionOf": "Question {{current}}/{{total}}",
+        "true": "Vrai",
+        "false": "Faux",
+        "back": "Retour",
+        "next": "Suivant",
+        "submit": "Soumettre",
+        "incorrectQuestions": "Questions incorrectes",
+        "history": {
+            "title": "Historique des examens",
+            "empty": "Aucun examen passé pour le moment. Commencez une simulation !",
+            "passed": "RÉUSSI",
+            "failed": "ÉCHOUÉ",
+            "errors": "{{count}} erreurs",
+            "score": "{{correct}}/{{total}} correct",
+            "date": "{{date}}",
+            "abandoned": "ABANDONNÉ"
+        }
+    },
+    "tabs": {
+        "quiz": "Quiz",
+        "exam": "Examen",
+        "user": "Utilisateur"
+    }
+}

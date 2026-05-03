@@ -74,7 +74,16 @@
       "en": "Inglese",
       "it": "Italiano",
       "es": "Spagnolo",
-      "bn": "Bengalese"
+      "bn": "Bengalese",
+      "fr": "Francese",
+      "de": "Tedesco",
+      "ar": "Arabo",
+      "zh": "Cinese",
+      "ja": "Giapponese",
+      "ko": "Coreano",
+      "pt": "Portoghese",
+      "ru": "Russo",
+      "si": "Singalese"
     },
     "secondaryLanguage": {
       "title": "Lingua secondaria",
