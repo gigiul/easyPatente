@@ -57,7 +57,9 @@
       "message": "Do you want to end the quiz and see your results? Any unanswered questions will be counted as incorrect.",
       "confirm": "Finish",
       "cancel": "Cancel"
-    }
+    },
+    "getExplanation": "Get explanation",
+    "loadingExplanation": "Loading..."
   },
   "user": {
     "title": "Profile",

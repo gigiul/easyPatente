@@ -4,6 +4,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import i18n from '@/i18n';
 import { fetchLanguages } from '@/queries/languages';
 import { fetchUserProfile } from '@/queries/user';
+import { useFeatureFlagsStore } from '@/store/featureFlags';
 import { useLanguagesStore } from '@/store/languages';
 import { useUserProfileStore } from '@/store/user';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
@@ -34,6 +35,8 @@ export default function RootLayout() {
   useEffect(() => {
     // Initial fetch of languages - can be done without session now that RLS is open
     fetchLanguages().catch(console.error);
+    // Fetch feature flags
+    useFeatureFlagsStore.getState().fetchFlags();
   }, []);
 
   useEffect(() => {

@@ -57,7 +57,9 @@
       "message": "Vuoi terminare il quiz e vedere i risultati? Le domande senza risposta saranno considerate errate.",
       "confirm": "Termina",
       "cancel": "Annulla"
-    }
+    },
+    "getExplanation": "Chiedi spiegazione",
+    "loadingExplanation": "Caricamento..."
   },
   "user": {
     "title": "Profilo",

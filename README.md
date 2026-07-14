@@ -1,50 +1,77 @@
-# Welcome to your Expo app 👋
+# easyPatente — App Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App React Native (Expo) per la preparazione all'esame della patente italiana.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Setup
 
 ```bash
-npm run reset-project
+npm install
+npx expo start          # Dev server con hot reload
+npm run build:preview   # Build nativa Android (preview)
+npm run build:release   # Build nativa Android (production)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Struttura
 
-## Learn more
+```
+app/
+  _layout.tsx        # Root layout + auth guard
+  login.tsx          # Login
+  signup.tsx         # Registrazione (con dominio email)
+  quiz.tsx           # Quiz singolo (~1300 righe)
+  quizBatch.tsx      # Selezione batch
+  examQuiz.tsx       # Modalità esame
+  (tabs)/
+    index.tsx        # Home: categorie
+    exam.tsx         # Tab esame
+    user.tsx         # Profilo utente
 
-To learn more about developing your project with Expo, look at the following resources:
+hooks/               # 17 hooks React
+queries/             # 7 moduli query Supabase
+store/               # 6 store Zustand
+lib/                 # supabase.ts, auth.ts, storage.ts, emailValidation.ts
+types/               # Definizioni TypeScript (specchio DB)
+i18n/                # Internazionalizzazione (13 lingue)
+components/          # Componenti condivisi
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Architettura Dati
 
-## Join the community
+Flusso a tre strati: **Query → Hook → UI**
 
-Join our community of developers creating universal apps.
+```
+Supabase DB → queries/*.ts → store/*.ts (Zustand) → hooks/*.ts → app/*.tsx
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Autenticazione
+
+- Supabase Auth (email + password)
+- Sessione persistita in AsyncStorage
+- Dominio email limitato (tabella `allowed_email_domains`)
+- Auth guard in `_layout.tsx`: senza sessione → redirect a `/login`
+
+## Funzionalità Chiave
+
+- **Quiz V/F**: domande con spiegazioni AI (Edge Function `explain-question`)
+- **Lingua doppia**: lingua primaria + secondaria (l'utente vede entrambe)
+- **Image matching**: identificazione segnali stradali tramite similarità vettoriale
+- **Cache spiegazioni**: una volta generata, la spiegazione è salvata nel DB
+- **Simulazione esame**: modalità con limite errori
+- **Text-to-speech**: ascolto domande/spiegazioni
+
+## Variabili Ambiente
+
+File `.env`:
+```
+EXPO_PUBLIC_SUPABASE_URL=https://...
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+EXPO_PUBLIC_SUPABASE_STORAGE_URL=...
+```
+
+## Dipendenze Principali
+
+- `expo` ~55.0, `expo-router` ~55.0
+- `@supabase/supabase-js` ^2.50
+- `zustand` ^5.0
+- `i18next` + `react-i18next`
+- `expo-speech`, `expo-screen-capture`, `react-native-image-viewing`

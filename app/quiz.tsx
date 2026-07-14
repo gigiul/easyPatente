@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ScreenCapture from 'expo-screen-capture';
 import * as Speech from 'expo-speech';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -28,6 +28,8 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabaseStorageUrl } from '@/lib/supabase';
 import { updateQuizProgression } from '@/queries/quizProgression';
 import { useLanguagesStore } from '@/store/languages';
+import { useFeatureFlagsStore } from '@/store/featureFlags';
+import { fetchExplanation as fetchExplanationApi } from '@/queries/explanations';
 import { ThemedButton } from '../components/ThemedButton';
 
 export default function QuizScreen() {
@@ -46,10 +48,13 @@ export default function QuizScreen() {
   const { languages } = useLanguagesStore();
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
+  console.log("currentQuestion", currentQuestion)
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isPlayingGif, setIsPlayingGif] = useState(false);
   const [playingErrorGifs, setPlayingErrorGifs] = useState<Record<string, boolean>>({});
+  const [loadingExplanation, setLoadingExplanation] = useState<Record<string, boolean>>({});
+  const [localExplanations, setLocalExplanations] = useState<Record<string, string>>({});
   const mainImageRef = useRef<any>(null);
   const errorImageRefs = useRef<Record<string, any>>({});
 
@@ -66,7 +71,28 @@ export default function QuizScreen() {
   const quizTheme = useQuizTheme();
 
   const getTranslatedQuestion = () => currentQuestion?.translation?.text || '';
-  const getTranslatedExplanation = () => currentQuestion?.translation?.explanation || '';
+  const getTranslatedExplanation = () =>
+    localExplanations[currentQuestion?.id] || currentQuestion?.translation?.explanation || '';
+
+  const fetchExplanation = useCallback(async (questionId: string, questionText: string) => {
+    setLoadingExplanation(prev => ({ ...prev, [questionId]: true }));
+    try {
+      const data = await fetchExplanationApi(questionId, questionText, i18n.language, secondaryLanguage || undefined);
+      if (data.explanation) {
+        setLocalExplanations(prev => ({ ...prev, [questionId]: data.explanation }));
+      }
+      if (data.secondary_explanation && secondaryLanguage) {
+        setLocalExplanations(prev => ({
+          ...prev,
+          [`${questionId}_${secondaryLanguage}`]: data.secondary_explanation,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch explanation:', error);
+    } finally {
+      setLoadingExplanation(prev => ({ ...prev, [questionId]: false }));
+    }
+  }, [session?.access_token, i18n.language, secondaryLanguage]);
 
   // Reset state quando cambia il batchId
   useEffect(() => {
@@ -159,8 +185,13 @@ export default function QuizScreen() {
     errorImageRefs.current[id]?.startAnimating();
   };
 
-  const getSecondaryTranslation = (type: 'text' | 'explanation') =>
-    currentQuestion?.secondaryTranslation?.[type] || null;
+  const getSecondaryTranslation = (type: 'text' | 'explanation') => {
+    if (type === 'explanation' && secondaryLanguage) {
+      const localKey = `${currentQuestion?.id}_${secondaryLanguage}`;
+      return localExplanations[localKey] || currentQuestion?.secondaryTranslation?.explanation || null;
+    }
+    return currentQuestion?.secondaryTranslation?.[type] || null;
+  };
 
   const speakText = async (text: string, langCode: string) => {
     try {
@@ -387,13 +418,56 @@ export default function QuizScreen() {
                     </View>
                   </View>
 
-                  {q.translation?.explanation && (
+                  {useFeatureFlagsStore.getState().isEnabled('explanation') && (
+                    <>
+                      {(q.translation?.explanation || localExplanations[q.id]) ? (
+                        <View style={[styles.errorExplanationContainer, { backgroundColor: secondaryBackgroundColor }]}>
+                          <Ionicons name="bulb" size={14} color="#F59E0B" />
+                          <ThemedText style={[styles.errorExplanation, { color: iconColor }]}>
+                            {localExplanations[q.id] || q.translation.explanation}
+                          </ThemedText>
+                        </View>
+                      ) : (
+                        <Pressable
+                          onPress={() => fetchExplanation(q.id, q.translation?.text || q.code)}
+                          disabled={loadingExplanation[q.id]}
+                          style={[styles.explainButton, { borderColor: '#F59E0B' }]}
+                        >
+                          {loadingExplanation[q.id] ? (
+                            <ActivityIndicator size="small" color="#F59E0B" />
+                          ) : (
+                            <Ionicons name="sparkles" size={14} color="#F59E0B" />
+                          )}
+                          <ThemedText style={[styles.explainButtonText, { color: '#F59E0B' }]}>
+                            {loadingExplanation[q.id] ? t('quiz.loadingExplanation') : t('quiz.getExplanation')}
+                          </ThemedText>
+                        </Pressable>
+                      )}
+                    </>
+                  )}
+
+                  {q.secondaryTranslation?.text && (
                     <View style={[styles.errorExplanationContainer, { backgroundColor: secondaryBackgroundColor }]}>
                       <Ionicons name="bulb" size={14} color="#F59E0B" />
                       <ThemedText style={[styles.errorExplanation, { color: iconColor }]}>
-                        {q.translation.explanation}
+                        {localExplanations[q.id] || q.translation.explanation}
                       </ThemedText>
                     </View>
+                  ) : (
+                    <Pressable
+                      onPress={() => fetchExplanation(q.id, q.translation?.text || q.code)}
+                      disabled={loadingExplanation[q.id]}
+                      style={[styles.explainButton, { borderColor: '#F59E0B' }]}
+                    >
+                      {loadingExplanation[q.id] ? (
+                        <ActivityIndicator size="small" color="#F59E0B" />
+                      ) : (
+                        <Ionicons name="sparkles" size={14} color="#F59E0B" />
+                      )}
+                      <ThemedText style={[styles.explainButtonText, { color: '#F59E0B' }]}>
+                        {loadingExplanation[q.id] ? t('quiz.loadingExplanation') : t('quiz.getExplanation')}
+                      </ThemedText>
+                    </Pressable>
                   )}
 
                   {q.secondaryTranslation?.text && (
@@ -408,9 +482,9 @@ export default function QuizScreen() {
                       <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
                         {q.secondaryTranslation.text}
                       </ThemedText>
-                      {q.secondaryTranslation.explanation && (
+                      {(q.secondaryTranslation.explanation || localExplanations[`${q.id}_${secondaryLanguage}`]) && (
                         <ThemedText style={[styles.secondaryExplanation, { color: iconColor }]}>
-                          {q.secondaryTranslation.explanation}
+                          {localExplanations[`${q.id}_${secondaryLanguage}`] || q.secondaryTranslation.explanation}
                         </ThemedText>
                       )}
                     </View>
@@ -592,7 +666,9 @@ export default function QuizScreen() {
               )}
             </View>
 
-            {getTranslatedExplanation() && (
+            {useFeatureFlagsStore.getState().isEnabled('explanation') && (
+              <>
+                {getTranslatedExplanation() ? (
               <View style={[styles.explanationCard, { backgroundColor: cardBackgroundColor }]}>
                 <View style={[styles.explanationHeader, { borderBottomColor: borderColor }]}>
                   <View style={styles.explanationBadge}>
@@ -624,7 +700,24 @@ export default function QuizScreen() {
                   </View>
                 )}
               </View>
+            ) : (
+              <Pressable
+                onPress={() => fetchExplanation(currentQuestion?.id, currentQuestion?.translation?.text || currentQuestion?.code)}
+                disabled={loadingExplanation[currentQuestion?.id]}
+                style={[styles.explainButtonMain, { borderColor: '#F59E0B' }]}
+              >
+                {loadingExplanation[currentQuestion?.id] ? (
+                  <ActivityIndicator size="small" color="#F59E0B" />
+                ) : (
+                  <Ionicons name="sparkles" size={16} color="#F59E0B" />
+                )}
+                <ThemedText style={[styles.explainButtonText, { color: '#F59E0B' }]}>
+                  {loadingExplanation[currentQuestion?.id] ? t('quiz.loadingExplanation') : t('quiz.getExplanation')}
+                </ThemedText>
+              </Pressable>
             )}
+            </>
+          )}
           </View>
         )}
       </ScrollView>
@@ -1202,5 +1295,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     fontStyle: 'italic',
+  },
+  explainButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  explainButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  explainButtonMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    marginTop: 8,
   },
 });

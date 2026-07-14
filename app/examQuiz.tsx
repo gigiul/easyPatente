@@ -272,7 +272,7 @@ export default function ExamQuizScreen() {
                     <View style={styles.errorNumberBadge}>
                       <ThemedText style={styles.errorNumberText}>{index + 1}</ThemedText>
                     </View>
-                    <ThemedText style={[styles.errorQuestionText, { color: textColor }]} numberOfLines={3}>
+                    <ThemedText style={[styles.errorQuestionText, { color: textColor }]}>
                       {q.translation?.text || ''}
                     </ThemedText>
                   </View>
