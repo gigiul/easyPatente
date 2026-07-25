@@ -85,7 +85,7 @@ export default function QuizScreen() {
       if (data.secondary_explanation && secondaryLanguage) {
         setLocalExplanations(prev => ({
           ...prev,
-          [`${questionId}_${secondaryLanguage}`]: data.secondary_explanation,
+          [`${questionId}_${secondaryLanguage}`]: data.secondary_explanation!,
         }));
       }
     } catch (error) {
@@ -94,6 +94,20 @@ export default function QuizScreen() {
       setLoadingExplanation(prev => ({ ...prev, [questionId]: false }));
     }
   }, [session?.access_token, i18n.language, secondaryLanguage]);
+
+  // Carica la seconda lingua quando serve (al cambio domanda)
+  useEffect(() => {
+    if (!currentQuestion || !secondaryLanguage) return;
+
+    const localKey = `${currentQuestion.id}_${secondaryLanguage}`;
+    const hasSecondaryInDB = currentQuestion.secondaryTranslation?.explanation;
+    const hasSecondaryLocal = localExplanations[localKey];
+
+    // Se non abbiamo la traduzione, caricala dalla Edge Function
+    if (!hasSecondaryInDB && !hasSecondaryLocal && currentQuestion.translation?.explanation) {
+      fetchExplanation(currentQuestion.id, currentQuestion.translation.text || currentQuestion.code);
+    }
+  }, [currentQuestion?.id, secondaryLanguage, fetchExplanation]);
 
   // Reset state quando cambia il batchId
   useEffect(() => {
@@ -447,7 +461,7 @@ export default function QuizScreen() {
                     </>
                   )}
 
-                  {q.secondaryTranslation?.text && (
+                  {secondaryLanguage && (q.secondaryTranslation?.text || q.secondaryTranslation?.explanation || localExplanations[`${q.id}_${secondaryLanguage}`]) && (
                     <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor, marginTop: 12 }]}>
                       <View style={styles.secondaryHeader}>
                         <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
@@ -456,9 +470,11 @@ export default function QuizScreen() {
                           </ThemedText>
                         </View>
                       </View>
-                      <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
-                        {q.secondaryTranslation.text}
-                      </ThemedText>
+                      {q.secondaryTranslation?.text && (
+                        <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
+                          {q.secondaryTranslation.text}
+                        </ThemedText>
+                      )}
                       {(q.secondaryTranslation.explanation || localExplanations[`${q.id}_${secondaryLanguage}`]) && (
                         <ThemedText style={[styles.secondaryExplanation, { color: iconColor }]}>
                           {localExplanations[`${q.id}_${secondaryLanguage}`] || q.secondaryTranslation.explanation}
