@@ -20,4 +20,7 @@ CREATE POLICY "Service role full access" ON feature_flags
 -- Inserisci i flag iniziali
 INSERT INTO feature_flags (name, description, is_active) VALUES
   ('explanation', 'Mostra la sezione spiegazioni AI nelle domande del quiz', true),
+  ('chat', 'Abilita la chat AI con l''assistente', true),
+  ('exam_mode', 'Attiva la modalità esame', true),
+  ('secondary_language', 'Mostra la lingua secondaria nelle domande', true)
 ON CONFLICT (name) DO NOTHING;

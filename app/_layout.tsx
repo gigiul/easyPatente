@@ -35,14 +35,13 @@ export default function RootLayout() {
   useEffect(() => {
     // Initial fetch of languages - can be done without session now that RLS is open
     fetchLanguages().catch(console.error);
-    // Fetch feature flags
-    useFeatureFlagsStore.getState().fetchFlags();
   }, []);
 
   useEffect(() => {
-    // Fetch profile whenever session changes
+    // Fetch profile and feature flags whenever session changes (after login)
     if (session?.user?.id) {
       fetchUserProfile(session.user.id).catch(console.error);
+      useFeatureFlagsStore.getState().fetchFlags();
     }
   }, [session]);
 
