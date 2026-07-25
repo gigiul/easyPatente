@@ -46,6 +46,7 @@ export default function QuizScreen() {
   const [isResetting, setIsResetting] = useState(false);
   const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
   const { languages } = useLanguagesStore();
+  const explanationEnabled = useFeatureFlagsStore((state) => state.flags.explanation);
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
   console.log("currentQuestion", currentQuestion)
@@ -418,7 +419,7 @@ export default function QuizScreen() {
                     </View>
                   </View>
 
-                  {useFeatureFlagsStore.getState().isEnabled('explanation') && (
+                  {explanationEnabled && (
                     <>
                       {(q.translation?.explanation || localExplanations[q.id]) ? (
                         <View style={[styles.errorExplanationContainer, { backgroundColor: secondaryBackgroundColor }]}>
@@ -444,30 +445,6 @@ export default function QuizScreen() {
                         </Pressable>
                       )}
                     </>
-                  )}
-
-                  {q.secondaryTranslation?.text && (
-                    <View style={[styles.errorExplanationContainer, { backgroundColor: secondaryBackgroundColor }]}>
-                      <Ionicons name="bulb" size={14} color="#F59E0B" />
-                      <ThemedText style={[styles.errorExplanation, { color: iconColor }]}>
-                        {localExplanations[q.id] || q.translation.explanation}
-                      </ThemedText>
-                    </View>
-                  ) : (
-                    <Pressable
-                      onPress={() => fetchExplanation(q.id, q.translation?.text || q.code)}
-                      disabled={loadingExplanation[q.id]}
-                      style={[styles.explainButton, { borderColor: '#F59E0B' }]}
-                    >
-                      {loadingExplanation[q.id] ? (
-                        <ActivityIndicator size="small" color="#F59E0B" />
-                      ) : (
-                        <Ionicons name="sparkles" size={14} color="#F59E0B" />
-                      )}
-                      <ThemedText style={[styles.explainButtonText, { color: '#F59E0B' }]}>
-                        {loadingExplanation[q.id] ? t('quiz.loadingExplanation') : t('quiz.getExplanation')}
-                      </ThemedText>
-                    </Pressable>
                   )}
 
                   {q.secondaryTranslation?.text && (
@@ -666,7 +643,7 @@ export default function QuizScreen() {
               )}
             </View>
 
-            {useFeatureFlagsStore.getState().isEnabled('explanation') && (
+            {explanationEnabled && (
               <>
                 {getTranslatedExplanation() ? (
               <View style={[styles.explanationCard, { backgroundColor: cardBackgroundColor }]}>

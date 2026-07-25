@@ -15,7 +15,7 @@ npm run build:release   # Build nativa Android (production)
 
 ```
 app/
-  _layout.tsx        # Root layout + auth guard
+  _layout.tsx        # Root layout + auth guard + feature flags
   login.tsx          # Login
   signup.tsx         # Registrazione (con dominio email)
   quiz.tsx           # Quiz singolo (~1300 righe)
@@ -27,12 +27,13 @@ app/
     user.tsx         # Profilo utente
 
 hooks/               # 17 hooks React
-queries/             # 7 moduli query Supabase
-store/               # 6 store Zustand
+queries/             # 8 moduli query Supabase (incluso explanations.ts)
+store/               # 7 store Zustand (incluso featureFlags.ts)
 lib/                 # supabase.ts, auth.ts, storage.ts, emailValidation.ts
 types/               # Definizioni TypeScript (specchio DB)
 i18n/                # Internazionalizzazione (13 lingue)
 components/          # Componenti condivisi
+migrations/          # SQL migrations (feature_flags, ecc.)
 ```
 
 ## Architettura Dati
@@ -54,10 +55,10 @@ Supabase DB → queries/*.ts → store/*.ts (Zustand) → hooks/*.ts → app/*.t
 
 - **Quiz V/F**: domande con spiegazioni AI (Edge Function `explain-question`)
 - **Lingua doppia**: lingua primaria + secondaria (l'utente vede entrambe)
-- **Image matching**: identificazione segnali stradali tramite similarità vettoriale
 - **Cache spiegazioni**: una volta generata, la spiegazione è salvata nel DB
 - **Simulazione esame**: modalità con limite errori
 - **Text-to-speech**: ascolto domande/spiegazioni
+- **Feature flags**: controlla funzionalità via tabella `feature_flags` (es. explanation on/off)
 
 ## Variabili Ambiente
 

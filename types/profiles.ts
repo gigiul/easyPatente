@@ -4,4 +4,5 @@ export interface Profile {
   lang_secondary?: string | null;
   is_premium: boolean;
   created_at: string;
+  has_ai: boolean;
 }

@@ -218,7 +218,24 @@
   },
   "tabs": {
     "quiz": "Quiz",
+    "chat": "Chat",
     "exam": "Exam",
     "user": "User"
+  },
+  "chat": {
+    "title": "AI Chat",
+    "placeholder": "Type your question...",
+    "send": "Send",
+    "loading": "Processing...",
+    "error": "Request error. Try again.",
+    "limitReached": "You've reached the daily limit of 5 requests. Come back tomorrow!",
+    "notEnabled": "AI chat is not yet enabled for your account.",
+    "noMessages": "Start a conversation with the AI assistant.",
+    "remainingRequests": "Requests remaining today: {{count}}",
+    "retry": "Retry",
+    "clearChatTitle": "Clear Chat",
+    "clearChatMessage": "Do you want to delete all messages? The conversation context will be reset.",
+    "clearChatCancel": "Cancel",
+    "clearChatConfirm": "Clear"
   }
 }

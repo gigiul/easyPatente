@@ -218,7 +218,24 @@
   },
   "tabs": {
     "quiz": "Quiz",
+    "chat": "Chat",
     "exam": "Esame",
     "user": "Utente"
+  },
+  "chat": {
+    "title": "Chat AI",
+    "placeholder": "Scrivi la tua domanda...",
+    "send": "Invia",
+    "loading": "Sto elaborando...",
+    "error": "Errore nella richiesta. Riprova.",
+    "limitReached": "Hai raggiunto il limite di 5 richieste giornaliere. Torna domani!",
+    "notEnabled": "La funzionalità chat AI non è ancora attiva per il tuo account.",
+    "noMessages": "Inizia una conversazione con l'assistente AI.",
+    "remainingRequests": "Richieste rimaste oggi: {{count}}",
+    "retry": "Riprova",
+    "clearChatTitle": "Cancella chat",
+    "clearChatMessage": "Vuoi cancellare tutti i messaggi? Il contesto della conversazione verrà resettato.",
+    "clearChatCancel": "Annulla",
+    "clearChatConfirm": "Cancella"
   }
 }
