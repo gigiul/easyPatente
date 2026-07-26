@@ -5,6 +5,7 @@ import {
   Alert,
   Animated,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -25,8 +26,6 @@ import { useFeatureFlagsStore } from '@/store/featureFlags';
 import { useUserProfileStore } from '@/store/user';
 
 const TYPING_ROW_ID = '__typing__';
-const HEADER_HEIGHT = 56;
-const TAB_BAR_HEIGHT = 83;
 
 // ── MessageBubble (memoizzato) ──
 
@@ -156,6 +155,23 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    });
+    const willShowSub =
+      Platform.OS === 'ios'
+        ? Keyboard.addListener('keyboardWillShow', () => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+          })
+        : null;
+
+    return () => {
+      showSub.remove();
+      willShowSub?.remove();
+    };
+  }, []);
 
   const iconColor = useThemeColor({}, 'icon');
   const borderColor = useThemeColor({ light: '#E2E8F0', dark: '#374151' }, 'icon');
@@ -309,8 +325,8 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={insets.top + HEADER_HEIGHT + TAB_BAR_HEIGHT}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={0}
     >
       <ThemedView style={styles.container}>
         {/* Header */}
@@ -361,6 +377,7 @@ export default function ChatScreen() {
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
             onContentSizeChange={onContentSizeChange}
+            onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             style={styles.messageList}
             contentContainerStyle={styles.messageListContent}
             removeClippedSubviews
@@ -382,7 +399,11 @@ export default function ChatScreen() {
         <View
           style={[
             styles.inputContainer,
-            { borderTopColor: borderColor, backgroundColor: cardBackgroundColor },
+            {
+              borderTopColor: borderColor,
+              backgroundColor: cardBackgroundColor,
+              paddingBottom: 8,
+            },
           ]}
         >
           {remainingRequests <= 0 ? (
@@ -463,7 +484,7 @@ const styles = StyleSheet.create({
   typingDot: { width: 7, height: 7, borderRadius: 3.5 },
   errorContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8 },
   errorText: { fontSize: 13, color: '#EF4444' },
-  inputContainer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, gap: 8 },
+  inputContainer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingTop: 8, borderTopWidth: 1, gap: 8 },
   textInput: { flex: 1, borderWidth: 1, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, maxHeight: 100 },
   sendButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2563EB', justifyContent: 'center', alignItems: 'center' },
   limitReachedContainer: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 8 },
