@@ -11,7 +11,6 @@ import {
   StyleSheet,
   TextInput,
   View,
-  ViewToken,
 } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,9 +25,8 @@ import { useFeatureFlagsStore } from '@/store/featureFlags';
 import { useUserProfileStore } from '@/store/user';
 
 const TYPING_ROW_ID = '__typing__';
-
-// Altezza media di un messaggio (stimata per layout)
-const ESTIMATED_ITEM_HEIGHT = 80;
+const HEADER_HEIGHT = 56;
+const TAB_BAR_HEIGHT = 83;
 
 // ── MessageBubble (memoizzato) ──
 
@@ -223,20 +221,18 @@ export default function ChatScreen() {
     }
   }, [session?.user?.id]);
 
-  // Memoizza le righe per evitare ricreazioni inutili
   const rows = useMemo(
     () => (sending ? [...messages, { id: TYPING_ROW_ID } as any] : messages),
     [messages, sending]
   );
 
-  useEffect(() => {
-    if (rows.length > 0) {
-      const timeout = setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 50);
-      return () => clearTimeout(timeout);
-    }
-  }, [rows.length]);
+  // Scroll fluido usando onContentSizeChange invece di useEffect
+  const onContentSizeChange = useCallback(
+    (_contentWidth: number, contentHeight: number) => {
+      flatListRef.current?.scrollToEnd({ animated: false });
+    },
+    []
+  );
 
   const handleSend = async () => {
     const text = inputText.trim();
@@ -265,7 +261,6 @@ export default function ChatScreen() {
     );
   };
 
-  // Callback memoizzato per renderItem
   const renderItem = useCallback(
     ({ item }: { item: any }) => {
       if (item.id === TYPING_ROW_ID) {
@@ -298,16 +293,6 @@ export default function ChatScreen() {
     [cardBackgroundColor, secondaryTextColor, markdownStyles, handleRetry, t]
   );
 
-  // getItemLayout per evitare calcoli costanti
-  const getItemLayout = useCallback(
-    (_: any, index: number) => ({
-      length: ESTIMATED_ITEM_HEIGHT,
-      offset: ESTIMATED_ITEM_HEIGHT * index,
-      index,
-    }),
-    []
-  );
-
   if (!chatEnabled) {
     return (
       <ThemedView style={styles.container}>
@@ -322,118 +307,122 @@ export default function ChatScreen() {
   }
 
   return (
-    <ThemedView style={styles.container}>
-      {/* Header */}
-      <View
-        style={[
-          styles.header,
-          { borderBottomColor: borderColor, paddingTop: insets.top + 12 },
-        ]}
-      >
-        <ThemedText type="defaultSemiBold" style={styles.headerText}>
-          {t('chat.title')}
-        </ThemedText>
-        <View style={styles.headerRight}>
-          <ThemedText
-            style={[
-              styles.remainingText,
-              { color: remainingRequests > 0 ? '#059669' : '#EF4444' },
-            ]}
-          >
-            {t('chat.remainingRequests', { count: remainingRequests })}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={insets.top + HEADER_HEIGHT + TAB_BAR_HEIGHT}
+    >
+      <ThemedView style={styles.container}>
+        {/* Header */}
+        <View
+          style={[
+            styles.header,
+            { borderBottomColor: borderColor, paddingTop: insets.top + 12 },
+          ]}
+        >
+          <ThemedText type="defaultSemiBold" style={styles.headerText}>
+            {t('chat.title')}
           </ThemedText>
-          {messages.length > 0 && (
-            <Pressable
-              onPress={handleClearChat}
-              style={({ pressed }) => [
-                styles.clearButton,
-                pressed && { opacity: 0.6 },
+          <View style={styles.headerRight}>
+            <ThemedText
+              style={[
+                styles.remainingText,
+                { color: remainingRequests > 0 ? '#059669' : '#EF4444' },
               ]}
             >
-              <Ionicons name="trash-outline" size={20} color="#EF4444" />
-            </Pressable>
-          )}
+              {t('chat.remainingRequests', { count: remainingRequests })}
+            </ThemedText>
+            {messages.length > 0 && (
+              <Pressable
+                onPress={handleClearChat}
+                style={({ pressed }) => [
+                  styles.clearButton,
+                  pressed && { opacity: 0.6 },
+                ]}
+              >
+                <Ionicons name="trash-outline" size={20} color="#EF4444" />
+              </Pressable>
+            )}
+          </View>
         </View>
-      </View>
 
-      {/* Lista messaggi */}
-      {messages.length === 0 && !sending ? (
-        <View style={styles.centerContent}>
-          <Ionicons name="chatbubbles-outline" size={48} color={borderColor} />
-          <ThemedText style={[styles.noMessagesText, { color: secondaryTextColor }]}>
-            {t('chat.noMessages')}
-          </ThemedText>
-        </View>
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={rows}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          getItemLayout={getItemLayout}
-          style={styles.messageList}
-          contentContainerStyle={styles.messageListContent}
-          removeClippedSubviews
-          maxToRenderPerBatch={10}
-          updateCellsBatchingPeriod={50}
-          windowSize={11}
-        />
-      )}
-
-      {/* Error message */}
-      {error && (
-        <View style={[styles.errorContainer, { backgroundColor: '#FEF2F2' }]}>
-          <Ionicons name="alert-circle" size={16} color="#EF4444" />
-          <ThemedText style={styles.errorText}>{error}</ThemedText>
-        </View>
-      )}
-
-      {/* Input area */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={insets.bottom}
-        style={[
-          styles.inputContainer,
-          { borderTopColor: borderColor, backgroundColor: cardBackgroundColor },
-        ]}
-      >
-        {remainingRequests <= 0 ? (
-          <View style={styles.limitReachedContainer}>
-            <Ionicons name="warning" size={16} color="#D97706" />
-            <ThemedText style={[styles.limitReachedText, { color: '#D97706' }]}>
-              {t('chat.limitReached')}
+        {/* Lista messaggi */}
+        {messages.length === 0 && !sending ? (
+          <View style={styles.centerContent}>
+            <Ionicons name="chatbubbles-outline" size={48} color={borderColor} />
+            <ThemedText style={[styles.noMessagesText, { color: secondaryTextColor }]}>
+              {t('chat.noMessages')}
             </ThemedText>
           </View>
         ) : (
-          <>
-            <TextInput
-              style={[
-                styles.textInput,
-                { color: assistantTextColor, borderColor, backgroundColor: inputBackgroundColor },
-              ]}
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder={t('chat.placeholder')}
-              placeholderTextColor={placeholderColor}
-              editable={!sending}
-              multiline
-              maxLength={500}
-            />
-            <Pressable
-              onPress={handleSend}
-              disabled={!inputText.trim() || sending}
-              style={({ pressed }) => [
-                styles.sendButton,
-                { opacity: !inputText.trim() || sending ? 0.5 : 1 },
-                pressed && !!inputText.trim() && !sending && { transform: [{ scale: 0.94 }] },
-              ]}
-            >
-              <Ionicons name="send" size={20} color="#FFFFFF" />
-            </Pressable>
-          </>
+          <FlatList
+            ref={flatListRef}
+            data={rows}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            onContentSizeChange={onContentSizeChange}
+            style={styles.messageList}
+            contentContainerStyle={styles.messageListContent}
+            removeClippedSubviews
+            maxToRenderPerBatch={10}
+            updateCellsBatchingPeriod={50}
+            windowSize={11}
+          />
         )}
-      </KeyboardAvoidingView>
-    </ThemedView>
+
+        {/* Error message */}
+        {error && (
+          <View style={[styles.errorContainer, { backgroundColor: '#FEF2F2' }]}>
+            <Ionicons name="alert-circle" size={16} color="#EF4444" />
+            <ThemedText style={styles.errorText}>{error}</ThemedText>
+          </View>
+        )}
+
+        {/* Input area */}
+        <View
+          style={[
+            styles.inputContainer,
+            { borderTopColor: borderColor, backgroundColor: cardBackgroundColor },
+          ]}
+        >
+          {remainingRequests <= 0 ? (
+            <View style={styles.limitReachedContainer}>
+              <Ionicons name="warning" size={16} color="#D97706" />
+              <ThemedText style={[styles.limitReachedText, { color: '#D97706' }]}>
+                {t('chat.limitReached')}
+              </ThemedText>
+            </View>
+          ) : (
+            <>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  { color: assistantTextColor, borderColor, backgroundColor: inputBackgroundColor },
+                ]}
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder={t('chat.placeholder')}
+                placeholderTextColor={placeholderColor}
+                editable={!sending}
+                multiline
+                maxLength={500}
+              />
+              <Pressable
+                onPress={handleSend}
+                disabled={!inputText.trim() || sending}
+                style={({ pressed }) => [
+                  styles.sendButton,
+                  { opacity: !inputText.trim() || sending ? 0.5 : 1 },
+                  pressed && !!inputText.trim() && !sending && { transform: [{ scale: 0.94 }] },
+                ]}
+              >
+                <Ionicons name="send" size={20} color="#FFFFFF" />
+              </Pressable>
+            </>
+          )}
+        </View>
+      </ThemedView>
+    </KeyboardAvoidingView>
   );
 }
 
