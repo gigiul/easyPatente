@@ -21,6 +21,11 @@ export const useCategoriesStore = create<CategoriesState>()(
     {
       name: 'categories-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      // Non persistere se i dati sono vuoti
+      partialize: (state) => ({
+        categories: state.categories.length > 0 ? state.categories : undefined,
+        hardCategories: state.hardCategories.length > 0 ? state.hardCategories : undefined,
+      }),
     }
   )
 );

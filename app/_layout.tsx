@@ -26,7 +26,6 @@ export default function RootLayout() {
   const languages = useLanguagesStore((state) => state.languages);
   const { setSecondaryLanguagePreference } = useLanguage();
   
-  
 
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -56,8 +55,9 @@ export default function RootLayout() {
       setSecondaryLanguagePreference(lang_secondary);
     }
 
-    // If no primary language is set, default to the first available language
-    if (!lang_primary && languages.length > 0) {
+    // Only set default language if profile is loaded AND has no lang_primary
+    // This prevents Arabic from being set as default when languages load before profile
+    if (userProfile && !lang_primary && languages.length > 0) {
       const setDefaultLanguage = async () => {
         const defaultLang = languages.find((l) => l.is_default) || languages[0];
         await i18n.changeLanguage(defaultLang.code);
