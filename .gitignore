@@ -50,3 +50,10 @@ android/*
 
 #ios
 ios/
+
+#supabase
+supabase/.temp/
+
+supabase/functions/.env*
+supabase/functions/explain-question/supabase/.temp/linked-project.json
+supabase/functions/supabase/.temp/linked-project.json
