@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,6 +11,7 @@ import {
   Platform,
   Pressable,
   StyleSheet,
+  Text,
   TextInput,
   View,
 } from 'react-native';
@@ -27,7 +29,38 @@ import { useUserProfileStore } from '@/store/user';
 
 const TYPING_ROW_ID = '__typing__';
 
-// ── MessageBubble (memoizzato) ──
+// ── Markdown rendering rules ──
+// Reproduce default rules of react-native-markdown-display,
+// adding `selectable` to enable native text selection/copying.
+// - "textgroup" wraps all inline text of a block (bold,
+//   italic, links included) into a single text node: making it selectable
+//   is enough to select the entire paragraph/heading/list item.
+// - "fence"/"code_block" are handled separately because they contain
+//   preformatted text, not inline text.
+const markdownRenderRules = {
+  textgroup: (node: any, children: any, _parent: any, styles: any) => (
+    <Text key={node.key} style={styles.textgroup} selectable>
+      {children}
+    </Text>
+  ),
+  text: (node: any, _children: any, _parent: any, styles: any, inheritedStyles: any = {}) => (
+    <Text key={node.key} style={[inheritedStyles, styles.text]} selectable>
+      {node.content}
+    </Text>
+  ),
+  fence: (node: any, _children: any, _parent: any, styles: any) => (
+    <Text key={node.key} style={styles.fence} selectable>
+      {node.content}
+    </Text>
+  ),
+  code_block: (node: any, _children: any, _parent: any, styles: any) => (
+    <Text key={node.key} style={styles.code_block} selectable>
+      {node.content}
+    </Text>
+  ),
+};
+
+// ── MessageBubble (memoized) ──
 
 interface MessageBubbleProps {
   item: { id: string; role: string; content: string; status?: string };
@@ -63,11 +96,16 @@ const MessageBubble = memo(function MessageBubble({
       ]}
     >
       {isUser ? (
-        <ThemedText style={[styles.messageText, { color: '#FFFFFF' }]}>
+        <ThemedText
+          selectable
+          style={[styles.messageText, { color: '#FFFFFF' }]}
+        >
           {item.content}
         </ThemedText>
       ) : (
-        <Markdown style={markdownStyles}>{item.content}</Markdown>
+        <Markdown style={markdownStyles} rules={markdownRenderRules}>
+          {item.content}
+        </Markdown>
       )}
     </View>
   );
@@ -91,7 +129,7 @@ const MessageBubble = memo(function MessageBubble({
   );
 });
 
-// ── TypingIndicator (memoizzato) ──
+// ── TypingIndicator (memoized) ──
 
 const TypingIndicator = memo(function TypingIndicator({ color }: { color: string }) {
   return (
@@ -155,6 +193,15 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
+  console.log("messages", messages);
+
+  // Scroll to bottom of the list, deferring by one frame to ensure
+  // that FlatList has updated layout with the latest messages.
+  const scrollToEnd = useCallback((animated: boolean) => {
+    requestAnimationFrame(() => {
+      flatListRef.current?.scrollToEnd({ animated });
+    });
+  }, []);
 
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => {
@@ -163,8 +210,8 @@ export default function ChatScreen() {
     const willShowSub =
       Platform.OS === 'ios'
         ? Keyboard.addListener('keyboardWillShow', () => {
-            flatListRef.current?.scrollToEnd({ animated: true });
-          })
+          flatListRef.current?.scrollToEnd({ animated: true });
+        })
         : null;
 
     return () => {
@@ -230,19 +277,61 @@ export default function ChatScreen() {
     [assistantTextColor, codeBackgroundColor, linkColor, borderColor]
   );
 
+  // Load messages when the session is ready and, as soon as they arrive,
+  // force a scroll to bottom (without animation: initial loading).
   useEffect(() => {
-    if (session?.user?.id) {
-      loadMessages();
-      loadRemainingRequests();
-    }
+    if (!session?.user?.id) return;
+
+    let cancelled = false;
+
+    (async () => {
+      await loadMessages();
+      if (!cancelled) scrollToEnd(false);
+    })();
+
+    loadRemainingRequests();
+
+    return () => {
+      cancelled = true;
+    };
   }, [session?.user?.id]);
+
+  // expo-router tabs stay mounted: a useEffect on mount is not enough
+  // to scroll every time the tab is REOPENED. useFocusEffect triggers
+  // on every focus (including initial opening), covering exactly
+  // the case "scroll to bottom when tab opens".
+  useFocusEffect(
+    useCallback(() => {
+      scrollToEnd(false);
+    }, [scrollToEnd])
+  );
+
+  // Scroll to bottom again every time a new message arrives or
+  // the content/status of the last one changes (AI response, retry, streaming).
+  // The second, delayed scroll handles any late markdown reflows
+  // (code blocks, lists, headings) measured after initial render.
+  const lastMessageSignatureRef = useRef('');
+
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    const signature = last
+      ? `${messages.length}:${last.id}:${last.content?.length ?? 0}:${last.status ?? ''}`
+      : `${messages.length}`;
+
+    if (signature === lastMessageSignatureRef.current) return;
+    lastMessageSignatureRef.current = signature;
+
+    scrollToEnd(true);
+    const timer = setTimeout(() => scrollToEnd(true), 250);
+    return () => clearTimeout(timer);
+  }, [messages, scrollToEnd]);
 
   const rows = useMemo(
     () => (sending ? [...messages, { id: TYPING_ROW_ID } as any] : messages),
     [messages, sending]
   );
 
-  // Scroll fluido usando onContentSizeChange invece di useEffect
+  // Smooth scroll using onContentSizeChange instead of useEffect
   const onContentSizeChange = useCallback(
     (_contentWidth: number, contentHeight: number) => {
       flatListRef.current?.scrollToEnd({ animated: false });
@@ -325,7 +414,7 @@ export default function ChatScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={0}
     >
       <ThemedView style={styles.container}>
@@ -362,7 +451,7 @@ export default function ChatScreen() {
           </View>
         </View>
 
-        {/* Lista messaggi */}
+        {/* Message list */}
         {messages.length === 0 && !sending ? (
           <View style={styles.centerContent}>
             <Ionicons name="chatbubbles-outline" size={48} color={borderColor} />
@@ -402,7 +491,7 @@ export default function ChatScreen() {
             {
               borderTopColor: borderColor,
               backgroundColor: cardBackgroundColor,
-              paddingBottom: 8,
+              paddingBottom: Math.max(insets.bottom, 8),
             },
           ]}
         >

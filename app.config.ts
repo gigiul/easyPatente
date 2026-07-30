@@ -6,7 +6,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Quiz Patente 2026',
   slug: 'easyPatente',
   description: 'Quiz patente multilingua',
-  version: '1.0.7',
+  version: '1.0.8',
   orientation: 'portrait',
   icon: './assets/images/IOSquizpatente.png',
   scheme: 'easypatente',
