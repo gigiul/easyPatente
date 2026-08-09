@@ -32,9 +32,8 @@ export const useFeatureFlagsStore = create<FeatureFlagsState>()(
           throw error;
         }
 
-        console.log('Feature flags loaded:', data);
         const flags: Record<string, boolean> = {};
-        (data || []).forEach((f: FeatureFlag) => {
+        (data || []).forEach((f: any) => {
           flags[f.name] = f.is_active;
         });
 

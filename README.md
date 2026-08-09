@@ -10,11 +10,11 @@
 
 <p align="center">
   <!-- Place your app screenshots here -->
-  <img src="docs/screenshots/home.png" width="280" alt="Home Screen" />
+  <img src="assets/images/home.png" width="280" alt="Home Screen" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/screenshots/quiz.png" width="280" alt="Quiz & AI Explanation" />
+  <img src="assets/images/quiz.png" width="280" alt="Quiz & AI Explanation" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/screenshots/chat.png" width="280" alt="RAG AI Chat" />
+  <img src="assets/images/chat.png" width="280" alt="RAG AI Chat" />
 </p>
 
 <p align="center">

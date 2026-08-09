@@ -87,8 +87,9 @@ export default function RootLayout() {
     }
   }, [session, loading, segments]);
 
-  if (!loaded) {
+  if (!loaded || loading) {
     // Async font loading only occurs in development.
+    // Wait for auth to finish loading to prevent unauthenticated API requests.
     return null;
   }
 

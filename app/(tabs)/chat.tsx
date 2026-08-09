@@ -193,7 +193,6 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
-  console.log("messages", messages);
 
   // Scroll to bottom of the list, deferring by one frame to ensure
   // that FlatList has updated layout with the latest messages.

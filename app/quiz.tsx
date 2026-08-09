@@ -26,10 +26,10 @@ import { useQuizScore } from '@/hooks/useQuizScore';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabaseStorageUrl } from '@/lib/supabase';
-import { updateQuizProgression } from '@/queries/quizProgression';
-import { useLanguagesStore } from '@/store/languages';
-import { useFeatureFlagsStore } from '@/store/featureFlags';
 import { fetchExplanation as fetchExplanationApi } from '@/queries/explanations';
+import { updateQuizProgression } from '@/queries/quizProgression';
+import { useFeatureFlagsStore } from '@/store/featureFlags';
+import { useLanguagesStore } from '@/store/languages';
 import { ThemedButton } from '../components/ThemedButton';
 
 export default function QuizScreen() {
@@ -49,7 +49,6 @@ export default function QuizScreen() {
   const explanationEnabled = useFeatureFlagsStore((state) => state.flags.explanation);
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
-  console.log("currentQuestion", currentQuestion)
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isPlayingGif, setIsPlayingGif] = useState(false);
@@ -662,55 +661,55 @@ export default function QuizScreen() {
             {explanationEnabled && (
               <>
                 {getTranslatedExplanation() ? (
-              <View style={[styles.explanationCard, { backgroundColor: cardBackgroundColor }]}>
-                <View style={[styles.explanationHeader, { borderBottomColor: borderColor }]}>
-                  <View style={styles.explanationBadge}>
-                    <Ionicons name="bulb" size={16} color="#F59E0B" />
-                    <ThemedText style={styles.explanationBadgeText}>{t('quiz.explanation')}</ThemedText>
-                  </View>
-                  <Pressable onPress={handleSpeakExplanation} style={[styles.speakButtonSmall, { backgroundColor: secondaryBackgroundColor }]}>
-                    <Ionicons name="volume-high" size={18} color="#F59E0B" />
-                  </Pressable>
-                </View>
-                <ThemedText style={[styles.explanationText, { color: textColor }]}>
-                  {getTranslatedExplanation()}
-                </ThemedText>
-                {getSecondaryTranslation('explanation') && (
-                  <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
-                    <View style={styles.secondaryHeader}>
-                      <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
-                        <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
-                          {t(`user.language.${secondaryLanguage}`)}
-                        </ThemedText>
+                  <View style={[styles.explanationCard, { backgroundColor: cardBackgroundColor }]}>
+                    <View style={[styles.explanationHeader, { borderBottomColor: borderColor }]}>
+                      <View style={styles.explanationBadge}>
+                        <Ionicons name="bulb" size={16} color="#F59E0B" />
+                        <ThemedText style={styles.explanationBadgeText}>{t('quiz.explanation')}</ThemedText>
                       </View>
-                      <Pressable onPress={handleSpeakSecondaryExplanation} style={[styles.speakButtonSmall, { backgroundColor: borderColor }]}>
-                        <Ionicons name="volume-high" size={18} color="#6B7280" />
+                      <Pressable onPress={handleSpeakExplanation} style={[styles.speakButtonSmall, { backgroundColor: secondaryBackgroundColor }]}>
+                        <Ionicons name="volume-high" size={18} color="#F59E0B" />
                       </Pressable>
                     </View>
-                    <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
-                      {getSecondaryTranslation('explanation')}
+                    <ThemedText style={[styles.explanationText, { color: textColor }]}>
+                      {getTranslatedExplanation()}
                     </ThemedText>
+                    {getSecondaryTranslation('explanation') && (
+                      <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor }]}>
+                        <View style={styles.secondaryHeader}>
+                          <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
+                            <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
+                              {t(`user.language.${secondaryLanguage}`)}
+                            </ThemedText>
+                          </View>
+                          <Pressable onPress={handleSpeakSecondaryExplanation} style={[styles.speakButtonSmall, { backgroundColor: borderColor }]}>
+                            <Ionicons name="volume-high" size={18} color="#6B7280" />
+                          </Pressable>
+                        </View>
+                        <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
+                          {getSecondaryTranslation('explanation')}
+                        </ThemedText>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-            ) : (
-              <Pressable
-                onPress={() => fetchExplanation(currentQuestion?.id, currentQuestion?.translation?.text || currentQuestion?.code)}
-                disabled={loadingExplanation[currentQuestion?.id]}
-                style={[styles.explainButtonMain, { borderColor: '#F59E0B' }]}
-              >
-                {loadingExplanation[currentQuestion?.id] ? (
-                  <ActivityIndicator size="small" color="#F59E0B" />
                 ) : (
-                  <Ionicons name="sparkles" size={16} color="#F59E0B" />
+                  <Pressable
+                    onPress={() => fetchExplanation(currentQuestion?.id, currentQuestion?.translation?.text || currentQuestion?.code)}
+                    disabled={loadingExplanation[currentQuestion?.id]}
+                    style={[styles.explainButtonMain, { borderColor: '#F59E0B' }]}
+                  >
+                    {loadingExplanation[currentQuestion?.id] ? (
+                      <ActivityIndicator size="small" color="#F59E0B" />
+                    ) : (
+                      <Ionicons name="sparkles" size={16} color="#F59E0B" />
+                    )}
+                    <ThemedText style={[styles.explainButtonText, { color: '#F59E0B' }]}>
+                      {loadingExplanation[currentQuestion?.id] ? t('quiz.loadingExplanation') : t('quiz.getExplanation')}
+                    </ThemedText>
+                  </Pressable>
                 )}
-                <ThemedText style={[styles.explainButtonText, { color: '#F59E0B' }]}>
-                  {loadingExplanation[currentQuestion?.id] ? t('quiz.loadingExplanation') : t('quiz.getExplanation')}
-                </ThemedText>
-              </Pressable>
+              </>
             )}
-            </>
-          )}
           </View>
         )}
       </ScrollView>
