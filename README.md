@@ -17,10 +17,6 @@
   <img src="assets/images/chat.png" width="280" alt="RAG AI Chat" />
 </p>
 
-<p align="center">
-  <i>(Add screenshots of the Quiz with AI explanation, RAG Chat, and Dual-Language view above)</i>
-</p>
-
 ---
 
 ## ✨ Key Features
