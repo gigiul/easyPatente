@@ -9,4 +9,5 @@ export interface Category {
   is_active: boolean;
   is_premium: boolean;
   is_hard: boolean;
+  batchesCount: number;
 }

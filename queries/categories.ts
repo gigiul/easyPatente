@@ -10,7 +10,8 @@ export async function fetchCategories(langCode: string = 'it'): Promise<Category
         title,
         description,
         lang_code
-      )
+      ),
+      quiz_batches(count)
     `)
     .eq('is_active', true)
     .order('sort_order', { ascending: true });
@@ -24,10 +25,14 @@ export async function fetchCategories(langCode: string = 'it'): Promise<Category
     if (!translation && translations.length > 0) {
       translation = translations[0];
     }
+
+    const batchesCount = cat.quiz_batches?.[0]?.count ?? 0;
+
     return {
       ...cat,
       name: translation?.title || '',
       description: translation?.description || '',
+      batchesCount,
     };
   }) as Category[];
 }

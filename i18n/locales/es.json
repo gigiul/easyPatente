@@ -59,7 +59,8 @@
       "cancel": "Cancelar"
     },
     "getExplanation": "Pedir explicación",
-    "loadingExplanation": "Cargando..."
+    "loadingExplanation": "Cargando...",
+    "batchCount": "{{count}} módulos"
   },
   "user": {
     "title": "Perfil",

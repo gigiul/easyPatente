@@ -110,7 +110,7 @@ export default function HomeScreen() {
               </View>
               <View style={styles.categoryContentContainer}>
                 <ThemedText style={[styles.categoryTitle, { color: textColor }]} numberOfLines={2}>{category.sort_order}. {category.name}</ThemedText>
-                <ThemedText style={[styles.categoryDescription, { color: textColor }]} numberOfLines={3}>{category.description}</ThemedText>
+                <ThemedText style={[styles.categoryDescription, { color: textColor }]} numberOfLines={3}>{t('quiz.batchCount', { count: category.batchesCount })}</ThemedText>
               </View>
 
               {isLocked ? (
