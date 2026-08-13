@@ -67,7 +67,7 @@ interface MessageBubbleProps {
   isUser: boolean;
   isPending: boolean;
   isFailed: boolean;
-  cardBackgroundColor: string;
+  assistantBubbleColor: string;
   markdownStyles: any;
   onRetry: (id: string) => void;
   retryLabel: string;
@@ -78,7 +78,7 @@ const MessageBubble = memo(function MessageBubble({
   isUser,
   isPending,
   isFailed,
-  cardBackgroundColor,
+  assistantBubbleColor,
   markdownStyles,
   onRetry,
   retryLabel,
@@ -89,7 +89,7 @@ const MessageBubble = memo(function MessageBubble({
         styles.messageBubble,
         isUser ? styles.userBubble : styles.assistantBubble,
         {
-          backgroundColor: isUser ? '#2563EB' : cardBackgroundColor,
+          backgroundColor: isUser ? '#2563EB' : assistantBubbleColor,
           opacity: isPending ? 0.6 : 1,
         },
         isFailed && styles.failedBubble,
@@ -222,11 +222,12 @@ export default function ChatScreen() {
   const iconColor = useThemeColor({}, 'icon');
   const borderColor = useThemeColor({ light: '#E2E8F0', dark: '#374151' }, 'icon');
   const cardBackgroundColor = useThemeColor({ light: '#FFFFFF', dark: '#1F2937' }, 'background');
+  const assistantBubbleColor = useThemeColor({ light: '#F1F5F9', dark: '#1F2937' }, 'background');
   const assistantTextColor = useThemeColor({}, 'text');
   const secondaryTextColor = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
   const inputBackgroundColor = useThemeColor({ light: '#F9FAFB', dark: '#111827' }, 'background');
   const placeholderColor = useThemeColor({ light: '#9CA3AF', dark: '#6B7280' }, 'icon');
-  const codeBackgroundColor = useThemeColor({ light: '#F3F4F6', dark: '#111827' }, 'background');
+  const codeBackgroundColor = useThemeColor({ light: '#E2E8F0', dark: '#111827' }, 'background');
   const linkColor = useThemeColor({ light: '#2563EB', dark: '#60A5FA' }, 'text');
 
   const markdownStyles = useMemo(
@@ -373,7 +374,7 @@ export default function ChatScreen() {
             style={[
               styles.messageBubble,
               styles.assistantBubble,
-              { backgroundColor: cardBackgroundColor },
+              { backgroundColor: assistantBubbleColor },
             ]}
           >
             <TypingIndicator color={secondaryTextColor} />
@@ -387,14 +388,14 @@ export default function ChatScreen() {
           isUser={item.role === 'user'}
           isPending={item.status === 'pending'}
           isFailed={item.status === 'failed'}
-          cardBackgroundColor={cardBackgroundColor}
+          assistantBubbleColor={assistantBubbleColor}
           markdownStyles={markdownStyles}
           onRetry={handleRetry}
           retryLabel={t('chat.retry')}
         />
       );
     },
-    [cardBackgroundColor, secondaryTextColor, markdownStyles, handleRetry, t]
+    [assistantBubbleColor, secondaryTextColor, markdownStyles, handleRetry, t]
   );
 
   if (!chatEnabled) {
