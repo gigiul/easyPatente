@@ -29,14 +29,14 @@ interface ChatState {
   loading: boolean;
   sending: boolean;
   error: string | null;
-  remainingRequests: number;
-  sendMessage: (text: string, langCode: string) => Promise<void>;
+  remainingRequests: number | null;
+  sendMessage: (text: string, langCode: string, customHistory?: ChatMessage[]) => Promise<void>;
   retryMessage: (id: string, langCode: string) => Promise<void>;
   clearChat: () => Promise<void>;
   loadMessages: () => Promise<void>;
   loadRemainingRequests: () => Promise<void>;
   /** @internal logica condivisa tra sendMessage e retryMessage */
-  _performSend: (userMsg: ChatMessage, langCode: string) => Promise<void>;
+  _performSend: (userMsg: ChatMessage, langCode: string, customHistory?: ChatMessage[]) => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -45,9 +45,9 @@ export const useChatStore = create<ChatState>()(
     loading: false,
     sending: false,
     error: null,
-    remainingRequests: 5,
+    remainingRequests: null,
 
-    sendMessage: async (text: string, langCode: string) => {
+    sendMessage: async (text: string, langCode: string, customHistory?: ChatMessage[]) => {
       set({ error: null });
 
       // 1. Optimistic update: il messaggio utente appare subito nella UI
@@ -64,7 +64,7 @@ export const useChatStore = create<ChatState>()(
         sending: true,
       }));
 
-      await get()._performSend(userMsg, langCode);
+      await get()._performSend(userMsg, langCode, customHistory);
     },
 
     // Ritenta l'invio di un messaggio fallito, senza duplicarlo in lista
@@ -83,16 +83,18 @@ export const useChatStore = create<ChatState>()(
     },
 
     // Logica condivisa tra sendMessage e retryMessage
-    _performSend: async (userMsg: ChatMessage, langCode: string) => {
+    _performSend: async (userMsg: ChatMessage, langCode: string, customHistory?: ChatMessage[]) => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) throw new Error('Non autenticato');
 
-        // Cronologia: ultimi messaggi confermati (esclude il pending corrente)
-        const history = get()
-          .messages.filter((m) => m.id !== userMsg.id && m.status !== 'failed')
-          .slice(-10)
-          .map((m) => ({ role: m.role, content: m.content }));
+        // Cronologia: se customHistory è fornito (es. [] per quiz.tsx), usa quello.
+        // Altrimenti calcola gli ultimi messaggi confermati escludendo il pending corrente.
+        const rawHistory = customHistory !== undefined
+          ? customHistory
+          : get().messages.filter((m) => m.id !== userMsg.id && m.status !== 'failed').slice(-10);
+
+        const historyPayload = rawHistory.map((m) => ({ role: m.role, content: m.content }));
 
         const response = await fetch(
           `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/chat`,
@@ -105,7 +107,7 @@ export const useChatStore = create<ChatState>()(
             body: JSON.stringify({
               message: userMsg.content,
               lang_code: langCode,
-              history,
+              history: historyPayload,
             }),
           }
         );
@@ -175,7 +177,13 @@ export const useChatStore = create<ChatState>()(
           .order('created_at', { ascending: true });
 
         if (data) {
-          set({ messages: data });
+          const pendingMessages = get().messages.filter(
+            (m) => m.status === 'pending' || m.status === 'failed'
+          );
+          const newPending = pendingMessages.filter(
+            (pm) => !data.some((d) => d.id === pm.id)
+          );
+          set({ messages: [...data, ...newPending] });
         }
       } catch (error) {
         console.error('Failed to load messages:', error);
@@ -191,7 +199,7 @@ export const useChatStore = create<ChatState>()(
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('request_count, last_request_at')
+          .select('request_count, last_request_at, chat_daily_limit')
           .eq('id', session.user.id)
           .single();
 
@@ -206,7 +214,7 @@ export const useChatStore = create<ChatState>()(
             count = 0;
           }
 
-          set({ remainingRequests: 5 - count });
+          set({ remainingRequests: Math.max(0, (profile.chat_daily_limit ?? 20) - count) });
         }
       } catch (error) {
         console.error('Failed to load remaining requests:', error);

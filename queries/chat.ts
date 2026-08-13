@@ -21,11 +21,11 @@ export async function loadChatMessages(userId: string): Promise<ChatMessage[]> {
 export async function getRemainingRequests(userId: string): Promise<number> {
   const { data } = await supabase
     .from('profiles')
-    .select('request_count, last_request_at')
+    .select('request_count, last_request_at, chat_daily_limit')
     .eq('id', userId)
     .single();
 
-  if (!data) return 5;
+  if (!data) return 0;
 
   const now = new Date();
   const lastRequest = data.last_request_at ? new Date(data.last_request_at) : null;
@@ -35,5 +35,5 @@ export async function getRemainingRequests(userId: string): Promise<number> {
     count = 0;
   }
 
-  return 5 - count;
+  return Math.max(0, (data.chat_daily_limit ?? 20) - count);
 }

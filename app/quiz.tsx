@@ -28,8 +28,10 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabaseStorageUrl } from '@/lib/supabase';
 import { fetchExplanation as fetchExplanationApi } from '@/queries/explanations';
 import { updateQuizProgression } from '@/queries/quizProgression';
+import { useChatStore } from '@/store/chat';
 import { useFeatureFlagsStore } from '@/store/featureFlags';
 import { useLanguagesStore } from '@/store/languages';
+import { useUserProfileStore } from '@/store/user';
 import { ThemedButton } from '../components/ThemedButton';
 
 export default function QuizScreen() {
@@ -38,6 +40,7 @@ export default function QuizScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const userId = session?.user?.id || '';
+  const sendMessage = useChatStore((state) => state.sendMessage);
   const { progress: quizProgress, loading: progressLoading, refresh: refreshProgression } = useQuizProgression(userId, String(batchId));
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const { secondaryLanguage } = useLanguage();
@@ -47,6 +50,8 @@ export default function QuizScreen() {
   const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
   const { languages } = useLanguagesStore();
   const explanationEnabled = useFeatureFlagsStore((state) => state.flags.explanation);
+  const chatExplanationEnabled = useFeatureFlagsStore((state) => state.flags.chat_explanation);
+  const profile = useUserProfileStore((state) => state.user);
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -93,6 +98,13 @@ export default function QuizScreen() {
       setLoadingExplanation(prev => ({ ...prev, [questionId]: false }));
     }
   }, [session?.access_token, i18n.language, secondaryLanguage]);
+
+  const handleAskAIChat = useCallback(() => {
+    const questionText = getTranslatedQuestion();
+    if (!questionText) return;
+    sendMessage(questionText, i18n.language, []);
+    router.navigate('/(tabs)/chat');
+  }, [getTranslatedQuestion, i18n.language, router, sendMessage]);
 
   // Carica la seconda lingua quando serve (al cambio domanda)
   useEffect(() => {
@@ -647,6 +659,19 @@ export default function QuizScreen() {
                 <ThemedText style={[styles.answerResultText, { color: isCorrect ? quizTheme.passed.errorLabel : quizTheme.failed.errorLabel }]}>
                   {isCorrect ? t('quiz.correctAnswer') : t('quiz.incorrectAnswer')}
                 </ThemedText>
+                {profile?.has_ai && chatExplanationEnabled && (
+                  <Pressable
+                    id="getAIChatExplanation"
+                    onPress={handleAskAIChat}
+                    style={({ pressed }) => [
+                      styles.aiChatButton,
+                      pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] },
+                    ]}
+                  >
+                    <Ionicons name="sparkles" size={14} color="#D97706" />
+                    <ThemedText style={styles.aiChatButtonText}>Chat AI</ThemedText>
+                  </Pressable>
+                )}
               </View>
               <ThemedText style={[styles.userAnswerText, { color: textColor }]}>
                 {t('quiz.yourAnswer', { answer: userAnswer ? t('quiz.true') : t('quiz.false') })}
@@ -983,8 +1008,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   answerResultText: {
+    flex: 1,
     fontSize: 17,
     fontWeight: '700',
+  },
+  aiChatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+  },
+  aiChatButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#D97706',
   },
   userAnswerText: {
     fontSize: 15,

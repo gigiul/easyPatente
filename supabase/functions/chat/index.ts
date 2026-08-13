@@ -11,7 +11,6 @@ const EMBEDDING_PROVIDER = Deno.env.get("EMBEDDING_PROVIDER") || "cloudflare"; /
 const EMBEDDING_MODEL = Deno.env.get("EMBEDDING_MODEL") || "@cf/google/embeddinggemma-300m";
 const CLOUDFLARE_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID") || "";
 const CLOUDFLARE_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN") || "";
-const DAILY_LIMIT = 5;
 
 serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
@@ -36,13 +35,15 @@ serve(async (req) => {
     // ── 2. Retrieve profile ──
     const { data: profile } = await supabase
       .from("profiles")
-      .select("has_ai, request_count, last_request_at")
+      .select("has_ai, request_count, last_request_at, chat_daily_limit")
       .eq("id", user.id)
       .single();
 
     if (!profile?.has_ai) {
       return json({ error: "Chat AI non attiva per il tuo account", code: "AI_NOT_ENABLED" }, 403);
     }
+
+    const dailyLimit = profile.chat_daily_limit ?? 20;
 
     // ── 3. Rate limit (resets at midnight) ──
     const now = new Date();
@@ -53,9 +54,9 @@ serve(async (req) => {
       requestCount = 0;
     }
 
-    if (requestCount >= DAILY_LIMIT) {
+    if (requestCount >= dailyLimit) {
       return json({
-        error: `Hai raggiunto il limite di ${DAILY_LIMIT} richieste giornaliere. Torna domani!`,
+        error: `Hai raggiunto il limite di ${dailyLimit} richieste giornaliere. Torna domani!`,
         code: "RATE_LIMIT",
         remaining_requests: 0,
       }, 429);
@@ -71,6 +72,8 @@ serve(async (req) => {
       filter_language: "it",
     });
 
+    console.debug("chunks", JSON.stringify(chunks))
+
     const contextText = (chunks || [])
       .map((c: any) => {
         const meta = [
@@ -82,18 +85,29 @@ serve(async (req) => {
       .join("\n\n---\n\n");
 
     // ── 6. Call LLM ──
-    const systemPrompt = `Sei un assistente di scuola guida esperto.
+    const systemPrompt = `
+Sei un assistente di scuola guida esperto che fa riferimento alle normative del 2026.
+
+Regole:
 - Rileva la lingua della domanda e rispondi SEMPRE nella stessa lingua.
-- Rispondi in modo diretto e conciso, vai dritto al punto.
-- NON usare frasi come "secondo il contesto", "in base al testo", "come indicato", "dal documento" ecc. Dai la risposta direttamente come se la conosciessi.
-- Se la domanda non riguarda la patente o la guida, rispondi che puoi aiutare solo con argomenti di scuola guida.`;
+- Rispondi in modo diretto e conciso.
+- NON usare frasi come "secondo il contesto", "in base al testo", "come indicato", "dal documento", ecc.
+- Se la domanda non riguarda la patente o la guida, rispondi che puoi aiutare solo con argomenti di scuola guida.
+
+Formato della risposta:
+- Restituisci SEMPRE Markdown valido e pulito.
+- Non inserire caratteri di escape come \\" o \\n.
+- Usa elenchi solo quando sono réellement utili.
+- Per gli elenchi usa "-" e non "*".
+- Mantieni un'unica riga vuota tra paragrafi ed elenchi.
+- Non usare HTML.
+- Non racchiudere la risposta in blocchi di codice (\`\`\`).
+`;
 
     // Build messages for context
     const userMessages = history.map((msg: any) => ({
       role: msg.role,
-      content: msg.role === "user"
-        ? `Contesto:\n${contextText}\n\nDomanda: ${msg.content}`
-        : msg.content,
+      content: msg.content,
     }));
     userMessages.push({
       role: "user",
@@ -119,8 +133,8 @@ serve(async (req) => {
       })
       .eq("id", user.id);
 
-    // ── 9. Return ──
-    const remainingRequests = DAILY_LIMIT - (requestCount + 1);
+    // ── 9. Return response ──
+    const remainingRequests = dailyLimit - (requestCount + 1);
 
     return json({
       response,
@@ -178,7 +192,17 @@ async function callGemini(systemPrompt: string, messages: { role: string; conten
   }
 
   const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+  console.debug("Gemini response", JSON.stringify(data))
+  const candidate = data.candidates?.[0];
+  if (!candidate) return "";
+
+  return (
+    candidate.content.parts
+      .filter((part: any) => !part.thought && typeof part.text === "string")
+      .map((part: any) => part.text)
+      .join("")
+      .trim()
+  );
 }
 
 async function callLMStudio(systemPrompt: string, messages: { role: string; content: string }[]): Promise<string> {

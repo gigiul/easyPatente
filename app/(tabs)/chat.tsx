@@ -341,7 +341,7 @@ export default function ChatScreen() {
 
   const handleSend = async () => {
     const text = inputText.trim();
-    if (!text || sending || remainingRequests <= 0) return;
+    if (!text || sending || (remainingRequests !== null && remainingRequests <= 0)) return;
     setInputText('');
     await sendMessage(text, i18n.language);
   };
@@ -432,10 +432,18 @@ export default function ChatScreen() {
             <ThemedText
               style={[
                 styles.remainingText,
-                { color: remainingRequests > 0 ? '#059669' : '#EF4444' },
+                {
+                  color:
+                    remainingRequests === null
+                      ? secondaryTextColor
+                      : remainingRequests > 0
+                        ? '#059669'
+                        : '#EF4444',
+                },
               ]}
             >
-              {t('chat.remainingRequests', { count: remainingRequests })}
+              {remainingRequests !== null &&
+                t('chat.remainingRequests', { count: remainingRequests })}
             </ThemedText>
             {messages.length > 0 && (
               <Pressable
@@ -495,7 +503,7 @@ export default function ChatScreen() {
             },
           ]}
         >
-          {remainingRequests <= 0 ? (
+          {remainingRequests !== null && remainingRequests <= 0 ? (
             <View style={styles.limitReachedContainer}>
               <Ionicons name="warning" size={16} color="#D97706" />
               <ThemedText style={[styles.limitReachedText, { color: '#D97706' }]}>

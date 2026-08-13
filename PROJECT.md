@@ -100,7 +100,7 @@ All components share a single **Supabase** database (PostgreSQL + pgvector).
 | `category_translations` | Title + description of categories per language |
 | `quiz_batches` | Quiz batches (by category) |
 | `quiz_batch_questions` | Question assignment to batches (with position) |
-| `profiles` | User profile (languages, premium, has_ai, request_count) |
+| `profiles` | User profile (languages, premium, has_ai, request_count, laste_request_at, chat_daily_limit) |
 | `user_quiz_progress` | User quiz progress |
 | `user_mistakes` | User mistakes (for review) |
 | `languages` | Available languages |
