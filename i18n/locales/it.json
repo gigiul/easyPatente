@@ -60,7 +60,7 @@
     },
     "getExplanation": "Chiedi spiegazione",
     "loadingExplanation": "Caricamento...",
-    "batchCount": "{{count}} moduli"
+    "batchCount": "{{count}} schede"
   },
   "user": {
     "title": "Profilo",

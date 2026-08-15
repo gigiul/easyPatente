@@ -6,45 +6,12 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { CATEGORY_COLOR_MAP } from '@/constants/Colors';
 import { useCategories } from '@/hooks/useCategories';
 import { usePremiumStatus } from '@/hooks/usePremiumStatus';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Category } from '@/types/categories';
 
 type ActiveTab = 'categories' | 'hard';
-
-const colors = [
-  '#FF7F50',
-  '#2ECC71',
-  '#F39C12',
-  '#1ABC9C',
-  '#E84393',
-  '#0984E3',
-  '#00B894',
-  '#FAB1A0',
-  '#6AB04C',
-  '#A29BFE',
-];
-
-const getCategoryStyle = (str: string) => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return CATEGORY_COLOR_MAP[Math.abs(hash) % CATEGORY_COLOR_MAP.length];
-};
-
-const getContrastTextColor = (hexColor: string | null | undefined) => {
-  if (!hexColor) return '#FFFFFF';
-  const hex = hexColor.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-  // YIQ formula for perceived luminance
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 128 ? '#111827' : '#FFFFFF';
-};
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -59,6 +26,11 @@ export default function HomeScreen() {
   const tabInactiveText = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
   const secondaryTextColor = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
   const skeletonColor = useThemeColor({ light: '#E5E7EB', dark: '#374151' }, 'background');
+
+  const cardBg = useThemeColor({ light: '#F3F4F6', dark: '#1F2937' }, 'background');
+  const cardBorder = useThemeColor({ light: '#E5E7EB', dark: '#374151' }, 'background');
+  const iconBg = useThemeColor({ light: '#FFFFFF', dark: '#374151' }, 'background');
+  const iconColor = useThemeColor({ light: '#2563EB', dark: '#60A5FA' }, 'text');
 
   const handleCategoryPress = (categoryId: string, isCategoryPremium: boolean) => {
     if (isCategoryPremium && !isUserPremium) return;
@@ -87,39 +59,33 @@ export default function HomeScreen() {
       <View style={styles.categoriesGrid}>
         {list.map((category) => {
           const isLocked = category.is_premium && !isUserPremium;
-          const style = getCategoryStyle(category.id) || { bg: category.color, text: getContrastTextColor(category.color) };
-
-          const bgColor = style.bg;
-          const textColor = style.text;
-          const iconBgColor = textColor === '#FFFFFF' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)';
-          const lockBgColor = textColor === '#FFFFFF' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.5)';
 
           return (
             <Pressable
               key={category.id}
               style={({ pressed }) => [
                 styles.categoryRowCard,
-                { backgroundColor: bgColor },
+                { backgroundColor: cardBg, borderColor: cardBorder },
                 pressed && styles.categoryCardPressed,
                 isLocked && styles.categoryCardLocked,
               ]}
               onPress={() => handleCategoryPress(category.id, category.is_premium)}
             >
-              <View style={[styles.categoryIconContainer, { backgroundColor: iconBgColor }]}>
-                <Ionicons name={category.icon_url as any} size={28} color={textColor} />
+              <View style={[styles.categoryIconContainer, { backgroundColor: iconBg }]}>
+                <Ionicons name={category.icon_url as any} size={28} color={iconColor} />
               </View>
               <View style={styles.categoryContentContainer}>
-                <ThemedText style={[styles.categoryTitle, { color: textColor }]} numberOfLines={2}>{category.sort_order}. {category.name}</ThemedText>
-                <ThemedText style={[styles.categoryDescription, { color: textColor }]} numberOfLines={3}>{t('quiz.batchCount', { count: category.batchesCount })}</ThemedText>
+                <ThemedText type="defaultSemiBold" style={styles.categoryTitle} numberOfLines={3}>{category.sort_order}. {category.name}</ThemedText>
+                <ThemedText style={[styles.categoryDescription, { color: secondaryTextColor }]} numberOfLines={1}>{t('quiz.batchCount', { count: category.batchesCount })}</ThemedText>
               </View>
 
               {isLocked ? (
                 <View style={styles.categoryRightAction}>
-                  <Ionicons name="lock-closed" size={20} color={textColor} style={[styles.lockIcon, { backgroundColor: lockBgColor }]} />
+                  <Ionicons name="lock-closed" size={20} color={secondaryTextColor} style={[styles.lockIcon, { backgroundColor: iconBg }]} />
                 </View>
               ) : (
                 <View style={styles.categoryRightAction}>
-                  <Ionicons name="chevron-forward" size={20} color={textColor} style={{ opacity: 0.8 }} />
+                  <Ionicons name="chevron-forward" size={20} color={secondaryTextColor} style={{ opacity: 0.8 }} />
                 </View>
               )}
             </Pressable>
@@ -133,11 +99,11 @@ export default function HomeScreen() {
     return (
       <View style={styles.categoriesGrid}>
         {[1, 2, 3, 4, 5].map((key) => (
-          <View key={key} style={[styles.categoryRowCard, { backgroundColor: skeletonColor, opacity: 0.6 }]}>
-            <View style={[styles.categoryIconContainer, { backgroundColor: 'rgba(0,0,0,0.05)' }]} />
+          <View key={key} style={[styles.categoryRowCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+            <View style={[styles.categoryIconContainer, { backgroundColor: iconBg }]} />
             <View style={styles.categoryContentContainer}>
-              <View style={[styles.skeletonLine, { width: '60%', height: 16, marginBottom: 8, backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 4 }]} />
-              <View style={[styles.skeletonLine, { width: '90%', height: 12, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 4 }]} />
+              <View style={[styles.skeletonLine, { width: '60%', height: 16, marginBottom: 8, backgroundColor: skeletonColor }]} />
+              <View style={[styles.skeletonLine, { width: '90%', height: 12, backgroundColor: skeletonColor }]} />
             </View>
           </View>
         ))}
@@ -288,6 +254,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderRadius: 12,
+    borderWidth: 1,
   },
   categoryIconContainer: {
     width: 44,
@@ -320,7 +287,6 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 17,
-    fontWeight: '700',
     marginBottom: 2,
   },
   categoryDescription: {
