@@ -72,7 +72,14 @@ export function useAuth() {
     const deviceId = await getDeviceId();
     const { data: isValid, error: deviceError } = await supabase.rpc('validate_device', { p_device_id: deviceId });
 
-    if (deviceError || !isValid) {
+    if (deviceError) {
+      await supabase.auth.signOut();
+      return { error: { message: 'auth.login.errors.deviceMismatch' } };
+    }
+
+    if (isValid) {
+      await supabase.rpc('register_device', { p_device_id: deviceId });
+    } else {
       await supabase.auth.signOut();
       return { error: { message: 'auth.login.errors.deviceMismatch' } };
     }
@@ -88,10 +95,7 @@ export function useAuth() {
     if (error) return { error };
 
     const deviceId = await getDeviceId();
-    const { error: deviceError } = await supabase.rpc('register_device', { p_device_id: deviceId });
-    if (deviceError) {
-      console.error('[useAuth] Error registering device:', deviceError);
-    }
+    await supabase.rpc('register_device', { p_device_id: deviceId });
 
     return { error: null };
   };

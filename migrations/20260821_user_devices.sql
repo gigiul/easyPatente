@@ -42,7 +42,7 @@ CREATE POLICY "Users can delete own device"
 
 -- 3. RPC: register_device
 -- Registra il dispositivo corrente per l'utente autenticato.
--- Se l'utente ha già un dispositivo associato, la UNIQUE constraint fallirà.
+-- Se l'utente ha già un dispositivo associato, ignora l'inserimento (idempotente).
 CREATE OR REPLACE FUNCTION public.register_device(p_device_id text)
 RETURNS void
 LANGUAGE plpgsql
@@ -50,7 +50,8 @@ SECURITY DEFINER
 AS $$
 BEGIN
   INSERT INTO public.user_devices (user_id, device_id)
-  VALUES (auth.uid(), p_device_id);
+  VALUES (auth.uid(), p_device_id)
+  ON CONFLICT (user_id) DO NOTHING;
 END;
 $$;
 
