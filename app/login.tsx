@@ -39,7 +39,10 @@ export default function LoginScreen() {
       const { error: signInError } = await signIn(email, password);
       
       if (signInError) {
-        setError(signInError.message);
+        const errorMessage = signInError.message.startsWith('auth.')
+          ? t(signInError.message as any)
+          : signInError.message;
+        setError(errorMessage);
         return;
       }
 

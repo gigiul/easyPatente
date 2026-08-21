@@ -100,6 +100,14 @@ Il progetto sfrutta le funzioni PostgreSQL eseguite lato DB (tramite `supabase.r
   Restituisce lo storico completo degli esami e delle revisioni errori (`batch_type` in `'exam'`, `'review'`) del singolo utente. Aggrega punteggio, numero errori e totale domande ricalcolandoli in tempo reale. Include il campo `title` (chiave i18n) per la localizzazione dinamica nel frontend.
 - **`check_registration_email_domain()` / `handle_new_user()`**
   Hook pre e post-registrazione. Assicurano che i domini e-mail rispettino whitelist (es. bloccano spammer) tramite trigger DB, e creano nativamente l'anagrafica (`public.profiles`) reattiva.
+- **`register_device(p_device_id)`**
+  Registra il dispositivo corrente per l'utente autenticato. Utilizzata durante la registrazione di un nuovo account per associare l'account al dispositivo.
+- **`validate_device(p_device_id)`**
+  Verifica che il dispositivo corrente corrisponda a quello registrato per l'utente. Restituisce `true` se valido o se è il primo accesso (nessun dispositivo registrato). Utilizzata durante il login per negare l'accesso da dispositivi non autorizzati.
+- **`reset_device_association(p_user_id)`**
+  Rimuove l'associazione dispositivo per un utente specifico. Utilizzata dal servizio clienti per permettere all'utente di registrare un nuovo dispositivo.
+- **`unlink_device()`**
+  Rimuove l'associazione del dispositivo per l'utente corrente.
 
 ## DB Schema SQL
 
@@ -210,10 +218,22 @@ CREATE TABLE public.user_quiz_progress (
   CONSTRAINT user_quiz_progress_batch_id_fkey FOREIGN KEY (batch_id) REFERENCES public.quiz_batches(id),
   CONSTRAINT user_quiz_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
+CREATE TABLE public.user_devices (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  device_id text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_devices_pkey PRIMARY KEY (id),
+  CONSTRAINT user_devices_user_id_unique UNIQUE (user_id),
+  CONSTRAINT user_devices_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+);
 
 ---
 
 ## 🚀 Roadmap e Implementazioni Future
+
+- **Device Binding (Associazione Account-Dispositivo)**:
+  Ogni account è associato a un solo dispositivo alla volta per limitare la condivisione delle credenziali. Il dispositivo viene identificato tramite un ID univoco generato all'installazione e persistito in AsyncStorage. La validazione avviene lato server tramite RPC. Il servizio clienti può resettare l'associazione per permettere all'utente di registrare un nuovo dispositivo.
 
 - **Tasto per segnalare problemi di traduzione/immagini**:
 Si potrebbe aggiungere una tabella con le segnalazioni degli utenti con un limite di 1 segnalazione per domanda per utente. In questo modo si potrebbe implementare un sistema di feedback per migliorare la qualità delle traduzioni e delle immagini.

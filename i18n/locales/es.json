@@ -124,7 +124,8 @@
       "signUp": "Regístrate",
       "errors": {
         "fillFields": "Por favor completa todos los campos",
-        "unexpected": "Ocurrió un error inesperado"
+        "unexpected": "Ocurrió un error inesperado",
+        "deviceMismatch": "Esta cuenta ya está asociada a otro dispositivo. Contacta al servicio de atención al cliente para transferir el acceso a este dispositivo."
       }
     },
     "signup": {

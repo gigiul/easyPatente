@@ -1,6 +1,7 @@
 import { Session } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { restoreSession } from '../lib/auth';
+import { getDeviceId } from '../lib/device';
 import { storage } from '../lib/storage';
 import { supabase } from '../lib/supabase';
 import { isAllowedEmailDomain } from '../lib/emailValidation';
@@ -66,7 +67,17 @@ export function useAuth() {
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    if (error) return { error };
+
+    const deviceId = await getDeviceId();
+    const { data: isValid, error: deviceError } = await supabase.rpc('validate_device', { p_device_id: deviceId });
+
+    if (deviceError || !isValid) {
+      await supabase.auth.signOut();
+      return { error: { message: 'auth.login.errors.deviceMismatch' } };
+    }
+
+    return { error: null };
   };
 
   const signUp = async (email: string, password: string) => {
@@ -74,7 +85,15 @@ export function useAuth() {
       return { error: { message: 'auth.signup.errors.invalidDomain' } };
     }
     const { error } = await supabase.auth.signUp({ email, password });
-    return { error };
+    if (error) return { error };
+
+    const deviceId = await getDeviceId();
+    const { error: deviceError } = await supabase.rpc('register_device', { p_device_id: deviceId });
+    if (deviceError) {
+      console.error('[useAuth] Error registering device:', deviceError);
+    }
+
+    return { error: null };
   };
 
   const signOut = async () => {

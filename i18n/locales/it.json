@@ -124,7 +124,8 @@
       "signUp": "Registrati",
       "errors": {
         "fillFields": "Compila tutti i campi",
-        "unexpected": "Si è verificato un errore imprevisto"
+        "unexpected": "Si è verificato un errore imprevisto",
+        "deviceMismatch": "Questo account è già associato a un altro dispositivo. Contatta il servizio clienti per trasferire l'accesso a questo dispositivo."
       }
     },
     "signup": {
