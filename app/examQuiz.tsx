@@ -322,15 +322,6 @@ export default function ExamQuizScreen() {
                     </View>
                   </View>
 
-                  {q.translation?.explanation && (
-                    <View style={[styles.errorExplanationContainer, { backgroundColor: secondaryBackgroundColor }]}>
-                      <Ionicons name="bulb" size={14} color="#F59E0B" />
-                      <ThemedText style={[styles.errorExplanation, { color: iconColor }]}>
-                        {q.translation.explanation}
-                      </ThemedText>
-                    </View>
-                  )}
-
                   {q.secondaryTranslation?.text && (
                     <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor, marginTop: 12 }]}>
                       <View style={styles.secondaryHeader}>
@@ -343,11 +334,6 @@ export default function ExamQuizScreen() {
                       <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
                         {q.secondaryTranslation.text}
                       </ThemedText>
-                      {q.secondaryTranslation.explanation && (
-                        <ThemedText style={[styles.secondaryExplanation, { color: iconColor }]}>
-                          {q.secondaryTranslation.explanation}
-                        </ThemedText>
-                      )}
                     </View>
                   )}
                 </View>
@@ -681,19 +667,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  errorExplanationContainer: {
-    flexDirection: 'row',
-    padding: 10,
-    borderRadius: 10,
-    gap: 8,
-    alignItems: 'flex-start',
-  },
-  errorExplanation: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
-    fontStyle: 'italic',
-  },
   secondaryLanguageCard: {
     padding: 14,
     borderRadius: 12,
@@ -717,13 +690,6 @@ const styles = StyleSheet.create({
   secondaryText: {
     fontSize: 15,
     lineHeight: 21,
-  },
-  secondaryExplanation: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontStyle: 'italic',
-    marginTop: 8,
-    opacity: 0.8,
   },
   playOverlay: {
     justifyContent: 'flex-end',
