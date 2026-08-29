@@ -27,7 +27,7 @@ export default function HomeScreen() {
   const secondaryTextColor = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
   const skeletonColor = useThemeColor({ light: '#E5E7EB', dark: '#374151' }, 'background');
 
-  const cardBg = useThemeColor({ light: '#F3F4F6', dark: '#1F2937' }, 'background');
+  const cardBg = useThemeColor({ light: '#b1cbffff', dark: '#1F2937' }, 'background');
   const cardBorder = useThemeColor({ light: '#E5E7EB', dark: '#374151' }, 'background');
   const iconBg = useThemeColor({ light: '#FFFFFF', dark: '#374151' }, 'background');
   const iconColor = useThemeColor({ light: '#2563EB', dark: '#60A5FA' }, 'text');

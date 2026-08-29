@@ -1,9 +1,9 @@
 {
   "quiz": {
     "title": "Quiz per categoria",
-    "subtitle": "Metti alla prova le tue conoscenze con quiz interattivi",
-    "tabCategories": "Per categoria",
-    "tabHard": "Quiz difficili",
+    "subtitle": "Metti alla prova le tue conoscenze con quiz interattivi con la migliore traduzione nella tua lingua",
+    "tabCategories": "Facili",
+    "tabHard": "Difficili",
     "hardEmpty": "Nessun quiz difficile disponibile al momento.",
     "comingSoon": "Quiz in arrivo...",
     "chooseQuiz": "Scegli un quiz",
