@@ -13,17 +13,26 @@
 - Verified: `supabase db diff --linked` → `No schema changes found` and `supabase migration list --linked` → `20260301000000` Local|Remote aligned.
 - `supabase/config.toml` regenerated via `supabase init --force` (CLI 2.109.1 → min 2.116.0). Do not manually add `organization_id` or old `[auth]`/`[storage]` keys.
 
+## Git Branching (Solo Dev)
+- Keep only `main` + short-lived `feat/*` branches. No long-lived `dev` branch — migrations are timestamp-linear; two long branches cause version conflicts.
+- `main` is source of truth for both DEV and PROD (same `supabase/migrations/`). Feature → merge to `main` → push to DEV. Tag release → push same migrations to PROD.
+- Create `dev` only if you need staging isolation (e.g., PROD hotfix while `main` has unreleased migrations) — overhead for solo work.
+
 ## Daily Development (requires Docker / Rancher Desktop)
 ```bash
+git checkout -b feat/add_xxx              # from main
 supabase link --project-ref mvkxafzywzuohnbqjqmo  # ensure DEV
 supabase start                                     # local Postgres on 54322
 supabase migration new add_xxx                     # creates supabase/migrations/<ts>_add_xxx.sql
 # edit SQL file
 supabase db reset                                  # applies all migrations + seed locally; test app with http://127.0.0.1:54321
 git add supabase/migrations/... && git commit
-supabase db push --linked                          # push to DEV
+git checkout main && git merge feat/add_xxx && git push
+supabase db push --linked                          # push to DEV (on main)
 supabase db diff --linked                          # must be "No changes" after push
 supabase stop                                      # free ports
+# release to PROD: git tag v1.1 && git push --tags
+# then: supabase link --project-ref pydwxyxvnkytelbapbsk && supabase db push --linked
 ```
 
 ## Edge Functions (already versioned, do not modify unless needed)
