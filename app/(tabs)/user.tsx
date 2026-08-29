@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { LanguagePicker } from '@/components/LanguagePicker';
 import { ThemedText } from '@/components/ThemedText';
@@ -29,7 +29,6 @@ export default function UserScreen() {
   const backgroundColor = useThemeColor({}, 'background');
   const cardBackgroundColor = useThemeColor({ light: '#FFFFFF', dark: '#1F2937' }, 'background');
   const borderColor = useThemeColor({ light: '#E5E7EB', dark: '#374151' }, 'icon');
-  const textColor = useThemeColor({}, 'text');
   const secondaryTextColor = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
   const accentColor = '#2563EB';
   const dangerColor = '#EF4444';
@@ -109,11 +108,7 @@ export default function UserScreen() {
     );
   };
 
-  const openLink = (url: string) => {
-    Linking.openURL(url).catch(() => {
-      Alert.alert('Error', 'Could not open link');
-    });
-  };
+
 
   const renderSettingRow = (icon: any, label: string, value?: string, onPress?: () => void) => (
     <Pressable
@@ -189,21 +184,12 @@ export default function UserScreen() {
           </View>
         </View>
 
-        {/* Support & Legal */}
-        <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-          {t('user.sections.support')}
-        </ThemedText>
-        <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
-          {renderSettingRow('chatbubble-ellipses-outline', t('user.support.contact'), undefined, () => openLink('mailto:support@easypatente.it'))}
-          {renderSettingRow('star-outline', t('user.support.rate'), undefined, () => openLink('https://apps.apple.com/app/id123456'))}
-        </View>
-
         <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
           {t('user.sections.legal')}
         </ThemedText>
         <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
-          {renderSettingRow('document-text-outline', t('user.legal.terms'), undefined, () => openLink('https://easypatente.it/terms'))}
-          {renderSettingRow('shield-checkmark-outline', t('user.legal.privacy'), undefined, () => openLink('https://easypatente.it/privacy'))}
+          {renderSettingRow('document-text-outline', t('user.legal.terms'), undefined, () => router.push('/terms' as any))}
+          {renderSettingRow('shield-checkmark-outline', t('user.legal.privacy'), undefined, () => router.push('/privacy' as any))}
           {renderSettingRow('information-circle-outline', t('user.legal.version'), appVersion)}
         </View>
 

@@ -72,16 +72,18 @@ export default function RootLayout() {
       return;
     }
 
-    const inLoginScreen = segments[0] === 'login';
-    const inSignupScreen = segments[0] === 'signup';
-    const inTabsScreen = segments[0] === '(tabs)';
+    const firstSegment = segments[0] as string;
+    const inLoginScreen = firstSegment === 'login';
+    const inSignupScreen = firstSegment === 'signup';
+    const inTermsScreen = firstSegment === 'terms';
+    const inPrivacyScreen = firstSegment === 'privacy';
 
     if (session) {
       if (inLoginScreen || inSignupScreen) {
         router.replace('/(tabs)');
       }
     } else {
-      if (!inLoginScreen && !inSignupScreen) {
+      if (!inLoginScreen && !inSignupScreen && !inTermsScreen && !inPrivacyScreen) {
         router.replace('/login');
       }
     }
@@ -102,6 +104,8 @@ export default function RootLayout() {
         <Stack.Screen name="quiz" options={{ headerShown: false }} />
         <Stack.Screen name="quizBatch" options={{ headerShown: false }} />
         <Stack.Screen name="examQuiz" options={{ headerShown: false }} />
+        <Stack.Screen name="terms" options={{ headerShown: false }} />
+        <Stack.Screen name="privacy" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

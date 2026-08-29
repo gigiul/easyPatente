@@ -38,8 +38,8 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 - **`app/(tabs)/user.tsx` (User Screen)**: 
   Schermata profilo utente, riprogettata con una UI a card per una gestione "premium" delle preferenze.
   - **Impostazioni Lingua (Fulcro)**: Permette di modificare la **Lingua Primaria** (interfaccia e quiz) e una **Lingua Secondaria** opzionale (testo parallelo).
-  - **Account & Supporto**: Include badge per il piano (Premium/Free), link rapidi per contattare il **Supporto** e valutare l'app.
-  - **Legale & Info**: Link a **Privacy Policy**, **Termini di Servizio** e indicazione della versione dell'app (`v1.0.0`).
+  - **Account**: Include badge per il piano (Premium/Free) e dati del profilo.
+  - **Legale & Info**: Navigazione in-app verso **Privacy Policy** (`/privacy`), **Termini di Servizio** (`/terms`) e indicazione della versione dell'app (`v1.0.0`).
   - **Azioni di Sicurezza**: Gestisce Logout ed **Eliminazione Account** (tramite RPC `delete_user_account`).
 - **`app/(tabs)/exam.tsx` (Exam Screen)**: 
   - Hub dedicato alle simulazioni d'esame.
@@ -66,11 +66,15 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
     - **Progresso:** Barra a riempimento orizzontale posizionata sotto l'header.
     - **Azioni Interattive (Vero/Falso):** Una volta fornita la risposta, la logica invia il dato al DB (`updateQuizProgression`) e mostra dinamicamente la carta risultato e la _Explanation_ (con lettura sonora/multi-lingua).
     - **Risultati Finali:** A quiz completato, calcola il punteggio in base alle risposte e lo mostra all'utente con design full-theme compatibile (`useQuizTheme`). 
-- **`app/examQuiz/index.tsx` (Exam Quiz Screen)**:
+- **`app/examQuiz.tsx` (Exam Quiz Screen)**:
   - Variante specializzata per la **Simulazione Esame Reale**.
   - Non mostra le spiegazioni né la correttezza della risposta durante lo svolgimento.
   - Integra un Timer rigoroso da 20 minuti con elaborazione di submit automatica allo scadere del tempo.
-  - Mostra la schermata dei risultati solo al termine simulazione, indicando esito Superato/Non Superato in base al limite di 3 errori.
+  - Mostra la schermata dei risultati al termine della simulazione (Superato/Non Superato con soglia max 3 errori) e l'elenco degli errori commessi con confronto tra risposta data e risposta corretta (senza spiegazioni/descrizioni aggiuntive).
+
+### 5. Schermate Legali
+- **`app/terms.tsx`**: Termini e condizioni di servizio in italiano (esclusione di responsabilità, precisazione sulla revisione dei quiz didattici, conformità d'uso).
+- **`app/privacy.tsx`**: Informativa sulla privacy sintetica in italiano (GDPR compliant, trasparenza sui dati raccolti ed eliminazione immediata account).
 ----
 
 ## 🧠 Flusso Dati (Data Flow & State Management)
