@@ -2,19 +2,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as ScreenCapture from 'expo-screen-capture';
 import * as Speech from 'expo-speech';
+
+import AppImageViewer from '@/components/AppImageViewer';
+import { usePreventScreenCapture } from '@/hooks/usePreventScreenCapture';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
-import ImageViewing from 'react-native-image-viewing';
+
+import { AppAlert as Alert } from '@/lib/alert';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -65,8 +67,8 @@ export default function QuizScreen() {
   const [signedImageUrl, setSignedImageUrl] = useState<string | null>(null);
   const [signedErrorUrls, setSignedErrorUrls] = useState<Record<string, string>>({});
 
-  // Prevent screenshots
-  ScreenCapture.usePreventScreenCapture();
+  // Prevent screenshots (no-op on web via hook wrapper)
+  usePreventScreenCapture();
 
   // Theme colors
   const backgroundColor = useThemeColor({}, 'background');
@@ -636,7 +638,7 @@ export default function QuizScreen() {
                   <ActivityIndicator color="#2563EB" />
                 </View>
               )}
-              <ImageViewing
+              <AppImageViewer
                 images={signedImageUrl ? [{ uri: signedImageUrl }] : []}
                 imageIndex={0}
                 visible={isImageViewerVisible}

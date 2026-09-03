@@ -12,13 +12,23 @@ const EMBEDDING_MODEL = Deno.env.get("EMBEDDING_MODEL") || "@cf/google/embedding
 const CLOUDFLARE_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID") || "";
 const CLOUDFLARE_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN") || "";
 
-serve(async (req) => {
-  if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SECRET_KEYS")!
-  );
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+  if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+    Deno.env.get("SUPABASE_SECRET_KEYS") ??
+    Deno.env.get("SUPABASE_SECRET_KEY") ?? "";
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
     const { message, lang_code = "it", history = [] } = await req.json();
@@ -279,6 +289,6 @@ async function generateEmbeddingLMStudio(text: string): Promise<number[]> {
 function json(data: Record<string, unknown>, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }

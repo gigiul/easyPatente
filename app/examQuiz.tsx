@@ -1,19 +1,20 @@
+import { usePreventScreenCapture } from '@/hooks/usePreventScreenCapture';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as ScreenCapture from 'expo-screen-capture';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
-import ImageViewing from 'react-native-image-viewing';
+
+import AppImageViewer from '@/components/AppImageViewer';
+import { AppAlert as Alert } from '@/lib/alert';
 
 import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedText } from '@/components/ThemedText';
@@ -92,8 +93,31 @@ export default function ExamQuizScreen() {
     });
   }, [quizCompleted, questions, answers]);
 
-  // Prevent screenshots
-  ScreenCapture.usePreventScreenCapture();
+  useEffect(() => {
+    if (currentQuestion?.image_filename) {
+      getSignedImageUrl(currentQuestion.image_filename).then((url) => setSignedImageUrl(url));
+    } else {
+      setSignedImageUrl(null);
+    }
+  }, [currentQuestion?.image_filename]);
+
+  useEffect(() => {
+    if (!quizCompleted) return;
+    const incorrect = questions.filter((q: any) => {
+      const ua = answers[q.id];
+      return typeof ua !== 'undefined' && ua !== q.is_correct;
+    });
+    incorrect.forEach((q: any) => {
+      if (q.image_filename && !signedErrorUrls[q.id]) {
+        getSignedImageUrl(q.image_filename).then((url) => {
+          if (url) setSignedErrorUrls((prev) => ({ ...prev, [q.id]: url }));
+        });
+      }
+    });
+  }, [quizCompleted, questions, answers]);
+
+  // Prevent screenshots (no-op on web)
+  usePreventScreenCapture();
 
   // Theme colors
   const backgroundColor = useThemeColor({}, 'background');
@@ -132,6 +156,7 @@ export default function ExamQuizScreen() {
   useEffect(() => {
     if (quizCompleted || timeLeft <= 0 || questions.length === 0) return;
 
+    /* @ts-ignore */
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -454,7 +479,7 @@ export default function ExamQuizScreen() {
                   <ActivityIndicator color="#059669" />
                 </View>
               )}
-              <ImageViewing
+              <AppImageViewer
                 images={signedImageUrl ? [{ uri: signedImageUrl }] : []}
                 imageIndex={0}
                 visible={isImageViewerVisible}

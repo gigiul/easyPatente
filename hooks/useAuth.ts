@@ -91,11 +91,14 @@ export function useAuth() {
     if (!isAllowedEmailDomain(email)) {
       return { error: { message: 'auth.signup.errors.invalidDomain' } };
     }
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error };
 
-    const deviceId = await getDeviceId();
-    await supabase.rpc('register_device', { p_device_id: deviceId });
+    // Su PROD con email confirmation, signUp non ha sessione (auth.uid()=null) → register_device fallirebbe con 23502
+    if (data.session) {
+      const deviceId = await getDeviceId();
+      await supabase.rpc('register_device', { p_device_id: deviceId });
+    }
 
     return { error: null };
   };

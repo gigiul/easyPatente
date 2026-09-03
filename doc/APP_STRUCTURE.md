@@ -16,7 +16,8 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 - **`store/`**: Gestione dello state globale dell'app con **Zustand**. Ci sono store dedicati a settori logici (`user`, `languages`, `quizBatches`, `categories`, `quizQuestions`).
 - **`i18n/`**: Configurazioni e file per la localizzazione (i18next). Contiene la cartella `locales` con i file JSON per le varie lingue (`it`, `en`, `es`, `bn`, ecc.).
 - **`types/`**: Definizioni dei tipi TypeScript che descrivono i modelli dei dati in arrivo da Supabase e altre interfacce dell'app.
-- **`lib/`**: File di libreria o configurazioni di root come `supabase.ts` (inizializzazione del client Supabase) e `storage.ts` (storage locale/async).
+- **`lib/`**: File di libreria o configurazioni di root come `supabase.ts` (inizializzazione del client Supabase), `storage.ts` (storage locale/async con fallback `localStorage` su web), `alert.ts`/`alert.web.ts` (wrapper `AppAlert` per `Alert.alert` → `window.confirm` su web) e `device.ts`/`auth.ts`.
+- **`doc/`**: Documentazione (`APP_STRUCTURE.md`, `PROJECT.md`).
 
 ---
 
@@ -75,6 +76,17 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 ### 5. Schermate Legali
 - **`app/terms.tsx`**: Termini e condizioni di servizio in italiano (esclusione di responsabilità, precisazione sulla revisione dei quiz didattici, conformità d'uso).
 - **`app/privacy.tsx`**: Informativa sulla privacy sintetica in italiano (GDPR compliant, trasparenza sui dati raccolti ed eliminazione immediata account).
+
+### 6. Supporto Web (Expo Web)
+- **`app.config.ts`**: aggiunge `web: { bundler:'metro', output:'static', favicon }` e `dotenv` per `.env`/`.env.production` (via `APP_ENV`/`NODE_ENV`); `extra` espone `supabaseUrl`/`supabaseAnonKey`/`supabaseStorageUrl` per `Constants` su web.
+- **`app/_layout.tsx`**: imposta `<title>Quiz Patente 2026</title>` via `expo-router/head` + `document.title` per la tab browser; `Stack` invariato.
+- **`components/AppImageViewer.tsx` / `AppImageViewer.web.tsx`**: wrapper per `react-native-image-viewing` (manca build web) → su web `Modal`+`expo-image`.
+- **`hooks/usePreventScreenCapture.ts` / `.web.ts`**: no-op su web (evita `UnavailabilityError` di `expo-screen-capture`).
+- **`lib/alert.ts` / `alert.web.ts`**: `AppAlert.alert` → `Alert.alert` su native, `window.confirm/alert` su web (fix `logout`, `deleteAccount`, `clearChat`, `finishQuiz`).
+- **`lib/storage.ts`**: mirror `AsyncStorage` ↔ `localStorage` su web.
+- **`lib/supabase.ts`**: priorizza `Constants.expoConfig.extra` su `process.env` per coerenza web/native.
+- **`metro.config.js`**: `unstable_enablePackageExports:false` + `babel.config.js` `babel-plugin-transform-import-meta` fix `zustand@5` `import.meta` su web.
+- **`package.json`**: `web:export:dev` (`dotenv-cli -e .env`) e `web:export:prod` (`-e .env.production`) con `--clear && npx serve dist`.
 ----
 
 ## 🧠 Flusso Dati (Data Flow & State Management)

@@ -3,7 +3,9 @@ import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+
+import { AppAlert as Alert } from '@/lib/alert';
 
 import { LanguagePicker } from '@/components/LanguagePicker';
 import { ThemedText } from '@/components/ThemedText';

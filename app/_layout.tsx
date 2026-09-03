@@ -10,6 +10,7 @@ import { useUserProfileStore } from '@/store/user';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
@@ -89,6 +90,12 @@ export default function RootLayout() {
     }
   }, [session, loading, segments]);
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.title = 'Quiz Patente 2026';
+    }
+  }, []);
+
   if (!loaded || loading) {
     // Async font loading only occurs in development.
     // Wait for auth to finish loading to prevent unauthenticated API requests.
@@ -96,8 +103,20 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+    <>
+      <Head>
+        <title>Quiz Patente 2026</title>
+        <meta name="description" content="Quiz patente multilingua" />
+        <meta name="theme-color" content="#2563EB" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Quiz Patente" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+      </Head>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -110,5 +129,6 @@ export default function RootLayout() {
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
+    </>
   );
 }
