@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "android": "expo run:android",
+    "android:dev": "expo run:android",
+    "android:prod": "NODE_ENV=production expo run:android",
     "lint": "expo lint",
     "build:preview": "NODE_ENV=development eas build --platform android --profile preview --local",
     "build:release": "NODE_ENV=production eas build --platform android --profile production --local"

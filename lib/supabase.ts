@@ -20,6 +20,36 @@ if (!supabaseUrl || !supabasePublishableKey) {
 
 export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
+// Private bucket: signed URLs cached for quiz duration (2400s = 40min > 30min exam)
+// Bucket differs DEV=easypatente vs PROD=easyPatenteProd — derive from storage URL or supabaseUrl
+function getStorageBucket(): string {
+  // Prefer explicit env, else derive from STORAGE_URL, else fallback by project ref
+  const envBucket = process.env.EXPO_PUBLIC_SUPABASE_BUCKET;
+  if (envBucket) return envBucket;
+  if (supabaseStorageUrl) {
+    const parts = supabaseStorageUrl.split('/').filter(Boolean);
+    const last = parts[parts.length - 1];
+    if (last && last !== 'public') return last; // .../public/<bucket>
+  }
+  if (supabaseUrl?.includes('pydwxyxvnkytelbapbsk')) return 'easyPatenteProd';
+  return 'easypatente';
+}
+const signedUrlCache = new Map<string, { url: string; exp: number }>();
+export async function getSignedImageUrl(filename: string | null | undefined, ttlSeconds = 2400): Promise<string | null> {
+  if (!filename) return null;
+  console.log('[getSignedImageUrl] filename=', JSON.stringify(filename));
+  const cached = signedUrlCache.get(filename);
+  if (cached && cached.exp > Date.now()) return cached.url;
+  const bucket = getStorageBucket();
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(filename, ttlSeconds);
+  if (error || !data?.signedUrl) {
+    console.warn('getSignedImageUrl failed for', JSON.stringify(filename), 'bucket=', bucket, error?.message);
+    return null; // do not cache failures
+  }
+  signedUrlCache.set(filename, { url: data.signedUrl, exp: Date.now() + ttlSeconds * 1000 - 5000 });
+  return data.signedUrl;
+}
+
 // Types for your database schema
 export type Quiz = {
   id: string;

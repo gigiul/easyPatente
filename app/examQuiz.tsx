@@ -25,7 +25,7 @@ import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizScore } from '@/hooks/useQuizScore';
 import { useQuizTheme } from '@/hooks/useQuizTheme';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { supabaseStorageUrl } from '@/lib/supabase';
+import { getSignedImageUrl } from '@/lib/supabase';
 import { recordExamMistakes } from '@/queries/mistakes';
 import { updateQuizProgression } from '@/queries/quizProgression';
 
@@ -61,11 +61,36 @@ export default function ExamQuizScreen() {
   const [playingErrorGifs, setPlayingErrorGifs] = useState<Record<string, boolean>>({});
   const mainImageRef = useRef<any>(null);
   const errorImageRefs = useRef<Record<string, any>>({});
+  const [signedImageUrl, setSignedImageUrl] = useState<string | null>(null);
+  const [signedErrorUrls, setSignedErrorUrls] = useState<Record<string, string>>({});
 
   // Reset GIF playing state when question changes
   useEffect(() => {
     setIsPlayingGif(false);
   }, [currentQuestionIndex]);
+
+  useEffect(() => {
+    if (currentQuestion?.image_filename) {
+      getSignedImageUrl(currentQuestion.image_filename).then((url) => setSignedImageUrl(url));
+    } else {
+      setSignedImageUrl(null);
+    }
+  }, [currentQuestion?.image_filename]);
+
+  useEffect(() => {
+    if (!quizCompleted) return;
+    const incorrect = questions.filter((q: any) => {
+      const ua = answers[q.id];
+      return typeof ua !== 'undefined' && ua !== q.is_correct;
+    });
+    incorrect.forEach((q: any) => {
+      if (q.image_filename && !signedErrorUrls[q.id]) {
+        getSignedImageUrl(q.image_filename).then((url) => {
+          if (url) setSignedErrorUrls((prev) => ({ ...prev, [q.id]: url }));
+        });
+      }
+    });
+  }, [quizCompleted, questions, answers]);
 
   // Prevent screenshots
   ScreenCapture.usePreventScreenCapture();
@@ -291,7 +316,7 @@ export default function ExamQuizScreen() {
                           ref={(el) => {
                             if (el) errorImageRefs.current[q.id] = el;
                           }}
-                          source={{ uri: `${supabaseStorageUrl}/${q.image_filename}` }}
+                          source={{ uri: signedErrorUrls[q.id] }}
                           style={styles.errorImage}
                           contentFit="contain"
                           autoplay={!q.image_filename.toLowerCase().endsWith('.gif') || playingErrorGifs[q.id]}
@@ -408,7 +433,7 @@ export default function ExamQuizScreen() {
                 <Image
                   ref={mainImageRef}
                   key={currentQuestion.image_filename}
-                  source={{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }}
+                  source={{ uri: signedImageUrl ?? undefined }}
                   style={styles.questionImage}
                   contentFit="contain"
                   autoplay={!isGif || isPlayingGif}
@@ -430,7 +455,7 @@ export default function ExamQuizScreen() {
                 </View>
               )}
               <ImageViewing
-                images={[{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }]}
+                images={signedImageUrl ? [{ uri: signedImageUrl }] : []}
                 imageIndex={0}
                 visible={isImageViewerVisible}
                 onRequestClose={() => setIsImageViewerVisible(false)}
