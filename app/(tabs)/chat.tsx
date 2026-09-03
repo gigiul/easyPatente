@@ -3,7 +3,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
   Animated,
   FlatList,
   Keyboard,
@@ -15,6 +14,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
+
+import { AppAlert as Alert } from '@/lib/alert';
 import Markdown from 'react-native-markdown-display';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 

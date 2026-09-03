@@ -1,19 +1,20 @@
+import { usePreventScreenCapture } from '@/hooks/usePreventScreenCapture';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as ScreenCapture from 'expo-screen-capture';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
-import ImageViewing from 'react-native-image-viewing';
+
+import AppImageViewer from '@/components/AppImageViewer';
+import { AppAlert as Alert } from '@/lib/alert';
 
 import { ThemedButton } from '@/components/ThemedButton';
 import { ThemedText } from '@/components/ThemedText';
@@ -67,8 +68,8 @@ export default function ExamQuizScreen() {
     setIsPlayingGif(false);
   }, [currentQuestionIndex]);
 
-  // Prevent screenshots
-  ScreenCapture.usePreventScreenCapture();
+  // Prevent screenshots (no-op on web)
+  usePreventScreenCapture();
 
   // Theme colors
   const backgroundColor = useThemeColor({}, 'background');
@@ -429,7 +430,7 @@ export default function ExamQuizScreen() {
                   <ActivityIndicator color="#059669" />
                 </View>
               )}
-              <ImageViewing
+              <AppImageViewer
                 images={[{ uri: `${supabaseStorageUrl}/${currentQuestion.image_filename}` }]}
                 imageIndex={0}
                 visible={isImageViewerVisible}

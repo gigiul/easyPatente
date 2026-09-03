@@ -13,5 +13,12 @@ config.transformer = {
   enableBabelRCLookup: false,
 };
 
+// Fix zustand@5 ESM `import.meta` on web: forza i build CJS che non usano import.meta
+// vedi dist/_expo/.../entry-*.js SyntaxError: Cannot use 'import.meta' outside a module
+config.resolver = {
+  ...config.resolver,
+  unstable_enablePackageExports: false,
+};
+
 module.exports = config;
 

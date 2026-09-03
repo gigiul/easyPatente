@@ -21,37 +21,36 @@ All components share a single **Supabase** database (PostgreSQL + pgvector).
 │  │ questions    │ │ manual_chunks│ │ chat_messages        │ │
 │  │ translations │ │              │ │ feature_flags        │ │
 │  │ batches      │ │              │ │ profiles (has_ai)    │ │
-│  │ profiles     │ │              │ └──────────────────────┘ │
-│  └──────┬──────┘ └──────┬───────┘                          │
-│         │               │                                  │
-│  ┌──────┴──────────────┴────────────────────────────────┐  │
-│  │              Edge Functions                            │ │
-│  │  • explain-question (RAG: embedding + LLM + cache)    │ │
-│  │  • chat (RAG + rate limit + history)                  │ │
+│  │ profiles     │ │              │ │ user_devices         │ │
+│  └──────┬──────┘ └──────┬───────┘ └──────────┬───────────┘ │
+│         │               │                    │               │
+│  ┌──────┴──────────────┴────────────────────┴────────────┐  │
+│  │              Edge Functions (CORS)                     │  │
+│  │  • explain-question (RAG + CORS)                      │  │
+│  │  • chat (RAG + rate limit + history + CORS)           │  │
 │  └───────────────────────┬────────────────────────────────┘ │
 └──────────────────────────┼──────────────────────────────────┘
                            │
               ┌────────────┼────────────┐
               │            │            │
               v            v            v
-        ┌──────────┐ ┌──────────┐ ┌──────────────┐
-        │ RN App   │ │ LLM API  │ │ Storage      │
-        │ (Client) │ │ (LM or   │ │ (Images)     │
-        └──────────┘ │  Gemini) │ └──────────────┘
-                     └──────────┘
+   ┌──────────────────┐ ┌──────────┐ ┌──────────────┐
+   │ RN App / Web App │ │ LLM API  │ │ Storage      │
+   │ (Expo static)    │ │ (LM/Gemini)│ │ (Images)     │
+   └──────────────────┘ └──────────┘ └──────────────┘
 ```
 
 ---
 
 ## Components
 
-### 1. easyPatente/ — Mobile App
+### 1. easyPatente/ — Mobile App + Web
 
-- **Technology**: Expo SDK 55, React Native 0.83, Expo Router
+- **Technology**: Expo SDK 55, React Native 0.83, Expo Router, `react-native-web` (static `output: static`)
 - **State management**: Zustand (7 stores)
-- **Auth**: Supabase Auth (email + password)
+- **Auth**: Supabase Auth (email + password) + single-device `user_devices`
 - **Languages**: i18next with primary + secondary language
-- **Build**: EAS Build (Android preview + production)
+- **Build**: EAS Build (Android preview + production) + `expo export --platform web --clear` (`web:export:dev` → DEV `mvkx...`, `web:export:prod` → PROD `pydw...`) + `npx serve dist` / Vercel (`*.vercel.app` free, env `EXPO_PUBLIC_*` da `.env.production`)
 
 **Main screens**:
 - Login/Signup (with allowed email domain)
@@ -268,13 +267,21 @@ SUPABASE_SERVICE_ROLE_KEY=...
 STORAGE_URL=https://mvkxafzywzuohnbqjqmo.supabase.co/storage/v1/object/public/easypatente
 ```
 
-### React Native (.env)
+### React Native / Web (.env / .env.production)
 
 ```
+# .env (DEV)
 EXPO_PUBLIC_SUPABASE_URL=https://mvkxafzywzuohnbqjqmo.supabase.co
 EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 EXPO_PUBLIC_SUPABASE_STORAGE_URL=https://mvkxafzywzuohnbqjqmo.supabase.co/storage/v1/object/public/easypatente
+
+# .env.production (PROD)
+EXPO_PUBLIC_SUPABASE_URL=https://pydwxyxvnkytelbapbsk.supabase.co
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_nnkHpNeg907UqeO-1wMfgQ_YN6MCfET
+EXPO_PUBLIC_SUPABASE_STORAGE_URL=https://pydwxyxvnkytelbapbsk.supabase.co/storage/v1/object/public/easyPatenteProd
 ```
+
+Web export: `npx dotenv-cli -e .env -- expo export --platform web --clear` (DEV) / `-e .env.production` (PROD) — `app.config.ts` legge `EXPO_PUBLIC_*` via `dotenv` e `lib/supabase.ts` priorizza `Constants.expoConfig.extra`.
 
 ### Deploy env vars to Supabase
 
@@ -339,3 +346,4 @@ Category UUIDs are shared constants between quizConverter and the DB:
 6. **Feature flags**: `feature_flags` table to toggle features (e.g. explanation, chat)
 7. **Chat rate limit**: 5 requests/day per user, resets at midnight
 8. **Multi-provider**: Supports LM Studio (local) and Gemini API (cloud) via `LLM_PROVIDER`
+9. **Web**: `app.config.ts` `web.favicon`, `app/_layout.tsx` `Head`/`document.title`, `AppImageViewer`/ `usePreventScreenCapture`/ `AppAlert` wrappers (`.web.ts`), `metro.config.js` `unstable_enablePackageExports:false` + `babel-plugin-transform-import-meta` per `zustand@5` `import.meta`

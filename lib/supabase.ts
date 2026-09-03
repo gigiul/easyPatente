@@ -2,17 +2,20 @@ import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
 
 const supabaseUrl = 
+  Constants.expoConfig?.extra?.supabaseUrl ??
   process.env.EXPO_PUBLIC_SUPABASE_URL ?? 
-  Constants.expoConfig?.extra?.supabaseUrl;
+  process.env.SUPABASE_URL;
 
 const supabasePublishableKey = 
+  Constants.expoConfig?.extra?.supabaseAnonKey ??
   process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
-  Constants.expoConfig?.extra?.supabaseAnonKey;
+  process.env.SUPABASE_PUBLISHABLE_KEY;
 
 export const supabaseStorageUrl = 
+  Constants.expoConfig?.extra?.supabaseStorageUrl ??
   process.env.EXPO_PUBLIC_SUPABASE_STORAGE_URL ?? 
-  Constants.expoConfig?.extra?.supabaseStorageUrl;
+  process.env.SUPABASE_STORAGE_URL;
 
 if (!supabaseUrl || !supabasePublishableKey) {
   throw new Error('Missing Supabase environment variables');
