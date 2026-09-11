@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
+import GifImage from '@/components/GifImage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 
@@ -436,15 +437,24 @@ export default function QuizScreen() {
                           }
                         }}
                       >
-                        <Image
-                          ref={(el) => {
-                            if (el) errorImageRefs.current[q.id] = el;
-                          }}
-                          source={{ uri: signedErrorUrls[q.id] }}
-                          style={styles.errorImage}
-                          contentFit="contain"
-                          autoplay={!q.image_filename.toLowerCase().endsWith('.gif') || playingErrorGifs[q.id]}
-                        />
+                        {q.image_filename.toLowerCase().endsWith('.gif') ? (
+                          <GifImage
+                            uri={signedErrorUrls[q.id]}
+                            style={styles.errorImage}
+                            contentFit="contain"
+                            playing={!!playingErrorGifs[q.id]}
+                          />
+                        ) : (
+                          <Image
+                            ref={(el) => {
+                              if (el) errorImageRefs.current[q.id] = el;
+                            }}
+                            source={{ uri: signedErrorUrls[q.id] }}
+                            style={styles.errorImage}
+                            contentFit="contain"
+                            autoplay
+                          />
+                        )}
                         {q.image_filename.toLowerCase().endsWith('.gif') && !playingErrorGifs[q.id] && (
                           <View style={[StyleSheet.absoluteFill, styles.playOverlay]}>
                             <View style={styles.playButtonBackgroundSmall}>
@@ -614,17 +624,30 @@ export default function QuizScreen() {
                   setIsImageViewerVisible(true);
                 }
               }}>
-                <Image
-                  ref={mainImageRef}
-                  key={currentQuestion.image_filename}
-                  source={{ uri: signedImageUrl ?? undefined }}
-                  style={styles.questionImage}
-                  contentFit="contain"
-                  autoplay={!isGif || isPlayingGif}
-                  onLoadStart={() => setIsImageLoading(true)}
-                  onLoad={() => setIsImageLoading(false)}
-                  onError={() => setIsImageLoading(false)}
-                />
+                {isGif ? (
+                  <GifImage
+                    key={currentQuestion.image_filename}
+                    uri={signedImageUrl ?? undefined}
+                    style={styles.questionImage}
+                    contentFit="contain"
+                    playing={isPlayingGif}
+                    onLoadStart={() => setIsImageLoading(true)}
+                    onLoad={() => setIsImageLoading(false)}
+                    onError={() => setIsImageLoading(false)}
+                  />
+                ) : (
+                  <Image
+                    ref={mainImageRef}
+                    key={currentQuestion.image_filename}
+                    source={{ uri: signedImageUrl ?? undefined }}
+                    style={styles.questionImage}
+                    contentFit="contain"
+                    autoplay
+                    onLoadStart={() => setIsImageLoading(true)}
+                    onLoad={() => setIsImageLoading(false)}
+                    onError={() => setIsImageLoading(false)}
+                  />
+                )}
                 {isGif && !isPlayingGif && (
                   <View style={[StyleSheet.absoluteFill, styles.playOverlay]}>
                     <View style={styles.playButtonBackground}>
