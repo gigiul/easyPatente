@@ -25,6 +25,30 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Road-sign quiz categories → manual chapters (cap-02..cap-11).
+// When the question belongs to one of these, retrieval is scoped to the
+// matching manual_chunks.category_id instead of searching all 554 chunks.
+const SIGN_CATEGORY_IDS = new Set([
+  "1c72e436-7a7f-4547-8f0e-b40f6fea7294", // Segnali di Pericolo (base)
+  "d2b2c2d2-2222-4b2b-8b2b-222222222126", // Segnali di Pericolo (hard)
+  "1a693ebd-3e77-49da-a5cb-aefd34af0d8e", // Segnali di Precedenza (base)
+  "d3c3d3e3-3333-4c3c-8c3c-333333333127", // Segnali di Precedenza (hard)
+  "1055628b-9e4a-4544-92fd-60167704c315", // Segnali di Divieto (base)
+  "d4d4e4f4-4444-4d4d-8d4d-444444444128", // Segnali di Divieto (hard)
+  "cfecfe52-5925-443e-a798-5adff605c489", // Segnali di Obbligo (base)
+  "d5e5f5a5-5555-4e5e-8e5e-555555555129", // Segnali di Obbligo (hard)
+  "fd787783-6b5b-4e0a-a0b4-2173aad17c37", // Segnali di Indicazione (base)
+  "d1000001-aaaa-4a1a-8a1a-000000000001", // Segnali di Indicazione (hard)
+  "4caf0f96-d5a9-49e7-b345-bae6277295b7", // Temporanei e di Cantiere (base)
+  "d1000002-bbbb-4b2b-8b2b-000000000002", // Temporanei e di Cantiere (hard)
+  "cf7cd590-6fdc-4c7c-8b64-6dbade75c49d", // Pannelli Integrativi (base)
+  "d1000003-cccc-4c3c-8c3c-000000000003", // Pannelli Integrativi (hard)
+  "9ae4ea7e-03e8-4f62-963a-ebea4fbb42e8", // Segnaletica Luminosa e Manuale (base)
+  "d1000004-dddd-4d4d-8d4d-000000000004", // Segnaletica Luminosa e Manuale (hard)
+  "add74848-59a1-4150-ba8b-1a01678ee745", // Segnaletica Orizzontale (base)
+  "d1000005-eeee-4e5e-8e5e-000000000005", // Segnaletica Orizzontale (hard)
+]);
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -106,7 +130,7 @@ serve(async (req) => {
 
     // ── 3. No explanation exists: generate it in Italian first ──
     const { data: question } = await supabase
-      .from("questions").select("id, code, embedding, image_filename")
+      .from("questions").select("id, code, embedding, image_filename, category_id, image_sign_type")
       .eq("id", question_id).single();
     if (!question) return json({ error: "Question not found" }, 404);
 
@@ -138,9 +162,17 @@ serve(async (req) => {
     }
 
     // Chunk matching
+    // Scope retrieval to the sign chapter when the question is a road-sign one:
+    // text-only embeddings of generic T/F questions otherwise retrieve wrong chunks.
+    const filterCategoryId =
+      question.category_id && SIGN_CATEGORY_IDS.has(question.category_id)
+        ? question.category_id
+        : null;
+
     let chunks: any[] = [];
     const { data: embChunks, error: matchError } = await supabase.rpc("match_manual_chunks", {
       query_embedding: embedding, match_count: 5, filter_language: "it",
+      filter_category_id: filterCategoryId,
     });
     if (matchError) return json({ error: "Chunk matching failed" }, 500);
     chunks = embChunks || [];
