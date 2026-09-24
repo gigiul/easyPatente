@@ -63,7 +63,7 @@ export default function ExamQuizScreen() {
   const [playingErrorGifs, setPlayingErrorGifs] = useState<Record<string, boolean>>({});
   const mainImageRef = useRef<any>(null);
   const errorImageRefs = useRef<Record<string, any>>({});
-  const [signedImageUrl, setSignedImageUrl] = useState<string | null>(null);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [signedErrorUrls, setSignedErrorUrls] = useState<Record<string, string>>({});
 
   // Reset GIF playing state when question changes
@@ -72,35 +72,30 @@ export default function ExamQuizScreen() {
   }, [currentQuestionIndex]);
 
   useEffect(() => {
-    if (currentQuestion?.image_filename) {
-      getSignedImageUrl(currentQuestion.image_filename).then((url) => setSignedImageUrl(url));
-    } else {
-      setSignedImageUrl(null);
-    }
-  }, [currentQuestion?.image_filename]);
-
-  useEffect(() => {
-    if (!quizCompleted) return;
-    const incorrect = questions.filter((q: any) => {
-      const ua = answers[q.id];
-      return typeof ua !== 'undefined' && ua !== q.is_correct;
+    const filename = currentQuestion?.image_filename;
+    if (!filename || signedUrls[filename]) return;
+    getSignedImageUrl(filename).then((url) => {
+      if (url) setSignedUrls((prev) => (prev[filename] ? prev : { ...prev, [filename]: url }));
     });
-    incorrect.forEach((q: any) => {
-      if (q.image_filename && !signedErrorUrls[q.id]) {
-        getSignedImageUrl(q.image_filename).then((url) => {
-          if (url) setSignedErrorUrls((prev) => ({ ...prev, [q.id]: url }));
-        });
+  }, [currentQuestion?.image_filename, signedUrls]);
+
+  // Prefetch signed URL + pixels for the next questions so navigation is instant
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      for (let i = 1; i <= 2; i++) {
+        const filename = (questions[currentQuestionIndex + i] as any)?.image_filename;
+        if (!filename) continue;
+        const url = await getSignedImageUrl(filename);
+        if (cancelled || !url) continue;
+        setSignedUrls((prev) => (prev[filename] ? prev : { ...prev, [filename]: url }));
+        Image.prefetch(url).catch(() => {});
       }
-    });
-  }, [quizCompleted, questions, answers]);
-
-  useEffect(() => {
-    if (currentQuestion?.image_filename) {
-      getSignedImageUrl(currentQuestion.image_filename).then((url) => setSignedImageUrl(url));
-    } else {
-      setSignedImageUrl(null);
-    }
-  }, [currentQuestion?.image_filename]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentQuestionIndex, questions]);
 
   useEffect(() => {
     if (!quizCompleted) return;
@@ -410,6 +405,11 @@ export default function ExamQuizScreen() {
   const userAnswer = answers[currentQuestion?.id];
   const hasAnswered = typeof userAnswer !== 'undefined';
   const isGif = currentQuestion?.image_filename?.toLowerCase().endsWith('.gif');
+  const signedImageUrl = currentQuestion?.image_filename
+    ? signedUrls[currentQuestion.image_filename] ?? null
+    : null;
+  const showImageLoader =
+    !!currentQuestion?.image_filename && (!signedImageUrl || isImageLoading);
 
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
@@ -497,7 +497,7 @@ export default function ExamQuizScreen() {
                   </View>
                 )}
               </Pressable>
-              {isImageLoading && (
+              {showImageLoader && (
                 <View style={[StyleSheet.absoluteFill, styles.imageLoader]}>
                   <ActivityIndicator color="#059669" />
                 </View>

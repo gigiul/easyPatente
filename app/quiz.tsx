@@ -65,7 +65,7 @@ export default function QuizScreen() {
   const [localExplanations, setLocalExplanations] = useState<Record<string, string>>({});
   const mainImageRef = useRef<any>(null);
   const errorImageRefs = useRef<Record<string, any>>({});
-  const [signedImageUrl, setSignedImageUrl] = useState<string | null>(null);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [signedErrorUrls, setSignedErrorUrls] = useState<Record<string, string>>({});
 
   // Prevent screenshots (no-op on web via hook wrapper)
@@ -139,12 +139,30 @@ export default function QuizScreen() {
   }, [currentQuestionIndex]);
 
   useEffect(() => {
-    if (currentQuestion?.image_filename) {
-      getSignedImageUrl(currentQuestion.image_filename).then((url) => setSignedImageUrl(url));
-    } else {
-      setSignedImageUrl(null);
-    }
-  }, [currentQuestion?.image_filename]);
+    const filename = currentQuestion?.image_filename;
+    if (!filename || signedUrls[filename]) return;
+    getSignedImageUrl(filename).then((url) => {
+      if (url) setSignedUrls((prev) => (prev[filename] ? prev : { ...prev, [filename]: url }));
+    });
+  }, [currentQuestion?.image_filename, signedUrls]);
+
+  // Prefetch signed URL + pixels for the next questions so navigation is instant
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      for (let i = 1; i <= 2; i++) {
+        const filename = (questions[currentQuestionIndex + i] as any)?.image_filename;
+        if (!filename) continue;
+        const url = await getSignedImageUrl(filename);
+        if (cancelled || !url) continue;
+        setSignedUrls((prev) => (prev[filename] ? prev : { ...prev, [filename]: url }));
+        Image.prefetch(url).catch(() => {});
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentQuestionIndex, questions]);
 
   useEffect(() => {
     if (!quizCompleted) return;
@@ -568,6 +586,11 @@ export default function QuizScreen() {
   const userAnswer = answers[currentQuestion?.id];
   const isCorrect = userAnswer === currentQuestion?.is_correct;
   const isGif = currentQuestion?.image_filename?.toLowerCase().endsWith('.gif');
+  const signedImageUrl = currentQuestion?.image_filename
+    ? signedUrls[currentQuestion.image_filename] ?? null
+    : null;
+  const showImageLoader =
+    !!currentQuestion?.image_filename && (!signedImageUrl || isImageLoading);
 
   return (
     <ThemedView style={[styles.container, { backgroundColor }]}>
@@ -656,7 +679,7 @@ export default function QuizScreen() {
                   </View>
                 )}
               </Pressable>
-              {isImageLoading && (
+              {showImageLoader && (
                 <View style={[StyleSheet.absoluteFill, styles.imageLoader]}>
                   <ActivityIndicator color="#2563EB" />
                 </View>
