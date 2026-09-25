@@ -495,36 +495,54 @@ async function callLLM(prompt: string, langName: string): Promise<string> {
 
 // ── Gemini ──
 
+// The Gemini free tier intermittently answers 429/503 ("high demand",
+// "quota exceeded"). Those are transient, so retry with backoff before
+// giving up; only a 4xx (other than 429) is a real configuration error.
+const GEMINI_MAX_ATTEMPTS = 4;
+const GEMINI_RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+
+async function geminiFetch(url: string, body: string): Promise<Response> {
+  let lastRes: Response | null = null;
+  let lastErr: string = "";
+  for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-goog-api-key": GEMINI_API_KEY },
+        body,
+      });
+      if (res.ok) return res;
+      lastRes = res;
+      lastErr = await res.text();
+      if (!GEMINI_RETRYABLE_STATUS.has(res.status) || attempt === GEMINI_MAX_ATTEMPTS) break;
+      const waitMs = 800 * 2 ** (attempt - 1);
+      console.warn(`Gemini ${res.status} (attempt ${attempt}/${GEMINI_MAX_ATTEMPTS}), retry in ${waitMs}ms`);
+      await new Promise((r) => setTimeout(r, waitMs));
+    } catch (e) {
+      lastErr = String(e);
+      if (attempt === GEMINI_MAX_ATTEMPTS) break;
+      await new Promise((r) => setTimeout(r, 800 * 2 ** (attempt - 1)));
+    }
+  }
+  const status = lastRes ? lastRes.status : 0;
+  console.error(`Gemini error [${status}]: ${lastErr}`);
+  throw new Error(`Gemini API unavailable (HTTP ${status}): ${lastErr.slice(0, 300)}`);
+}
+
 async function callGemini(systemPrompt: string, messages: { role: string; content: string }[]): Promise<string> {
   const contents = messages.map((m) => ({
     role: m.role === "assistant" ? "model" : m.role,
     parts: [{ text: m.content }],
   }));
 
-  const res = await fetch(
+  const res = await geminiFetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-goog-api-key": GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        contents,
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 4096,
-        },
-      }),
-    }
+    JSON.stringify({
+      contents,
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
+    })
   );
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error(`Gemini error: ${err}`);
-    throw new Error("Gemini API unavailable");
-  }
 
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
@@ -536,36 +554,20 @@ async function callGeminiWithImage(systemPrompt: string, prompt: string, imageBa
   const mimeType = match?.[1] || "image/png";
   const base64Data = match?.[2] || imageBase64;
 
-  const res = await fetch(
+  const res = await geminiFetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-goog-api-key": GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        contents: [{
-          role: "user",
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType, data: base64Data } },
-          ],
-        }],
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 4096,
-        },
-      }),
-    }
+    JSON.stringify({
+      contents: [{
+        role: "user",
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType, data: base64Data } },
+        ],
+      }],
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
+    })
   );
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error(`Gemini image error: ${err}`);
-    throw new Error("Gemini API unavailable");
-  }
 
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
