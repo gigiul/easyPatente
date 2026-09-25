@@ -161,21 +161,49 @@ serve(async (req) => {
       await supabase.from("questions").update({ embedding }).eq("id", question_id);
     }
 
-    // Chunk matching
-    // Scope retrieval to the sign chapter when the question is a road-sign one:
-    // text-only embeddings of generic T/F questions otherwise retrieve wrong chunks.
-    const filterCategoryId =
-      question.category_id && SIGN_CATEGORY_IDS.has(question.category_id)
-        ? question.category_id
+    // Chunk matching (hybrid retrieval)
+    //
+    // Path A — sign-aware: when the image was identified offline (image_sign_type)
+    // AND the question belongs to a road-sign category, pin the manual chunk via
+    // sign_to_chunk. Generic T/F question texts ("Vero o Falso: questo segnale
+    // vieta la sosta?") retrieve wrong chunks with pure cosine similarity.
+    // The gate on the category protects against images whose sign was a false
+    // positive (e.g. a photo of a motorway sign on a non-sign question).
+    //
+    // Path B — category-scoped cosine fallback for everything else.
+    const isSignQuestion =
+      !!question.category_id && SIGN_CATEGORY_IDS.has(question.category_id);
+    const identifiedSign =
+      question.image_sign_type && question.image_sign_type !== "NON_IDENTIFICATO"
+        ? question.image_sign_type
         : null;
+    const useSignPath = isSignQuestion && !!identifiedSign;
 
     let chunks: any[] = [];
-    const { data: embChunks, error: matchError } = await supabase.rpc("match_manual_chunks", {
-      query_embedding: embedding, match_count: 5, filter_language: "it",
-      filter_category_id: filterCategoryId,
-    });
-    if (matchError) return json({ error: "Chunk matching failed" }, 500);
-    chunks = embChunks || [];
+    let retrievalPath: "sign" | "cosine" = "cosine";
+    if (useSignPath) {
+      const { data: signChunks, error: signError } = await supabase.rpc("match_chunks_by_sign", {
+        p_sign_name: identifiedSign, p_query_embedding: embedding,
+        p_match_count: 3, p_filter_language: "it",
+      });
+      if (signError) {
+        console.error("Sign retrieval failed, falling back to cosine:", signError);
+      } else {
+        chunks = signChunks || [];
+        retrievalPath = "sign";
+      }
+    }
+
+    if (chunks.length === 0) {
+      const filterCategoryId = isSignQuestion ? question.category_id : null;
+      const { data: embChunks, error: matchError } = await supabase.rpc("match_manual_chunks", {
+        query_embedding: embedding, match_count: 5, filter_language: "it",
+        filter_category_id: filterCategoryId,
+      });
+      if (matchError) return json({ error: "Chunk matching failed" }, 500);
+      chunks = embChunks || [];
+      retrievalPath = "cosine";
+    }
 
     if (chunks.length === 0) return json({ error: "No relevant context found" }, 404);
 
@@ -187,12 +215,19 @@ serve(async (req) => {
 
     const userText = question_text || italianTranslation?.text || question.code;
 
+    // Tell the model which sign was identified offline: the retrieved context is
+    // pinned to that sign, so the explanation stays consistent with the image
+    // even when the question text is generic.
+    const signAwarePrompt = useSignPath
+      ? `L'immagine mostra il segnale stradale "${identifiedSign}".\n\n${userText}`
+      : userText;
+
     // Generate explanation in Italian
     let generatedExplanation: string;
     if (imageBase64) {
-      generatedExplanation = await callLLMWithImage(userText, contextText, "italiano", imageBase64);
+      generatedExplanation = await callLLMWithImage(signAwarePrompt, contextText, "italiano", imageBase64);
     } else {
-      generatedExplanation = await callLLM(textPrompt(userText, contextText, "italiano"), "italiano");
+      generatedExplanation = await callLLM(textPrompt(signAwarePrompt, contextText, "italiano"), "italiano");
     }
 
     // Save in Italian
@@ -201,7 +236,10 @@ serve(async (req) => {
 
     // If target language is Italian, return
     if (lang_code === "it") {
-      return json({ explanation: generatedExplanation, secondary_explanation: null, sources: null, from_cache: false });
+      return json({
+        explanation: generatedExplanation, secondary_explanation: null, sources: null,
+        from_cache: false, retrieval_path: retrievalPath, identified_sign: identifiedSign,
+      });
     }
 
     // Translate to target language
@@ -234,6 +272,7 @@ serve(async (req) => {
     return json({
       explanation: targetExplanation, secondary_explanation: secondaryExplanation, sources,
       has_image: !!imageBase64, from_cache: false,
+      retrieval_path: retrievalPath, identified_sign: identifiedSign,
     });
   } catch (error) {
     console.error("Error:", error);

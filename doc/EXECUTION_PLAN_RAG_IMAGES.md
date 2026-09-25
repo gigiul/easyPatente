@@ -1,9 +1,11 @@
 # EXECUTION PLAN — RAG con immagini (DEV)
 
-> Ambiente: DEV `mvkxafzywzuohnbqjqmo` · LM Studio `:1234` (Fase 2c)
+> Ambiente: DEV `mvkxafzywzuohnbqjqmo` · LM Studio `:1234` (non più usato in 2c)
 > Obiettivo: migliorare la retrieval RAG per le domande la cui risposta dipende dall'immagine (segnali stradali).
 > Regola: tutto su DEV; promozione PROD solo a fine validazione.
-> **Ultimo aggiornamento: 2026-09-24 — FERMO alle porte della Fase 2c (analisi immagini)** in attesa che l'utente ricarichi le immagini di PROD (era un errore) e faccia dump PROD → DEV.
+> **Ultimo aggiornamento: 2026-09-25 — Fase 2c COMPLETATA.** Dump PROD→DEV fatto (DEV = PROD: 1.373 immagini).
+> La classificazione dei segnali è stata **rifatta interamente con analisi visiva (non qwen)**: 1.373/1.373 immagini,
+> 352 etichette cambiate, QA manuale su 226 cambi + 135 low-confidence. Dettagli sotto.
 
 ## Stato
 
@@ -13,8 +15,8 @@
 | 1 — Category filter | ✅ | deployato su DEV; test: top-3 solo cap-04 con filtro |
 | 2a — Migration schema | ✅ | `image_sign_type` + `sign_to_chunk` + RPC verificate su DEV |
 | 2b — populate sign_to_chunk | ✅ | 79/79 righe (48 exact + 13 alias + 18 partial), RPC Path A OK |
-| 2c — batch identify signs | ⏸️ **SOSPESO** | script pronto e smoke-testato (3/3); **bloccato su**: DEV/PROD hanno set immagini DIVERSI, utente ricarica immagini PROD e fa dump PROD→DEV. Poi ri-baselline e ripartire |
-| 2d — retrieval ibrida | ⬜ | explain-question (dopo 2c) |
+| 2c — batch identify signs | ✅ **COMPLETATA** | dump PROD→DEV ok (1.373 img). qwen: 2 run (53 min + 8 min) poi **sostituito da classificazione visiva** (subagenti) su tutte le 1.373. Esito: 416 con segnale / 957 NON_IDENTIFICATO, 0 NULL |
+| 2d — retrieval ibrida | 🔄 in corso | explain-question hybrid retrieval |
 | 4 — chat contestualizzata | ⬜ | `_shared/` + payload + UI |
 | C — Chiusura | ⬜ | evaluation + docs + checklist PROD |
 
@@ -94,8 +96,11 @@ e portarlo su DEV. Solo dopo si rianalizza e si decide dove girare il batch.
 - [x] 2c.1 Script `ragPipeline/batch_identify_signs.py` **riscritto**: prompt a ID numerico, modello `qwen/qwen3-vl-30b` (env `LLM_MODEL`), trasporto `db query` (nessuna secret key), dedup filename, journal JSONL + flush ogni 50, resume, `--limit`/`--flush-every`
 - [x] 2c.2 Validazione modello: 6/6 su test (clacson→26, bici→78, camion→29, pedone→77, camper→0, città→0), 1.9s/media
 - [x] 2c.3 Smoke test `--limit 3` end-to-end → 3/3 + flush DB verificato (vedi sopra, dati da azzerare)
-- [ ] 2c.4 **[BLOCCATO dal dump PROD→DEV]** run completo (~2-2.5h) → report %
-- [ ] 2c.5 Verifica resume (interrompere e riprendere) + spot-check visivo ~20 immagini classificate
+- [x] 2c.4 Run completo qwen (`qwen/qwen3-vl-30b`): 1.373/1.373, 52,7 min, 2,3 s/file, 0 falliti
+- [x] 2c.5 QA → **3 errori sistematici trovati in qwen** (dosso/cunetta, sosta/fermata, direzione dx/sx). Second pass mirato: 98 cambi, ma su sosta/fermata peggiorava (mia hint sul glifo fermata era falsa: fermata = **X**, non diagonale+verticale)
+- [x] 2c.6 **Riclassifica 1.373/1.373 con analisi visiva** (subagenti, 55 batch da 25). Regole ancorate ai glifi ufficiali scaricati da Wikimedia (sosta=1 barra, fermata=X, direzione obbl.=freccia orizzontale, passaggio obbl.=freccia diagonale in basso)
+- [x] 2c.7 QA manuale: 135 low-confidence + 226 cambi rivisti → 46 + 25 correzioni. Totale **352 etichette cambiate** vs qwen
+- [x] 2c.8 Scrittura DB (solo `image_sign_type`), journal aggiornato, backup in `labels_before_vision.json` / `sign_journal.jsonl`
 
 ## Fase 2d — Retrieval ibrida edge function
 - [ ] 2d.1 `explain-question`: se `image_sign_type` NON NULL/non `NON_IDENTIFICATO` **e** la domanda è in categoria segnaletica (gate `SIGN_CATEGORY_IDS` — protegge da casi come image16 "autostrada" dove il modello forzava un nome) → `match_chunks_by_sign` (Path A); altrimenti fallback cosine + `filter_category_id`
