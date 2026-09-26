@@ -74,6 +74,18 @@ serve(async (req) => {
 
     // ── 2. If Italian explanation exists, handle translations ──
     if (italianExplanation) {
+      // Same observability as the fresh path: which sign did we see and would
+      // we have used the sign-pinned path? (one PK lookup, cache hits are cheap)
+      const { data: cachedQuestion } = await supabase
+        .from("questions").select("image_sign_type, category_id")
+        .eq("id", question_id).single();
+      const cachedSign = cachedQuestion?.image_sign_type &&
+        cachedQuestion.image_sign_type !== "NON_IDENTIFICATO"
+        ? cachedQuestion.image_sign_type : null;
+      const cachedIsSignQuestion = !!cachedQuestion?.category_id &&
+        SIGN_CATEGORY_IDS.has(cachedQuestion.category_id);
+      const cachedPath = cachedIsSignQuestion && cachedSign ? "sign" : "cosine";
+      const cacheMeta = { retrieval_path: cachedPath, identified_sign: cachedSign };
       // If target language is Italian, return directly
       if (lang_code === "it") {
         let secondaryExplanation = null;
@@ -91,7 +103,7 @@ serve(async (req) => {
               .eq("question_id", question_id).eq("lang_code", secondary_lang);
           }
         }
-        return json({ explanation: italianExplanation, secondary_explanation: secondaryExplanation, sources: null, from_cache: true });
+        return json({ explanation: italianExplanation, secondary_explanation: secondaryExplanation, sources: null, from_cache: true, ...cacheMeta });
       }
 
       // Check if translation already exists in target language
@@ -125,7 +137,7 @@ serve(async (req) => {
         }
       }
 
-      return json({ explanation: targetExplanation, secondary_explanation: secondaryExplanation, sources: null, from_cache: true });
+      return json({ explanation: targetExplanation, secondary_explanation: secondaryExplanation, sources: null, from_cache: true, ...cacheMeta });
     }
 
     // ── 3. No explanation exists: generate it in Italian first ──
@@ -225,9 +237,24 @@ serve(async (req) => {
     // Generate explanation in Italian
     let generatedExplanation: string;
     if (imageBase64) {
-      generatedExplanation = await callLLMWithImage(signAwarePrompt, contextText, "italiano", imageBase64);
+      try {
+        generatedExplanation = await callLLMWithImage(signAwarePrompt, contextText, "italiano", imageBase64);
+      } catch (imgErr) {
+        // Some providers/models reject inline images (or the image call can fail
+        // transiently). The identified sign is already in the prompt, so the
+        // text-only answer stays correct — degrade instead of failing.
+        console.warn("Image call failed, falling back to text-only:", imgErr);
+        generatedExplanation = await callLLM(textPrompt(signAwarePrompt, contextText, "italiano"), "italiano");
+      }
     } else {
       generatedExplanation = await callLLM(textPrompt(signAwarePrompt, contextText, "italiano"), "italiano");
+    }
+
+    // An empty explanation would be cached forever and returned as
+    // "Empty response from LLM" on every later call, so fail loudly instead.
+    if (!generatedExplanation || !generatedExplanation.trim()) {
+      console.error("Generated explanation is empty, refusing to cache it");
+      return json({ error: "Empty response from LLM" }, 502);
     }
 
     // Save in Italian
@@ -276,7 +303,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error:", error);
-    return json({ error: error.message || "Internal error" }, 500);
+    return json({ error: (error as Error)?.message || "Internal error" }, 500);
   }
 });
 
@@ -529,23 +556,59 @@ async function geminiFetch(url: string, body: string): Promise<Response> {
   throw new Error(`Gemini API unavailable (HTTP ${status}): ${lastErr.slice(0, 300)}`);
 }
 
+// Gemma/Flash may return reasoning parts flagged `thought: true`; the actual
+// answer is the last non-thought part, so never read parts[0] blindly.
+function extractGeminiText(data: any): string {
+  const parts = data?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) return "";
+  // Never fall back to the reasoning parts: on a reasoning model whose whole
+  // output budget went into thinking, that would return the internal monologue
+  // as if it were the answer. An empty result here triggers the retry instead.
+  return parts.filter((p: any) => p?.text && !p.thought).map((p: any) => p.text).join("").trim();
+}
+
+function geminiFinishReason(data: any): string {
+  return data?.candidates?.[0]?.finishReason || "UNKNOWN";
+}
+
+// A reasoning model (gemma-4) can spend the whole output budget on thinking
+// (finishReason=MAX_TOKENS) leaving no answer part at all — the client then saw
+// "Empty response from LLM". So retry once with a much larger budget, and never
+// hand an empty string back to the caller.
+const GEMINI_TOKENS_DEFAULT = 4096;
+const GEMINI_TOKENS_RETRY = 16384;
+
+async function geminiComplete(systemPrompt: string, bodyFor: (maxTokens: number) => string): Promise<string> {
+  const budgets = [GEMINI_TOKENS_DEFAULT, GEMINI_TOKENS_RETRY];
+  let lastReason = "UNKNOWN";
+  for (let i = 0; i < budgets.length; i++) {
+    const res = await geminiFetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      bodyFor(budgets[i])
+    );
+    const data = await res.json();
+    const text = extractGeminiText(data);
+    if (text) return text;
+    lastReason = geminiFinishReason(data);
+    console.warn(
+      `Empty Gemini answer (attempt ${i + 1}/${budgets.length}, finishReason=${lastReason}, ` +
+      `thoughts=${data?.usageMetadata?.thoughtsTokenCount ?? "?"}); retrying with a larger budget`
+    );
+  }
+  throw new Error(`Gemini returned an empty answer (finishReason=${lastReason})`);
+}
+
 async function callGemini(systemPrompt: string, messages: { role: string; content: string }[]): Promise<string> {
   const contents = messages.map((m) => ({
     role: m.role === "assistant" ? "model" : m.role,
     parts: [{ text: m.content }],
   }));
 
-  const res = await geminiFetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    JSON.stringify({
-      contents,
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
-    })
-  );
-
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+  return geminiComplete(systemPrompt, (maxOutputTokens) => JSON.stringify({
+    contents,
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    generationConfig: { temperature: 0.7, maxOutputTokens },
+  }));
 }
 
 async function callGeminiWithImage(systemPrompt: string, prompt: string, imageBase64: string): Promise<string> {
@@ -554,23 +617,17 @@ async function callGeminiWithImage(systemPrompt: string, prompt: string, imageBa
   const mimeType = match?.[1] || "image/png";
   const base64Data = match?.[2] || imageBase64;
 
-  const res = await geminiFetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-    JSON.stringify({
-      contents: [{
-        role: "user",
-        parts: [
-          { text: prompt },
-          { inlineData: { mimeType, data: base64Data } },
-        ],
-      }],
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
-    })
-  );
-
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+  return geminiComplete(systemPrompt, (maxOutputTokens) => JSON.stringify({
+    contents: [{
+      role: "user",
+      parts: [
+        { text: prompt },
+        { inlineData: { mimeType, data: base64Data } },
+      ],
+    }],
+    systemInstruction: { parts: [{ text: systemPrompt }] },
+    generationConfig: { temperature: 0.7, maxOutputTokens },
+  }));
 }
 
 // ── LM Studio ──
