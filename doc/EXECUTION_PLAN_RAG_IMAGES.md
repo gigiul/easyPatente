@@ -3,9 +3,10 @@
 > Ambiente: DEV `mvkxafzywzuohnbqjqmo` · LM Studio `:1234` (non più usato in 2c)
 > Obiettivo: migliorare la retrieval RAG per le domande la cui risposta dipende dall'immagine (segnali stradali).
 > Regola: tutto su DEV; promozione PROD solo a fine validazione.
-> **Ultimo aggiornamento: 2026-09-25 — Fase 2c COMPLETATA.** Dump PROD→DEV fatto (DEV = PROD: 1.373 immagini).
+> **Ultimo aggiornamento: 2026-09-26 — Fasi 2c e 2d COMPLETATE.** Dump PROD→DEV fatto (DEV = PROD: 1.373 immagini).
 > La classificazione dei segnali è stata **rifatta interamente con analisi visiva (non qwen)**: 1.373/1.373 immagini,
-> 352 etichette cambiate, QA manuale su 226 cambi + 135 low-confidence. Dettagli sotto.
+> 352 etichette cambiate, QA manuale su 226 cambi + 135 low-confidence.
+> Retrieval ibrida **deployata su DEV** + prima valutazione DEV↔PROD eseguita (vedi Fase 2d e Chiusura).
 
 ## Stato
 
@@ -16,60 +17,39 @@
 | 2a — Migration schema | ✅ | `image_sign_type` + `sign_to_chunk` + RPC verificate su DEV |
 | 2b — populate sign_to_chunk | ✅ | 79/79 righe (48 exact + 13 alias + 18 partial), RPC Path A OK |
 | 2c — batch identify signs | ✅ **COMPLETATA** | dump PROD→DEV ok (1.373 img). qwen: 2 run (53 min + 8 min) poi **sostituito da classificazione visiva** (subagenti) su tutte le 1.373. Esito: 416 con segnale / 957 NON_IDENTIFICATO, 0 NULL |
-| 2d — retrieval ibrida | 🔄 in corso | explain-question hybrid retrieval |
+| 2d — retrieval ibrida | ✅ **COMPLETATA** | Path A sign-pinned + fallback cosine; 3 bug trovati e fixati (vedi sotto); valutazione 20 domande DEV↔PROD |
 | 4 — chat contestualizzata | ⬜ | `_shared/` + payload + UI |
-| C — Chiusura | ⬜ | evaluation + docs + checklist PROD |
+| C — Chiusura | 🔄 parziale | C.1 primo giro fatto; manca evaluation estesa + docs + checklist PROD |
+
 
 ---
 
-## 🔴 FERMO IMMOBILE — dove siamo (leggi prima di riprendere)
+## Vincoli e decisioni consolidati (leggere prima di toccare qualcosa)
 
-**Motivo sospensione (richiesta utente 2026-09-24):** prima di lanciare il batch, l'utente
-deve (1) ricaricare le immagini di PROD perché c'era un errore, (2) fare un dump di PROD
-e portarlo su DEV. Solo dopo si rianalizza e si decide dove girare il batch.
-
-### Fatti accertati sull'analisi immagini (non ri-verificare)
-
-1. **DEV e PROD hanno set di immagini DIVERSI, sovrapposizione ZERO:**
-   - DEV: 9.118 righe con immagine → **2.509 filename distinti**, naming `QB_<CAP>_imageN.png` / `.jpg`
-   - PROD: 8.970 righe con immagine → **2.031 filename distinti**, naming `QB_<CAP>_img_N.jpg` / `.gif`
-   - `comm` tra i due set: **0 in comune, 0 condivisi**. Il bucket DEV contiene solo file DEV-style; PROD (bucket `easyPatenteProd`, **privato** — sign API funziona, public URL 400) contiene solo file PROD-style.
-2. **I CODE delle domande si sovrappongono** (es. `Q_PRECEDENCEVEHICLES_HARD_1`, `Q_VEHICLES_3` presenti in entrambi) → stessa banca domande, ma immagini re-caricate con naming diverso.
-3. Conseguenza: un batch fatto su DEV **non si propaga a PROD per filename**. Serve il re-baseline (dump PROD→DEV) per riallineare, oppure girare il batch due volte.
-4. Dopo il dump, **ri-contare** distinct filenames DEV e riconfrontare con PROD prima di ripartire.
-
-### Stato smoke test Fase 2c (DATI DI DEV VECCHI — da azzerare/ignorare dopo il dump)
-
-- Batch riscritto e validato end-to-end su 3 file → flush riuscito, DB aggiornato:
-  - `QB_ADDITIONALPANELS_HARD_image1.png` → `Divieto di sosta` (verificato a occhio ✓)
-  - `QB_ADDITIONALPANELS_HARD_image10.png` → `Lavori in corso`
-  - `QB_ADDITIONALPANELS_HARD_image11.png` → `NON_IDENTIFICATO`
-- **Queste 3 righe DEV diventeranno obsolete dopo il dump PROD→DEV**: azzerare
-  `questions.image_sign_type` e cancellare il journal
-  (`/var/folders/nh/fkkdkk391j3b65tr139vpld40000gn/T/opencode/sign_journal.jsonl`) prima del run reale.
-
-### Decisioni prese e pronte (da confermare al ripristino)
+> La sospensione del 2026-09-24 (dump PROD→DEV) è chiusa: il dump è stato fatto, DEV == PROD
+> (1.373 immagini, 8.970 domande, 17.940 traduzioni, spiegazioni cache tutte NULL).
 
 | Decisione | Esito | Motivo |
 |---|---|---|
-| Modello LLM | **`qwen/qwen3-vl-30b`** (non gemma-4-26b) | `google/gemma-4-26b-a4b-qat` è in loop di thinking infinito (4096 token tutti reasoning, risposta vuota, `chat_template_kwargs.enable_thinking=false` non ha effetto). Validato qwen3-vl-30b: **6/6 corretti** su test set (4 segnali veri + 2 negativi), **1.9s/immagine** |
-| Formato output | **ID numerico 0..79** (lista numerata nel prompt, 0 = NON_IDENTIFICATO) | elimina hallucination (il modello non può inventare nomi fuori lista) e il problema di nomi quasi-giusti non censiti |
-| Trasporto DB | **`npx supabase db query --linked --file ... --output-format json`** con retry | la vecchia `service_role` JWT è disabilitata dal 2026-08-17; la Management API maschera le `sb_secret_` (anche alla creazione — key `rag_batch_local` creata ma inutilizzabile). Serve solo `SUPABASE_DB_PASSWORD` nel shell dell'utente (consigliato: esportarla anche nel shell dell'agent o scriverla in un file sorgibile) |
-| Storage immagini | DEV: public URL OK. PROD: **bucket privato** → serve sign API con secret key PROD (già in `quizConverter/.env`) | verificato |
-| Dedup | 1 chiamata LLM per **filename**, poi propagate a tutte le righe con stesso filename (`UPDATE ... FROM (VALUES ...)`) | 2.509 chiamate invece di 9.118 |
-| Journal/flush | JSONL append-only + flush ogni 50 file, risumibile (merge DB null + journal) | crash-safe |
+| Modello per classificazione immagini | **analisi visiva via subagenti** (qwen abbandonato) | qwen aveva 3 errori sistematici (dosso/cunetta, sosta/fermata, bias dx/sx); il secondo pass mirato peggiorava sosta/fermata |
+| Formato output classificazione | **ID numerico 0..79** (0 = NON_IDENTIFICATO) | elimina hallucination: il modello non può inventare nomi fuori dal catalogo |
+| Trasporto DB | **`npx supabase db query --linked --file ... --output-format json`** con retry | la vecchia `service_role` JWT è disabilitata dal 2026-08-17; la Management API maschera i `sb_secret_` |
+| Storage immagini | DEV: `easypatente` privato + policy `20260924170000`. PROD: `easyPatenteProd` privato → sign API con secret key PROD (`quizConverter/.env`) | verificato |
+| Journal/flush | JSONL append-only + flush ogni 50 file, risumibile | crash-safe |
+| Promozione PROD | **solo dopo validazione utente**, join per `code`/`image_filename` (gli UUID sono diversi fra DEV e PROD) | pipeline usa `uuid.uuid4()` random a ogni run |
 
-### Prossimi passi appena arrivato il dump PROD→DEV
+### Modello LLM di produzione (scelta utente, 2026-09-26)
 
-- [ ] R.1 Confermare che il dump ha portato le immagini PROD su DEV (recount distinct filenames DEV, attesi ~2.031 o il nuovo valore)
-- [ ] R.2 Azzerare `questions.image_sign_type` su DEV (migration one-shot o SQL) + cancellare journal smoke test
-- [ ] R.3 Riconfronto set filename DEV↔PROD (stessi file? stessi code?) → decidere target batch:
-       - se dopo il dump DEV == PROD → batch su DEV, poi propagatione a PROD per filename/code in chiusura
-       - se ancora diversi → valutare batch separato su PROD (serve promozione migration schema su PROD prima, o load della colonna)
-- [ ] R.4 **Checkpoint utente**: conferma modello (`qwen/qwen3-vl-30b`), conferma target, poi run completo (~2.509 file × ~2-4s ≈ 2-2.5h)
-- [ ] R.5 Report % identificati / NON_IDENTIFICATO e spot-check visivo campione
-
----
+- **Inizialmente `gemma-4-26b-a4b-it`** (oppure `gemma-4-31b-it`), per l'alto rate limit.
+  ⚠️ Su questa API sono disponibili **solo** questi due (`gemma-3-31b-it` non esiste; gemma-3 arriva a 27b).
+- `gemini-flash-latest` / `3.8-flash` / `3.5-flash` sono in **quota esaurita o 503 overload** → non usabili.
+- **I modelli gemma sono reasoning e il pensiero NON si può spegnere** (`thinkingBudget` / `thinkingLevel` /
+  `reasoningEffort` rifiutati dall'API). Rischio: loop di ragionamento che consuma tutto il budget di output
+  → risposta vuota. Mitigazioni già in `explain-question/index.ts`:
+  - `extractGeminiText` legge **solo** le parti non-`thought` (niente ripiego sul monologo);
+  - `geminiComplete` ritenta con `maxOutputTokens=16384` se la risposta è vuota;
+  - una spiegazione vuota **non viene mai salvata in cache** (502 invece di cache avvelenata).
+- Chiave Gemini **condivisa DEV/PROD** → la quota è un vincolo comune (osservati 429 durante la valutazione).
 
 ## Fase 0 — Fondamenta ✅
 - [x] 0.1 Conferma link DEV: `cat supabase/.temp/project-ref` → `mvkxafzywzuohnbqjqmo`
@@ -91,7 +71,7 @@ e portarlo su DEV. Solo dopo si rianalizza e si decide dove girare il batch.
 - [x] 2b.2 Migration `20260924160200_populate_sign_to_chunk` (79 INSERT ON CONFLICT) + push → **79/79 righe**, 0 chunk dangling
 - [x] 2b.3 Test RPC: `match_chunks_by_sign('Divieto di sosta', NULL, 3, 'it')` → chunk esatto `v1/cap-04/sez-33/001`, similarity 1
 
-## Fase 2c — Batch identificazione ⏸️ (pronto, sospeso — vedi sezione FERMO)
+## Fase 2c — Batch identificazione ✅ COMPLETATA
 - [x] 2c.0 Ricerca vincoli: legacy key disabilitata, gemma in loop thinking → soluzioni sopra
 - [x] 2c.1 Script `ragPipeline/batch_identify_signs.py` **riscritto**: prompt a ID numerico, modello `qwen/qwen3-vl-30b` (env `LLM_MODEL`), trasporto `db query` (nessuna secret key), dedup filename, journal JSONL + flush ogni 50, resume, `--limit`/`--flush-every`
 - [x] 2c.2 Validazione modello: 6/6 su test (clacson→26, bici→78, camion→29, pedone→77, camper→0, città→0), 1.9s/media
@@ -102,10 +82,25 @@ e portarlo su DEV. Solo dopo si rianalizza e si decide dove girare il batch.
 - [x] 2c.7 QA manuale: 135 low-confidence + 226 cambi rivisti → 46 + 25 correzioni. Totale **352 etichette cambiate** vs qwen
 - [x] 2c.8 Scrittura DB (solo `image_sign_type`), journal aggiornato, backup in `labels_before_vision.json` / `sign_journal.jsonl`
 
-## Fase 2d — Retrieval ibrida edge function
-- [ ] 2d.1 `explain-question`: se `image_sign_type` NON NULL/non `NON_IDENTIFICATO` **e** la domanda è in categoria segnaletica (gate `SIGN_CATEGORY_IDS` — protegge da casi come image16 "autostrada" dove il modello forzava un nome) → `match_chunks_by_sign` (Path A); altrimenti fallback cosine + `filter_category_id`
-- [ ] 2d.2 Deploy DEV + test ~10 domande trappola → `sources` corretti
-- Nota: le immagini "scena/veicolo" (piazza, camper) devono restituire `NON_IDENTIFICATO` → retrieval normale.
+## Fase 2d — Retrieval ibrida edge function ✅ COMPLETATA
+- [x] 2d.1 `explain-question`: se `image_sign_type` NON NULL/non `NON_IDENTIFICATO` **e** la domanda è in categoria segnaletica (gate `SIGN_CATEGORY_IDS` — protegge da casi come image16 "autostrada" dove il modello forzava un nome) → `match_chunks_by_sign` (Path A, con `p_sign_name`/`p_query_embedding`/`p_match_count`/`p_filter_language`); altrimenti fallback cosine + `filter_category_id`
+- [x] 2d.1b Prompt sign-aware: `L'immagine mostra il segnale stradale "X"` iniettato in `signAwarePrompt`; payload espone `retrieval_path` + `identified_sign` (anche in risposta **da cache**)
+- [x] 2d.2 Deploy DEV + test battery 10 domande trappola → 5 sign-path, 5 cosine, verdetto corretto in tutti
+- Nota: le immagini "scena/veicolo" (piazza, camper) restituiscono `NON_IDENTIFICATO` → retrieval normale.
+
+### Bug trovati e fixati durante 2d
+
+| # | Bug | Effetto | Fix |
+|---|---|---|---|
+| 1 | `extractGeminiText` leggeva `parts[0]` | con un modello reasoning il **monologo interno** diventava la spiegazione e finiva in cache | legge solo le parti non-`thought` |
+| 2 | Budget di output 4096 fisso | loop di ragionamento → `MAX_TOKENS` → **"Empty response from LLM"** | `geminiComplete` ritenta con 16384; spiegazione vuota **mai** salvata in cache (502) |
+| 3 | **Tutte le 9 categorie "hard" segnaletiche hanno 0 chunk** in `manual_chunks` (600 domande) | con `image_sign_type=NON_IDENTIFICATO` il filtro categoria tornava vuoto → `404 No relevant context found` | `resolveChunkCategory` mappa hard→base via `sort_order` (appaiamento 1:1 verificato) + ritentativo **senza filtro** se ancora 0 righe |
+| 4 | Risposta **da cache** senza `retrieval_path`/`identified_sign` | nessuna osservabilità sui cache hit | i due campi sono tornati nel payload cache |
+
+### Modello in uso su DEV (2026-09-26)
+
+`GEMINI_MODEL=gemini-flash-lite-latest` (nessun ragionamento, immagini ok, 2-8 s). Le **chiavi e i secret DEV/PROD sono separati**;
+la chiave Gemini invece è la stessa per entrambi → quota condivisa (429 osservati durante la valutazione).
 
 ## Fase 4 — Chat contestualizzata + immagine
 - [ ] 4.1 Estrai moduli condivisi `_shared/` (cors, fetchImage, callLLMWithImage, embedding)
@@ -114,9 +109,18 @@ e portarlo su DEV. Solo dopo si rianalizza e si decide dove girare il batch.
 - [ ] 4.4 Deploy DEV + test flusso quiz→chat con immagine
 
 ## Chiusura
-- [ ] C.1 Evaluation: ~10 domande trappola, hit-rate retrieval prima/dopo
-- [ ] C.2 Aggiorna `doc/PROJECT.md` + `doc/APP_STRUCTURE.md`
-- [ ] C.3 Checklist promozione PROD (migrations 0/1/2a/2b + edge functions + propagatione `image_sign_type` — solo dopo OK utente)
+- [x] C.1a **Primo giro di valutazione DEV↔PROD** (20 domande, 3 gruppi, script `eval_dev_prod.py`):
+      - Gruppo **A** (10 domande segnaletiche con segnale identificato → Path A): **DEV 7/10 vs PROD 6/10**
+      - Gruppo **B** (5 segnaletiche `NON_IDENTIFICATO` → cosine): DEV 5/5 vs PROD 5/5 (2 errori iniziali, fixati con il bug #3)
+      - Gruppo **C** (5 non-segnaletiche → cosine): DEV 2/3 risposte corrette (2 errori da quota 429) vs PROD 4/5
+      - Totale: **DEV 14/20 vs PROD 15/20** — campione piccolo, latenza DEV 7,9 s vs PROD 0,6 s (PROD da cache)
+      - Metrica: confronto del verdetto finale (`Vera`/`Falsa`) con `questions.is_correct` (4.670 F / 4.300 V)
+- [ ] C.1b **Evaluation estesa**: 50-100 domande per gruppo, escludere i 429, misurare hit-rate del chunk recuperato
+      (non solo il verdetto) e confrontare i contesti prima/dopo
+- [ ] C.1c **Test con i modelli gemma di produzione** (`gemma-4-26b-a4b-it` / `gemma-4-31b-it`): tasso di risposta vuota,
+      latenza, qualità su ~15 domande — da fare **prima** della promozione
+- [ ] C.2 Aggiorna `doc/PROJECT.md` (sezione `explain-question`) + `doc/APP_STRUCTURE.md`
+- [ ] C.3 Checklist promozione PROD (migrations 0/1/2a/2b + edge functions + propagatione `image_sign_type` **per `code`/`image_filename`** — solo dopo OK utente)
 
 ---
 
@@ -126,5 +130,7 @@ e portarlo su DEV. Solo dopo si rianalizza e si decide dove girare il batch.
 - **Edge function modificata**: `supabase/functions/explain-question/index.ts` (deployata su DEV)
 - **Script**: `ragPipeline/batch_identify_signs.py` (riscritto), `ragPipeline/signImageMatcher/populate_sign_to_chunk.py` (fixato)
 - **Journal smoke**: `/var/folders/nh/fkkdkk391j3b65tr139vpld40000gn/T/opencode/sign_journal.jsonl` (cancellare)
-- **Key PROD** (sola lettura/sign): `quizConverter/.env` → `SUPABASE_SECRET_KEYS`
+- **Key PROD**: `supabase/functions/.env.production` → `SUPABASE_URL`/`SUPABASE_SECRET_KEYS`; **key DEV**: `/var/folders/nh/fkkdkk391j3b65tr139vpld40000gn/T/opencode/dev_secret.env` (chmod 600)
+- **Valutazione**: `/var/folders/nh/fkkdkk391j3b65tr139vpld40000gn/T/opencode/eval_dev_prod.py` + `eval_{A,B,C}.json` + `eval_results.json`
+- **DB via**: `npx supabase db query --linked --file <f> --output-format json` (usare `--file`, gli UUID vanno **quotati**)
 - **Test immagini**: nomi + domande mostrano che stessi CODE hanno contenuti coerenti; visuale agent su file scaricati con `Read`

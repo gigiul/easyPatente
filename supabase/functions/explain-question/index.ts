@@ -207,13 +207,31 @@ serve(async (req) => {
     }
 
     if (chunks.length === 0) {
-      const filterCategoryId = isSignQuestion ? question.category_id : null;
+      // manual_chunks is only indexed against the *base* categories: all 9
+      // "hard" sign categories have zero chunks, so filtering by one of them
+      // returned nothing and the request failed with "No relevant context
+      // found". Every sort_order pairs exactly one base and one hard row, so
+      // resolve hard -> base before filtering.
+      const filterCategoryId = isSignQuestion
+        ? await resolveChunkCategory(supabase, question.category_id)
+        : null;
       const { data: embChunks, error: matchError } = await supabase.rpc("match_manual_chunks", {
         query_embedding: embedding, match_count: 5, filter_language: "it",
         filter_category_id: filterCategoryId,
       });
       if (matchError) return json({ error: "Chunk matching failed" }, 500);
       chunks = embChunks || [];
+
+      // Safety net: a category filter that matches nothing must degrade to
+      // unfiltered cosine, never fail the request.
+      if (chunks.length === 0 && filterCategoryId) {
+        console.warn(`No chunks for category ${filterCategoryId}, retrying unfiltered`);
+        const { data: plain, error: plainError } = await supabase.rpc("match_manual_chunks", {
+          query_embedding: embedding, match_count: 5, filter_language: "it",
+          filter_category_id: null,
+        });
+        if (!plainError) chunks = plain || [];
+      }
       retrievalPath = "cosine";
     }
 
@@ -577,6 +595,20 @@ function geminiFinishReason(data: any): string {
 // hand an empty string back to the caller.
 const GEMINI_TOKENS_DEFAULT = 4096;
 const GEMINI_TOKENS_RETRY = 16384;
+
+// manual_chunks rows are tagged with the *base* category id only; the "hard"
+// twin of a category (same sort_order, is_hard=true) has no chunks of its own.
+// Map hard -> base so the category filter stays meaningful for the ~600
+// questions that live in a hard sign category.
+async function resolveChunkCategory(supabase: any, categoryId: string): Promise<string> {
+  const { data } = await supabase
+    .from("categories").select("sort_order, is_hard").eq("id", categoryId).maybeSingle();
+  if (!data?.is_hard) return categoryId;
+  const { data: base } = await supabase
+    .from("categories").select("id")
+    .eq("sort_order", data.sort_order).eq("is_hard", false).maybeSingle();
+  return base?.id ?? categoryId;
+}
 
 async function geminiComplete(systemPrompt: string, bodyFor: (maxTokens: number) => string): Promise<string> {
   const budgets = [GEMINI_TOKENS_DEFAULT, GEMINI_TOKENS_RETRY];
