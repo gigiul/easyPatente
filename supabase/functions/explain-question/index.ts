@@ -1,53 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// ── Config ──
-const LLM_PROVIDER = Deno.env.get("LLM_PROVIDER") || "lmstudio"; // "lmstudio" | "gemini"
-const LLM_ENDPOINT = Deno.env.get("LLM_ENDPOINT") || "http://localhost:8000";
-const LLM_MODEL = Deno.env.get("LLM_MODEL") || "lm-studio";
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") || "";
-const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-flash-latest";
-const EMBEDDING_PROVIDER = Deno.env.get("EMBEDDING_PROVIDER") || "cloudflare"; // "lmstudio" | "cloudflare"
-const EMBEDDING_MODEL = Deno.env.get("EMBEDDING_MODEL") || "@cf/google/embeddinggemma-300m";
-const CLOUDFLARE_ACCOUNT_ID = Deno.env.get("CLOUDFLARE_ACCOUNT_ID") || "";
-const CLOUDFLARE_API_TOKEN = Deno.env.get("CLOUDFLARE_API_TOKEN") || "";
-const SUPABASE_STORAGE_URL = Deno.env.get("STORAGE_URL") || "";
-
-const LANG_NAMES: Record<string, string> = {
-  it: "italiano", es: "spagnolo", en: "inglese", fr: "francese",
-  de: "tedesco", ar: "arabo", pt: "portoghese", ru: "russo",
-  zh: "cinese", ja: "giapponese", ko: "coreano", bn: "bengalese", si: "singalese",
-};
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-// Road-sign quiz categories → manual chapters (cap-02..cap-11).
-// When the question belongs to one of these, retrieval is scoped to the
-// matching manual_chunks.category_id instead of searching all 554 chunks.
-const SIGN_CATEGORY_IDS = new Set([
-  "1c72e436-7a7f-4547-8f0e-b40f6fea7294", // Segnali di Pericolo (base)
-  "d2b2c2d2-2222-4b2b-8b2b-222222222126", // Segnali di Pericolo (hard)
-  "1a693ebd-3e77-49da-a5cb-aefd34af0d8e", // Segnali di Precedenza (base)
-  "d3c3d3e3-3333-4c3c-8c3c-333333333127", // Segnali di Precedenza (hard)
-  "1055628b-9e4a-4544-92fd-60167704c315", // Segnali di Divieto (base)
-  "d4d4e4f4-4444-4d4d-8d4d-444444444128", // Segnali di Divieto (hard)
-  "cfecfe52-5925-443e-a798-5adff605c489", // Segnali di Obbligo (base)
-  "d5e5f5a5-5555-4e5e-8e5e-555555555129", // Segnali di Obbligo (hard)
-  "fd787783-6b5b-4e0a-a0b4-2173aad17c37", // Segnali di Indicazione (base)
-  "d1000001-aaaa-4a1a-8a1a-000000000001", // Segnali di Indicazione (hard)
-  "4caf0f96-d5a9-49e7-b345-bae6277295b7", // Temporanei e di Cantiere (base)
-  "d1000002-bbbb-4b2b-8b2b-000000000002", // Temporanei e di Cantiere (hard)
-  "cf7cd590-6fdc-4c7c-8b64-6dbade75c49d", // Pannelli Integrativi (base)
-  "d1000003-cccc-4c3c-8c3c-000000000003", // Pannelli Integrativi (hard)
-  "9ae4ea7e-03e8-4f62-963a-ebea4fbb42e8", // Segnaletica Luminosa e Manuale (base)
-  "d1000004-dddd-4d4d-8d4d-000000000004", // Segnaletica Luminosa e Manuale (hard)
-  "add74848-59a1-4150-ba8b-1a01678ee745", // Segnaletica Orizzontale (base)
-  "d1000005-eeee-4e5e-8e5e-000000000005", // Segnaletica Orizzontale (hard)
-]);
+import { corsHeaders, json } from "../_shared/cors.ts";
+import { LANG_NAMES, SUPABASE_STORAGE_URL } from "../_shared/env.ts";
+import { generateEmbedding } from "../_shared/embedding.ts";
+import { runLLM, runLLMWithImage } from "../_shared/llm.ts";
+import { SIGN_CATEGORY_IDS, buildContext, retrieveChunks } from "../_shared/retrieval.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -77,7 +35,7 @@ serve(async (req) => {
       // Same observability as the fresh path: which sign did we see and would
       // we have used the sign-pinned path? (one PK lookup, cache hits are cheap)
       const { data: cachedQuestion } = await supabase
-        .from("questions").select("image_sign_type, category_id")
+        .from("questions").select("image_sign_type, category_id, image_filename")
         .eq("id", question_id).single();
       const cachedSign = cachedQuestion?.image_sign_type &&
         cachedQuestion.image_sign_type !== "NON_IDENTIFICATO"
@@ -85,7 +43,10 @@ serve(async (req) => {
       const cachedIsSignQuestion = !!cachedQuestion?.category_id &&
         SIGN_CATEGORY_IDS.has(cachedQuestion.category_id);
       const cachedPath = cachedIsSignQuestion && cachedSign ? "sign" : "cosine";
-      const cacheMeta = { retrieval_path: cachedPath, identified_sign: cachedSign };
+      const cacheMeta = {
+        retrieval_path: cachedPath, identified_sign: cachedSign,
+        has_image: !!cachedQuestion?.image_filename, reranked: false,
+      };
       // If target language is Italian, return directly
       if (lang_code === "it") {
         let secondaryExplanation = null;
@@ -146,7 +107,9 @@ serve(async (req) => {
       .eq("id", question_id).single();
     if (!question) return json({ error: "Question not found" }, 404);
 
-    // Fetch image
+    // Fetch image. The bucket is private so this fetch fails (400) unless we
+    // add credentials: we deliberately do NOT, because the model must answer
+    // from the manual + sign metadata only, never from pixels.
     let imageBase64: string | null = null;
     if (question.image_filename && SUPABASE_STORAGE_URL) {
       try {
@@ -169,79 +132,22 @@ serve(async (req) => {
     if (!embedding) {
       const textToEmbed = question_text || italianTranslation?.text;
       if (!textToEmbed) return json({ error: "question_text required" }, 400);
-      embedding = await generateTextEmbedding(textToEmbed);
+      embedding = await generateEmbedding(textToEmbed);
       await supabase.from("questions").update({ embedding }).eq("id", question_id);
     }
 
-    // Chunk matching (hybrid retrieval)
-    //
-    // Path A — sign-aware: when the image was identified offline (image_sign_type)
-    // AND the question belongs to a road-sign category, pin the manual chunk via
-    // sign_to_chunk. Generic T/F question texts ("Vero o Falso: questo segnale
-    // vieta la sosta?") retrieve wrong chunks with pure cosine similarity.
-    // The gate on the category protects against images whose sign was a false
-    // positive (e.g. a photo of a motorway sign on a non-sign question).
-    //
-    // Path B — category-scoped cosine fallback for everything else.
-    const isSignQuestion =
-      !!question.category_id && SIGN_CATEGORY_IDS.has(question.category_id);
-    const identifiedSign =
-      question.image_sign_type && question.image_sign_type !== "NON_IDENTIFICATO"
-        ? question.image_sign_type
-        : null;
-    const useSignPath = isSignQuestion && !!identifiedSign;
-
-    let chunks: any[] = [];
-    let retrievalPath: "sign" | "cosine" = "cosine";
-    if (useSignPath) {
-      const { data: signChunks, error: signError } = await supabase.rpc("match_chunks_by_sign", {
-        p_sign_name: identifiedSign, p_query_embedding: embedding,
-        p_match_count: 3, p_filter_language: "it",
-      });
-      if (signError) {
-        console.error("Sign retrieval failed, falling back to cosine:", signError);
-      } else {
-        chunks = signChunks || [];
-        retrievalPath = "sign";
-      }
-    }
-
-    if (chunks.length === 0) {
-      // manual_chunks is only indexed against the *base* categories: all 9
-      // "hard" sign categories have zero chunks, so filtering by one of them
-      // returned nothing and the request failed with "No relevant context
-      // found". Every sort_order pairs exactly one base and one hard row, so
-      // resolve hard -> base before filtering.
-      const filterCategoryId = isSignQuestion
-        ? await resolveChunkCategory(supabase, question.category_id)
-        : null;
-      const { data: embChunks, error: matchError } = await supabase.rpc("match_manual_chunks", {
-        query_embedding: embedding, match_count: 5, filter_language: "it",
-        filter_category_id: filterCategoryId,
-      });
-      if (matchError) return json({ error: "Chunk matching failed" }, 500);
-      chunks = embChunks || [];
-
-      // Safety net: a category filter that matches nothing must degrade to
-      // unfiltered cosine, never fail the request.
-      if (chunks.length === 0 && filterCategoryId) {
-        console.warn(`No chunks for category ${filterCategoryId}, retrying unfiltered`);
-        const { data: plain, error: plainError } = await supabase.rpc("match_manual_chunks", {
-          query_embedding: embedding, match_count: 5, filter_language: "it",
-          filter_category_id: null,
-        });
-        if (!plainError) chunks = plain || [];
-      }
-      retrievalPath = "cosine";
-    }
+    // Hybrid retrieval condivisa (sign-aware -> cosine), vedi _shared/retrieval.ts
+    const retrieval = await retrieveChunks(supabase, {
+      embedding,
+      categoryId: question.category_id,
+      imageSignType: question.image_sign_type,
+      questionText: question_text || italianTranslation?.text || question.code,
+    });
+    const { chunks, retrievalPath, identifiedSign, useSignPath, reranked } = retrieval;
 
     if (chunks.length === 0) return json({ error: "No relevant context found" }, 404);
 
-    // Build prompt
-    const contextText = chunks.map((c: any) => {
-      const meta = [c.chapter && `Capitolo: ${c.chapter}`, c.section && `Sezione: ${c.section}`, c.article_ref?.length && `Articoli: ${c.article_ref.join(", ")}`].filter(Boolean).join(" — ");
-      return meta ? `${meta}\n${c.text}` : c.text;
-    }).join("\n\n---\n\n");
+    const contextText = buildContext(chunks);
 
     const userText = question_text || italianTranslation?.text || question.code;
 
@@ -283,7 +189,9 @@ serve(async (req) => {
     if (lang_code === "it") {
       return json({
         explanation: generatedExplanation, secondary_explanation: null, sources: null,
-        from_cache: false, retrieval_path: retrievalPath, identified_sign: identifiedSign,
+        from_cache: false, has_image: !!imageBase64,
+        retrieval_path: retrievalPath, identified_sign: identifiedSign, reranked,
+        sections: chunks.map((c: any) => c.section),
       });
     }
 
@@ -317,7 +225,8 @@ serve(async (req) => {
     return json({
       explanation: targetExplanation, secondary_explanation: secondaryExplanation, sources,
       has_image: !!imageBase64, from_cache: false,
-      retrieval_path: retrievalPath, identified_sign: identifiedSign,
+      retrieval_path: retrievalPath, identified_sign: identifiedSign, reranked,
+      sections: chunks.map((c: any) => c.section),
     });
   } catch (error) {
     console.error("Error:", error);
@@ -328,10 +237,25 @@ serve(async (req) => {
 // ── Prompts ──
 
 function textPrompt(question: string, context: string, lang: string): string {
-  return `Spiega in MASSIMO 2 frasi perché la risposta è Vera o Falsa.
-Basati solo sul contesto fornito. Non inventare. Non elencare tutti i segnali del manuale.
+  return `Scrivi la spiegazione come la scriverebbe il manuale di teoria: tono didattico, asseritivo, in prima persona del manuale.
 
-Contesto:
+Regole di stile:
+1. Prima frase = la regola: cosa dice la norma o cosa significa il segnale ("Il segnale X preavvisa che ...", "Secondo l'art. Y ...").
+2. Seconda frase = un dato CONCRETO che aggiunga qualcosa: dove si applica, quando, l'eccezione, il limite, la conseguenza per chi guida. NON una frase che si limiti a dire che la risposta combacia.
+3. Vietate le frasi di riserva che non spiegano nulla: "L'affermazione corrisponde a quanto previsto dal segnale", "Tale prescrizione corrisponde alla funzione del segnale", "Quanto indicato è corretto", "È coerente con la normativa", "La risposta è vera perché ...".
+4. NON citare la fonte. Vietati: "il contesto", "il testo", "quanto riportato", "come indicato", "dal manuale risulta", "la domanda afferma", "la risposta fornita", "coerente con", "conferma che". Il lettore non deve mai capire che esiste un contesto.
+5. Niente preamboli ("La domanda chiede ...", "Analizzando ..."). Inizia subito dalla regola.
+6. MASSIMO 3 frasi.
+7. Termina SEMPRE con "Per questo la domanda è Vera." oppure "Per questo la domanda è Falsa."
+
+Esempi di stile:
+Domanda: "Il segnale si trova nei pressi di scuole o giardini pubblici frequentati da fanciulli."
+Risposta: Il segnale "Bambini" preavvisa la presenza di luoghi frequentati dai bambini, come scuole e asili. Prima del luogo segnalato occorre ridurre la velocità e essere pronti a fermarsi, perché i bambini possono attraversare la strada all'improvviso. Per questo la domanda è Vera.
+
+Domanda: "Il segnale impone il divieto di transito ai veicoli trainati da animali."
+Risposta: Il segnale "Animali selvatici vaganti" preavvisa la presenza di animali che possono attraversare la strada. Non si tratta di un divieto: impone solo di ridurre la velocità e di non fermarsi in prossimità del luogo segnalato. Per questo la domanda è Falsa.
+
+Contesto dal manuale (solo per te: usarlo come fonte, non citarlo né menzionarlo):
 ${context}
 
 Domanda (Vero/Falso): ${question}
@@ -494,27 +418,28 @@ const FEW_SHOT_EXAMPLES = [
   }
 ];
 
-// ── LLM Helpers ──
+// ── Prompt builders (spiegazione) ──
 
-async function callLLMWithImage(question: string, context: string, lang: string, imageBase64: string): Promise<string> {
+function callLLMWithImage(question: string, context: string, lang: string, imageBase64: string): Promise<string> {
   const fewShotText = FEW_SHOT_EXAMPLES.map(ex =>
     `Esempio: Segnale "${ex.description}" → ${ex.sign}. Domanda: "${ex.question}" → ${ex.answer}.`
   ).join("\n");
 
-  const prompt = `Sei un istruttore di scuola guida. Analizza l'immagine e rispondi alla domanda Vero/Falso.
+  const prompt = `Sei un manuale di teoria della patente. Analizza l'immagine e rispondi alla domanda Vero/Falso con tono didattico e asseritivo.
 
 Regole:
 1. Se l'immagine mostra un segnale stradale, identificalo (categoria + obblighi specifici)
-2. Se l'immagine NON è un segnale stradale (es. persona, incidente, situazione), NON dire "l'immagine non è un segnale". Rispondi direttamente alla domanda basandoti sul contesto
+2. Se l'immagine NON è un segnale stradale (es. persona, incidente, situazione), NON dire "l'immagine non è un segnale". Rispondi direttamente alla domanda
 3. NON descrivere il segnale visivamente (niente "cerchio blu con freccia")
-4. Basati sul contesto del manuale
-5. Rispondi in MASSIMO 2 frasi
-6. Termina con "Per questo la domanda è Vera." o "Per questo la domanda è Falsa."
+4. Enuncia prima la regola (cosa dice la norma o cosa significa il segnale); la seconda frase deve aggiungere un dato concreto (dove si applica, quando, l'eccezione, il limite, la conseguenza per chi guida), mai una frase che si limiti di dire che la risposta combacia
+5. NON citare la fonte del ragionamento e NON usare frasi di riserva: vietati "il contesto", "il testo", "quanto riportato", "come indicato", "dal manuale risulta", "la domanda afferma", "coerente con", "conferma che", "L'affermazione corrisponde a quanto previsto", "Quanto indicato è corretto". Il lettore non deve capire che esiste un contesto
+6. MASSIMO 3 frasi, senza preamboli
+7. Termina con "Per questo la domanda è Vera." o "Per questo la domanda è Falsa."
 
 Esempi:
 ${fewShotText}
 
-Contesto dal manuale:
+Contesto dal manuale (solo per te: usarlo come fonte, non citarlo):
 ${context}
 
 Domanda (Vero/Falso): ${question}
@@ -522,240 +447,10 @@ Domanda (Vero/Falso): ${question}
 Rispondi in ${lang}.`;
 
   const systemPrompt = `Rispondi sempre in ${lang}. NON menzionare il tuo nome o che sei un'AI. Inizia direttamente con la spiegazione.`;
-
-  if (LLM_PROVIDER === "gemini") {
-    return callGeminiWithImage(systemPrompt, prompt, imageBase64);
-  }
-  return callLMStudioWithImage(systemPrompt, prompt, imageBase64);
+  return runLLMWithImage(systemPrompt, prompt, imageBase64);
 }
 
-async function callLLM(prompt: string, langName: string): Promise<string> {
-  const systemPrompt = `Sei un istruttore di scuola guida. Rispondi sempre in ${langName}. NON menzionare il tuo nome o che sei un'AI. Inizia direttamente con la spiegazione.`;
-
-  if (LLM_PROVIDER === "gemini") {
-    return callGemini(systemPrompt, [{ role: "user", content: prompt }]);
-  }
-  return callLMStudio(systemPrompt, [{ role: "user", content: prompt }]);
-}
-
-// ── Gemini ──
-
-// The Gemini free tier intermittently answers 429/503 ("high demand",
-// "quota exceeded"). Those are transient, so retry with backoff before
-// giving up; only a 4xx (other than 429) is a real configuration error.
-const GEMINI_MAX_ATTEMPTS = 4;
-const GEMINI_RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
-
-async function geminiFetch(url: string, body: string): Promise<Response> {
-  let lastRes: Response | null = null;
-  let lastErr: string = "";
-  for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-goog-api-key": GEMINI_API_KEY },
-        body,
-      });
-      if (res.ok) return res;
-      lastRes = res;
-      lastErr = await res.text();
-      if (!GEMINI_RETRYABLE_STATUS.has(res.status) || attempt === GEMINI_MAX_ATTEMPTS) break;
-      const waitMs = 800 * 2 ** (attempt - 1);
-      console.warn(`Gemini ${res.status} (attempt ${attempt}/${GEMINI_MAX_ATTEMPTS}), retry in ${waitMs}ms`);
-      await new Promise((r) => setTimeout(r, waitMs));
-    } catch (e) {
-      lastErr = String(e);
-      if (attempt === GEMINI_MAX_ATTEMPTS) break;
-      await new Promise((r) => setTimeout(r, 800 * 2 ** (attempt - 1)));
-    }
-  }
-  const status = lastRes ? lastRes.status : 0;
-  console.error(`Gemini error [${status}]: ${lastErr}`);
-  throw new Error(`Gemini API unavailable (HTTP ${status}): ${lastErr.slice(0, 300)}`);
-}
-
-// Gemma/Flash may return reasoning parts flagged `thought: true`; the actual
-// answer is the last non-thought part, so never read parts[0] blindly.
-function extractGeminiText(data: any): string {
-  const parts = data?.candidates?.[0]?.content?.parts;
-  if (!Array.isArray(parts)) return "";
-  // Never fall back to the reasoning parts: on a reasoning model whose whole
-  // output budget went into thinking, that would return the internal monologue
-  // as if it were the answer. An empty result here triggers the retry instead.
-  return parts.filter((p: any) => p?.text && !p.thought).map((p: any) => p.text).join("").trim();
-}
-
-function geminiFinishReason(data: any): string {
-  return data?.candidates?.[0]?.finishReason || "UNKNOWN";
-}
-
-// A reasoning model (gemma-4) can spend the whole output budget on thinking
-// (finishReason=MAX_TOKENS) leaving no answer part at all — the client then saw
-// "Empty response from LLM". So retry once with a much larger budget, and never
-// hand an empty string back to the caller.
-const GEMINI_TOKENS_DEFAULT = 4096;
-const GEMINI_TOKENS_RETRY = 16384;
-
-// manual_chunks rows are tagged with the *base* category id only; the "hard"
-// twin of a category (same sort_order, is_hard=true) has no chunks of its own.
-// Map hard -> base so the category filter stays meaningful for the ~600
-// questions that live in a hard sign category.
-async function resolveChunkCategory(supabase: any, categoryId: string): Promise<string> {
-  const { data } = await supabase
-    .from("categories").select("sort_order, is_hard").eq("id", categoryId).maybeSingle();
-  if (!data?.is_hard) return categoryId;
-  const { data: base } = await supabase
-    .from("categories").select("id")
-    .eq("sort_order", data.sort_order).eq("is_hard", false).maybeSingle();
-  return base?.id ?? categoryId;
-}
-
-async function geminiComplete(systemPrompt: string, bodyFor: (maxTokens: number) => string): Promise<string> {
-  const budgets = [GEMINI_TOKENS_DEFAULT, GEMINI_TOKENS_RETRY];
-  let lastReason = "UNKNOWN";
-  for (let i = 0; i < budgets.length; i++) {
-    const res = await geminiFetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      bodyFor(budgets[i])
-    );
-    const data = await res.json();
-    const text = extractGeminiText(data);
-    if (text) return text;
-    lastReason = geminiFinishReason(data);
-    console.warn(
-      `Empty Gemini answer (attempt ${i + 1}/${budgets.length}, finishReason=${lastReason}, ` +
-      `thoughts=${data?.usageMetadata?.thoughtsTokenCount ?? "?"}); retrying with a larger budget`
-    );
-  }
-  throw new Error(`Gemini returned an empty answer (finishReason=${lastReason})`);
-}
-
-async function callGemini(systemPrompt: string, messages: { role: string; content: string }[]): Promise<string> {
-  const contents = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : m.role,
-    parts: [{ text: m.content }],
-  }));
-
-  return geminiComplete(systemPrompt, (maxOutputTokens) => JSON.stringify({
-    contents,
-    systemInstruction: { parts: [{ text: systemPrompt }] },
-    generationConfig: { temperature: 0.7, maxOutputTokens },
-  }));
-}
-
-async function callGeminiWithImage(systemPrompt: string, prompt: string, imageBase64: string): Promise<string> {
-  // Extract MIME type and raw base64
-  const match = imageBase64.match(/^data:(image\/\w+);base64,(.+)$/);
-  const mimeType = match?.[1] || "image/png";
-  const base64Data = match?.[2] || imageBase64;
-
-  return geminiComplete(systemPrompt, (maxOutputTokens) => JSON.stringify({
-    contents: [{
-      role: "user",
-      parts: [
-        { text: prompt },
-        { inlineData: { mimeType, data: base64Data } },
-      ],
-    }],
-    systemInstruction: { parts: [{ text: systemPrompt }] },
-    generationConfig: { temperature: 0.7, maxOutputTokens },
-  }));
-}
-
-// ── LM Studio ──
-
-async function callLMStudio(systemPrompt: string, messages: { role: string; content: string }[]): Promise<string> {
-  const allMessages = [
-    { role: "system", content: systemPrompt },
-    ...messages,
-  ];
-
-  const res = await fetch(`${LLM_ENDPOINT}/v1/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: LLM_MODEL,
-      messages: allMessages,
-      max_tokens: 4096,
-      temperature: 0.7,
-    }),
-  });
-
-  if (!res.ok) throw new Error("LLM service unavailable");
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content?.trim() || "";
-}
-
-async function callLMStudioWithImage(systemPrompt: string, prompt: string, imageBase64: string): Promise<string> {
-  const content = [
-    { type: "text", text: prompt },
-    { type: "image_url", image_url: { url: imageBase64 } },
-  ];
-
-  const res = await fetch(`${LLM_ENDPOINT}/v1/chat/completions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: LLM_MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content },
-      ],
-      max_tokens: 4096,
-      temperature: 0.7,
-    }),
-  });
-
-  if (!res.ok) throw new Error("LLM service unavailable");
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content?.trim() || "";
-}
-
-// ── Embedding ──
-
-async function generateTextEmbedding(text: string): Promise<number[]> {
-  if (EMBEDDING_PROVIDER === "cloudflare") {
-    return generateEmbeddingCloudflare(text);
-  }
-  return generateEmbeddingLMStudio(text);
-}
-
-async function generateEmbeddingCloudflare(text: string): Promise<number[]> {
-  const res = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/google/embeddinggemma-300m`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${CLOUDFLARE_API_TOKEN}`,
-      },
-      body: JSON.stringify({ text: [text] }),
-    }
-  );
-  if (!res.ok) {
-    const err = await res.text();
-    console.error(`Cloudflare embedding error: ${err}`);
-    throw new Error("Cloudflare embedding failed");
-  }
-  const data = await res.json();
-  return data.result?.data?.[0] || [];
-}
-
-async function generateEmbeddingLMStudio(text: string): Promise<number[]> {
-  const res = await fetch(`${LLM_ENDPOINT}/v1/embeddings`, {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: EMBEDDING_MODEL, input: text }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Embedding failed: ${res.status} ${err}`);
-  }
-  const data = await res.json();
-  return data.data[0].embedding;
-}
-
-// ── Helper ──
-
-function json(data: Record<string, unknown>, status = 200) {
-  return new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+function callLLM(prompt: string, langName: string): Promise<string> {
+  const systemPrompt = `Sei il manuale di teoria della patente: rispondi con il tono asseritivo e didattico del manuale stesso. Rispondi sempre in ${langName}. NON menzionare il tuo nome o che sei un'AI. NON riferirti mai al contesto, al testo o alla fonte da cui ricavi l'informazione. Inizia direttamente con la regola.`;
+  return runLLM(systemPrompt, [{ role: "user", content: prompt }]);
 }
