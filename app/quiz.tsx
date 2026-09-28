@@ -107,9 +107,9 @@ export default function QuizScreen() {
   const handleAskAIChat = useCallback(() => {
     const questionText = getTranslatedQuestion();
     if (!questionText) return;
-    sendMessage(questionText, i18n.language, []);
+    sendMessage(questionText, i18n.language, [], currentQuestion?.id);
     router.navigate('/(tabs)/chat');
-  }, [getTranslatedQuestion, i18n.language, router, sendMessage]);
+  }, [currentQuestion?.id, getTranslatedQuestion, i18n.language, router, sendMessage]);
 
   // Carica la seconda lingua quando serve (al cambio domanda)
   useEffect(() => {

@@ -30,7 +30,10 @@ interface ChatState {
   sending: boolean;
   error: string | null;
   remainingRequests: number | null;
-  sendMessage: (text: string, langCode: string, customHistory?: ChatMessage[]) => Promise<void>;
+  /** Id della domanda aperta al quiz: se presente, la chat ne recupera
+   *  contesto + spiegazione già generata (edge function `chat`). */
+  questionId: string | null;
+  sendMessage: (text: string, langCode: string, customHistory?: ChatMessage[], questionId?: string) => Promise<void>;
   retryMessage: (id: string, langCode: string) => Promise<void>;
   clearChat: () => Promise<void>;
   loadMessages: () => Promise<void>;
@@ -46,9 +49,11 @@ export const useChatStore = create<ChatState>()(
     sending: false,
     error: null,
     remainingRequests: null,
+    questionId: null,
 
-    sendMessage: async (text: string, langCode: string, customHistory?: ChatMessage[]) => {
-      set({ error: null });
+    sendMessage: async (text: string, langCode: string, customHistory?: ChatMessage[], questionId?: string) => {
+      // Se non passato, resta quello della domanda già in corso (follow-up)
+      set({ error: null, questionId: questionId ?? get().questionId });
 
       // 1. Optimistic update: il messaggio utente appare subito nella UI
       const userMsg: ChatMessage = {
@@ -108,6 +113,7 @@ export const useChatStore = create<ChatState>()(
               message: userMsg.content,
               lang_code: langCode,
               history: historyPayload,
+              question_id: get().questionId ?? undefined,
             }),
           }
         );
@@ -158,7 +164,7 @@ export const useChatStore = create<ChatState>()(
           .eq('user_id', session.user.id);
 
         // Resetta lo stato locale
-        set({ messages: [], error: null });
+        set({ messages: [], error: null, questionId: null });
       } catch (error) {
         console.error('Failed to clear chat:', error);
       }
