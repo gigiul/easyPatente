@@ -159,20 +159,32 @@ chat_messages.user_id → profiles.id (auth.users.id)
   "secondary_explanation": "translation...",
   "sources": [{ "chapter": "...", "section": "...", "page_start": 42 }],
   "has_image": true,
-  "from_cache": false
+  "from_cache": false,
+  "retrieval_path": "sign | cosine",
+  "identified_sign": "Divieto di sosta | null",
+  "reranked": false,
+  "sections": [{ "section": "...", "chunk_id": "v1/cap-04/sez-33/001" }]
 }
 ```
 
 **Flow**:
 1. Cache check → if `question_translations.explanation` exists, return immediately
-2. Fetch image (if present) from Supabase Storage
-3. Question embedding (cache or generate)
-4. Chunk matching → embedding search on manual_chunks (5 most relevant chunks)
-5. Generate explanation using LLM:
+2. Question embedding (cache or generate)
+3. **Retrieval ibrida** (`_shared/retrieval.ts` → `retrieveChunks`):
+   - **Path A (sign)**: se `questions.image_sign_type` ≠ `NON_IDENTIFICATO` **e** la categoria è segnaletica
+     (`SIGN_CATEGORY_IDS`) → RPC `match_chunks_by_sign` (chunk fissato dal segnale)
+   - **Path B (cosine)**: `match_manual_chunks` con `filter_category_id` (categoria base: `resolveChunkCategory`
+     mappa le categorie "hard" su quella base) → **re-rank** con `gemini-flash-lite-latest`
+     (`rerankByQuestion`, solo domande segnaletiche, best-effort)
+4. Generate explanation using LLM (`runLLM`/`geminiComplete`):
    - If image present: single call with image + question + context + few-shot
    - If no image: text-only call with context
-6. Save to cache (`question_translations.explanation`)
-7. Translate to secondary language (if requested)
+5. Save to cache (`question_translations.explanation`)
+6. Translate to secondary language (if requested)
+
+> Moduli condivisi: `supabase/functions/_shared/{env,cors,llm,embedding,retrieval}.ts`
+> (usati sia da `explain-question` che da `chat`). Il modello LLM è scelto da `GEMINI_MODEL`
+> (DEV: `gemini-flash-lite-latest`), il re-rank da `GEMINI_RERANK_MODEL`.
 
 ### chat
 
@@ -182,6 +194,7 @@ chat_messages.user_id → profiles.id (auth.users.id)
 ```json
 {
   "message": "your question",
+  "question_id": "uuid (opzionale: la domanda aperta dalla quiz)",
   "lang_code": "it",
   "history": [
     { "role": "user", "content": "previous question" },
@@ -195,18 +208,25 @@ chat_messages.user_id → profiles.id (auth.users.id)
 {
   "response": "AI response...",
   "remaining_requests": 4,
-  "sources": [{ "chapter": "...", "section": "..." }]
+  "sources": [{ "chapter": "...", "section": "..." }],
+  "retrieval_path": "sign | cosine",
+  "reranked": false
 }
 ```
 
 **Flow**:
 1. User authentication
 2. Profile `has_ai` check
-3. Rate limiting (5 requests/day, resets at midnight)
-4. Question embedding
-5. Chunk matching (5 most relevant chunks)
+3. Rate limiting (default 5 requests/day, resets at midnight)
+4. Se arriva `question_id`: retrieval **ibrida identica a `explain-question`**
+   (Path A sign-pinned / Path B cosine + re-rank) + contesto dalla **spiegazione cache**
+   di quella domanda (`question_translations.explanation`) e nota sul segnale
+5. Altrimenti: embedding della sola domanda + cosine + re-rank
 6. Generate response using LLM (includes chat history)
 7. Save messages in `chat_messages`
+
+> Il client (`store/chat.ts` → `app/quiz.tsx`) manda `question_id` solo quando la chat
+   è aperta da una domanda; il campo viene azzerato da `clearChat`.
 8. Increment request counter
 
 **Chat Features**:
@@ -339,7 +359,12 @@ Category UUIDs are shared constants between quizConverter and the DB:
 ## Development Notes
 
 1. **Embedding consistency**: All embeddings (questions, chunks) must use the same model
-2. **Explanation cache**: Explanations saved in `question_translations.explanation` do not expire
+2. **Explanation cache**: Explanations saved in `question_translations.explanation` do not expire.
+   For questions whose answer depends on the **figure** (e.g. category "Precedenze", 510 questions on 85
+   intersection images) the cache is **pre-filled offline**: the model never receives the image, so an
+   LLM would invent the scene. Explanations are written directly into the cache (agent vision + the
+   right-of-way rules, verdict validated against `questions.is_correct`) → runtime is a cache hit, no LLM.
+   See `doc/EXECUTION_PLAN_RAG_IMAGES.md` → "Fase 5".
 3. **Languages**: Quiz translations are generated offline with NLLB-200, explanations via LLM
 4. **ngrok**: Needed to expose LM Studio to the internet during development (URL changes on restart)
 5. **Category UUID**: Same UUIDs used in `quizConverter/pipeline.py` and in the database
@@ -347,3 +372,11 @@ Category UUIDs are shared constants between quizConverter and the DB:
 7. **Chat rate limit**: 5 requests/day per user, resets at midnight
 8. **Multi-provider**: Supports LM Studio (local) and Gemini API (cloud) via `LLM_PROVIDER`
 9. **Web**: `app.config.ts` `web.favicon`, `app/_layout.tsx` `Head`/`document.title`, `AppImageViewer`/ `usePreventScreenCapture`/ `AppAlert` wrappers (`.web.ts`), `metro.config.js` `unstable_enablePackageExports:false` + `babel-plugin-transform-import-meta` per `zustand@5` `import.meta`
+10. **Migrations are the source of truth**: every schema/data change must land in a versioned
+    `supabase/migrations/` file (never a bare `db execute`), then `db push` to both environments.
+    PROD (`pydwxyxvnkytelbapbsk`) was brought to parity with DEV (`mvkxafzywzuohnbqjqmo`) on 2026-09-28:
+    10/10 migrations, 134/134 identical function bodies, secrets + `chat`/`explain-question` deployed
+    (stale direct edits were converted into `20260928130000_reconcile_dev_schema_drift` and
+    `20260928130200_align_function_definitions`). Left intentionally different in PROD: category
+    `icon_url`/`category_translations.title`, storage policy `easyPatenteProd`, and runtime/user data
+    (`chat_messages`, `user_devices`, `user_quiz_progress`).

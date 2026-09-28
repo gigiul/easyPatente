@@ -108,8 +108,6 @@ Il progetto sfrutta le funzioni PostgreSQL eseguite lato DB (tramite `supabase.r
   Verifica se un utente ha commesso errori storici e genera un batch di tipo `'exam'` (per apparire nello storico) contenente il set delle ultime 30 domande errate (o meno se il totale è inferiore), pronte da ripassare sotto forma di simulazione. Memorizza la chiave i18n (`exam.reviewTitle`) per il titolo.
 - **`record_exam_mistakes(p_batch_id)`**
   Trigger automatico alla consegna di un esame. Scansiona le risposte: le errate o non fornite vengono aggregate in `user_mistakes`. Se una domanda precedentemente errata viene corretta in una sessione di revisione, essa viene rimossa dalla lista degli errori.
-- **`record_batch_mistakes(p_batch_id)`**
-  Procedura manuale per registrare errori da sessioni di quiz per categoria. Utilizza una logica di confronto booleano robusta per identificare le discrepanze tra risposta utente e risposta corretta.
 - **`get_mistakes_count()`**
   Ritorna istantaneamente un contatore aggiornato (count query) degli ultimi errori accumulati per l'utente loggato, per le badge visive UI.
 - **`get_user_exam_history(p_user_id)`**
@@ -124,6 +122,27 @@ Il progetto sfrutta le funzioni PostgreSQL eseguite lato DB (tramite `supabase.r
   Rimuove l'associazione dispositivo per un utente specifico. Utilizzata dal servizio clienti per permettere all'utente di registrare un nuovo dispositivo.
 - **`unlink_device()`**
   Rimuove l'associazione del dispositivo per l'utente corrente.
+- **`match_manual_chunks(query_embedding, match_count, filter_language, filter_category_id)`**
+  Retrieval vettoriale sui frammenti del manuale (`pgvector`, coseno su `embedding vector(768)`), opzionalmente
+  ristretto a una categoria. Usato dal percorso "cosine" di `explain-question` e `chat`.
+- **`match_chunks_by_sign(p_sign_name, p_query_embedding, p_match_count, p_filter_language)`**
+  Percorso "sign": se `p_sign_name` è valorizzato restituisce i chunk indicati in `sign_to_chunk` (sezione
+  esatta del segnale, `similarity = 1`); altrimenti ripiega sul coseno come `match_manual_chunks`.
+
+## ⚡ Edge Functions (RAG)
+
+Moduli condivisi in `supabase/functions/_shared/` (`env`, `cors`, `llm`, `embedding`, `retrieval`) usati da
+entrambe le funzioni. Modello da `GEMINI_MODEL` (DEV: `gemini-flash-lite-latest`), re-rank da
+`GEMINI_RERANK_MODEL`. Entrambe sono **deployate su DEV**.
+
+- **`explain-question`** — spiegazione della domanda con retrieval ibrida:
+  cache (`question_translations.explanation`) → Path A **sign-pinned** (`image_sign_type` ≠
+  `NON_IDENTIFICATO` + categoria segnaletica) oppure Path B **cosine + filtro categoria** + **re-rank LLM**
+  sul testo della domanda → generazione (con immagine) → cache. La risposta espone
+  `retrieval_path`, `identified_sign`, `reranked`, `sections`, `has_image`, `from_cache`.
+- **`chat`** — assistente conversazionale con rate limit (`has_ai`, `chat_daily_limit`); se il payload contiene
+  `question_id` usa la stessa retrieval ibrida e inietta la spiegazione già cache di quella domanda, altrimenti
+  parte dalla sola domanda utente. Risposta con `retrieval_path`/`reranked` e `remaining_requests`.
 
 ## DB Schema SQL
 
@@ -188,6 +207,7 @@ CREATE TABLE public.questions (
   category_id uuid NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
   is_correct boolean NOT NULL DEFAULT true,
+  image_sign_type text, -- segnale identificato offline sull'immagine; 'NON_IDENTIFICATO' = nessun segnale (indice parziale)
   CONSTRAINT questions_pkey PRIMARY KEY (id),
   CONSTRAINT questions_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id)
 );
@@ -243,6 +263,16 @@ CREATE TABLE public.user_devices (
   CONSTRAINT user_devices_user_id_unique UNIQUE (user_id),
   CONSTRAINT user_devices_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
+-- Feature DEV (migrazione 20260924160100): mappa un segnale riconosciuto offline sul
+-- capitolo del manuale. PK su sign_name, RLS SELECT per `authenticated`.
+CREATE TABLE public.sign_to_chunk (
+  sign_name     text PRIMARY KEY,   -- es. 'Divieto di sosta'
+  sign_category text NOT NULL,      -- PERICOLO|PRECEDENZA|DIVIETO|OBBLIGO|INDICAZIONE|TEMPORANEO
+  chunk_id      text NOT NULL,      -- percorso in manual_chunks, es. 'v1/cap-04/sez-33/001'
+  keywords      text[],
+  created_at    timestamp with time zone NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_sign_to_chunk_category ON public.sign_to_chunk (sign_category);
 
 ---
 
@@ -257,8 +287,14 @@ Si potrebbe aggiungere una tabella con le segnalazioni degli utenti con un limit
 - **Maintenance mode**:
 Implmentare un hook che nel caso venga flaggato a true un parametro nel db visualizzi una schermata di maintenance mode durante la quale non è possibile utilizzare l'app tranne per gli admin ( creare nuova colonna nella tabella profiles per flaggare gli admin )
 
-- **AI Assistant Integrato (RAG)**:
-  Implementazione pianificata di un assistente virtuale basato su AI che funge da Tutor per la teoria della patente. L'AI utilizzerà la tecnica RAG (Retrieval-Augmented Generation) fruttando **Supabase Edge Functions** e **pgvector** per ricercare nel database relazionale (o vettoriale) estratti esatti del Manuale di Teoria, in modo da poter fornire risposte ragionate, di contesto, prive di allucinazioni e pertinenti alle vere simulazioni d'esame.
+- **AI Assistant Integrato (RAG)** — 🟡 implementato su **DEV**:
+  Due **Supabase Edge Functions** (`explain-question` e `chat`) con **pgvector** (`manual_chunks.embedding vector(768)`)
+  + moduli condivisi `_shared/`. Retrieval **ibrida**: per le domande con segnale identificato
+  (`questions.image_sign_type` + `sign_to_chunk`) si aggancia alla sezione esatta del manuale, altrimenti
+  coseno filtrato per categoria con **re-rank LLM**; le spiegazioni vengono cacheate in
+  `question_translations.explanation`. La chat accetta `question_id` per contestualizzarsi alla domanda aperta.
+  Restano da fare: promozione su PROD, evaluation estesa e test sui modelli di produzione (vedi
+  `doc/EXECUTION_PLAN_RAG_IMAGES.md`).
 - **Statistiche Globali**:
   Dashboard analitica avanzata per tracciare le performance a lungo termine (progressione apprendimento, argomenti più falliti, percentuale probabilità di passare l'esame reale).
 
