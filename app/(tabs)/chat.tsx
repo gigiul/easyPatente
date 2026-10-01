@@ -16,6 +16,8 @@ import {
 } from 'react-native';
 
 import { AppAlert as Alert } from '@/lib/alert';
+import { isVoiceSupported } from '@/lib/liveAudio';
+import { startVoiceSession, stopVoiceSession } from '@/lib/liveVoice';
 import Markdown from 'react-native-markdown-display';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -27,8 +29,11 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { useChatStore } from '@/store/chat';
 import { useFeatureFlagsStore } from '@/store/featureFlags';
 import { useUserProfileStore } from '@/store/user';
+import { useVoiceStore } from '@/store/voice';
 
 const TYPING_ROW_ID = '__typing__';
+const VOICE_USER_ROW_ID = '__voice_user__';
+const VOICE_ASSISTANT_ROW_ID = '__voice_assistant__';
 
 // ── Markdown rendering rules ──
 // Reproduce default rules of react-native-markdown-display,
@@ -191,6 +196,15 @@ export default function ChatScreen() {
     loadRemainingRequests,
   } = useChatStore();
   const chatEnabled = useFeatureFlagsStore((state) => state.flags.chat) && profile?.has_ai;
+  const voiceFlag = useFeatureFlagsStore((state) => state.flags.voice);
+  const voiceActive = useVoiceStore((state) => state.active);
+  const voiceStatus = useVoiceStore((state) => state.status);
+  const voiceUserText = useVoiceStore((state) => state.userTranscript);
+  const voiceAssistantText = useVoiceStore((state) => state.assistantTranscript);
+  const voiceError = useVoiceStore((state) => state.error);
+  const voiceAvailable = !!voiceFlag && isVoiceSupported();
+  const canStartVoice =
+    voiceAvailable && chatEnabled && (remainingRequests === null || remainingRequests > 0);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
   const insets = useSafeAreaInsets();
@@ -318,19 +332,32 @@ export default function ChatScreen() {
     const signature = last
       ? `${messages.length}:${last.id}:${last.content?.length ?? 0}:${last.status ?? ''}`
       : `${messages.length}`;
+    const voiceSignature = voiceActive
+      ? `:${voiceUserText.length}:${voiceAssistantText.length}:${voiceStatus}`
+      : '';
 
-    if (signature === lastMessageSignatureRef.current) return;
-    lastMessageSignatureRef.current = signature;
+    const fullSignature = signature + voiceSignature;
+    if (fullSignature === lastMessageSignatureRef.current) return;
+    lastMessageSignatureRef.current = fullSignature;
 
     scrollToEnd(true);
     const timer = setTimeout(() => scrollToEnd(true), 250);
     return () => clearTimeout(timer);
-  }, [messages, scrollToEnd]);
+  }, [messages, scrollToEnd, voiceActive, voiceUserText, voiceAssistantText, voiceStatus]);
 
-  const rows = useMemo(
-    () => (sending ? [...messages, { id: TYPING_ROW_ID } as any] : messages),
-    [messages, sending]
-  );
+  const rows = useMemo(() => {
+    const list: any[] = [...messages];
+    if (sending) list.push({ id: TYPING_ROW_ID } as any);
+    if (voiceActive) {
+      if (voiceUserText) {
+        list.push({ id: VOICE_USER_ROW_ID, role: 'user', content: voiceUserText });
+      }
+      if (voiceAssistantText) {
+        list.push({ id: VOICE_ASSISTANT_ROW_ID, role: 'assistant', content: voiceAssistantText });
+      }
+    }
+    return list;
+  }, [messages, sending, voiceActive, voiceUserText, voiceAssistantText]);
 
   // Smooth scroll using onContentSizeChange instead of useEffect
   const onContentSizeChange = useCallback(
@@ -367,6 +394,26 @@ export default function ChatScreen() {
     );
   };
 
+  const handleToggleVoice = () => {
+    if (voiceActive) {
+      stopVoiceSession();
+      return;
+    }
+    void startVoiceSession({
+      questionId: useChatStore.getState().questionId,
+      lang: i18n.language,
+    });
+  };
+
+  // La sessione vocale (e il microfono) non deve restare aperta fuori dalla chat
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (useVoiceStore.getState().active) stopVoiceSession();
+      };
+    }, [])
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: any }) => {
       if (item.id === TYPING_ROW_ID) {
@@ -379,6 +426,27 @@ export default function ChatScreen() {
             ]}
           >
             <TypingIndicator color={secondaryTextColor} />
+          </View>
+        );
+      }
+
+      // Trascrizione live di un turno vocale in corso (testo parziale)
+      if (item.id === VOICE_USER_ROW_ID || item.id === VOICE_ASSISTANT_ROW_ID) {
+        const isUser = item.id === VOICE_USER_ROW_ID;
+        return (
+          <View
+            style={[
+              styles.messageBubble,
+              isUser ? styles.userBubble : styles.assistantBubble,
+              { backgroundColor: isUser ? '#2563EB' : assistantBubbleColor, opacity: 0.75 },
+            ]}
+          >
+            <ThemedText
+              selectable
+              style={[styles.messageText, isUser && { color: '#FFFFFF' }]}
+            >
+              {item.content}
+            </ThemedText>
           </View>
         );
       }
@@ -461,7 +529,7 @@ export default function ChatScreen() {
         </View>
 
         {/* Message list */}
-        {messages.length === 0 && !sending ? (
+        {rows.length === 0 ? (
           <View style={styles.centerContent}>
             <Ionicons name="chatbubbles-outline" size={48} color={borderColor} />
             <ThemedText style={[styles.noMessagesText, { color: secondaryTextColor }]}>
@@ -493,6 +561,22 @@ export default function ChatScreen() {
           </View>
         )}
 
+        {/* Voice session error */}
+        {voiceError && !voiceActive && (
+          <View style={[styles.errorContainer, { backgroundColor: '#FEF2F2' }]}>
+            <Ionicons name="mic-off" size={16} color="#EF4444" />
+            <ThemedText style={[styles.errorText, styles.voiceErrorText]}>
+              {t(`voice.errors.${voiceError}`)}
+            </ThemedText>
+            <Pressable
+              onPress={() => useVoiceStore.getState().setError(null)}
+              style={({ pressed }) => [styles.errorDismiss, pressed && { opacity: 0.6 }]}
+            >
+              <Ionicons name="close" size={16} color="#EF4444" />
+            </Pressable>
+          </View>
+        )}
+
         {/* Input area */}
         <View
           style={[
@@ -504,7 +588,50 @@ export default function ChatScreen() {
             },
           ]}
         >
-          {remainingRequests !== null && remainingRequests <= 0 ? (
+          {voiceActive ? (
+            /* ── Barra sessione vocale ── */
+            <View style={styles.voiceBar}>
+              <View
+                style={[
+                  styles.voiceStatusPill,
+                  { backgroundColor: inputBackgroundColor, borderColor },
+                ]}
+              >
+                <Ionicons
+                  name={
+                    voiceStatus === 'connecting'
+                      ? 'sync-outline'
+                      : voiceStatus === 'listening'
+                        ? 'mic'
+                        : voiceStatus === 'thinking'
+                          ? 'search'
+                          : 'volume-high'
+                  }
+                  size={18}
+                  color={
+                    voiceStatus === 'listening'
+                      ? '#2563EB'
+                      : voiceStatus === 'speaking'
+                        ? '#059669'
+                        : voiceStatus === 'thinking'
+                          ? '#D97706'
+                          : secondaryTextColor
+                  }
+                />
+                <ThemedText style={[styles.voiceStatusText, { color: assistantTextColor }]} numberOfLines={1}>
+                  {t(`voice.status.${voiceStatus}`)}
+                </ThemedText>
+                {voiceStatus === 'thinking' && <TypingIndicator color={secondaryTextColor} />}
+              </View>
+              <Pressable
+                onPress={stopVoiceSession}
+                accessibilityLabel={t('voice.stopButton')}
+                style={({ pressed }) => [styles.voiceStopButton, pressed && { opacity: 0.8, transform: [{ scale: 0.96 }] }]}
+              >
+                <Ionicons name="close" size={22} color="#FFFFFF" />
+              </Pressable>
+            </View>
+          ) : remainingRequests !== null && remainingRequests <= 0 ? (
             <View style={styles.limitReachedContainer}>
               <Ionicons name="warning" size={16} color="#D97706" />
               <ThemedText style={[styles.limitReachedText, { color: '#D97706' }]}>
@@ -526,6 +653,19 @@ export default function ChatScreen() {
                 multiline
                 maxLength={500}
               />
+              {canStartVoice && (
+                <Pressable
+                  onPress={handleToggleVoice}
+                  accessibilityLabel={t('voice.micButton')}
+                  style={({ pressed }) => [
+                    styles.micButton,
+                    { borderColor },
+                    pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] },
+                  ]}
+                >
+                  <Ionicons name="mic-outline" size={20} color="#2563EB" />
+                </Pressable>
+              )}
               <Pressable
                 onPress={handleSend}
                 disabled={!inputText.trim() || sending}
@@ -582,9 +722,16 @@ const styles = StyleSheet.create({
   typingDot: { width: 7, height: 7, borderRadius: 3.5 },
   errorContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8 },
   errorText: { fontSize: 13, color: '#EF4444' },
-  inputContainer: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingTop: 8, borderTopWidth: 1, gap: 8 },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 8, borderTopWidth: 1, gap: 8 },
   textInput: { flex: 1, borderWidth: 1, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, maxHeight: 100 },
   sendButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2563EB', justifyContent: 'center', alignItems: 'center' },
+  micButton: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
+  voiceBar: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  voiceStatusPill: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 10 },
+  voiceStatusText: { fontSize: 14, flexShrink: 1 },
+  voiceStopButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#EF4444', justifyContent: 'center', alignItems: 'center' },
+  voiceErrorText: { flex: 1 },
+  errorDismiss: { padding: 2 },
   limitReachedContainer: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 8 },
   limitReachedText: { fontSize: 13, fontWeight: '500' },
 });

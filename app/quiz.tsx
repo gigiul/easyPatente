@@ -14,6 +14,8 @@ import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizSession } from '@/hooks/useQuizSession';
 import { useSignedQuizImages } from '@/hooks/useSignedQuizImages';
+import { isVoiceSupported } from '@/lib/liveAudio';
+import { startVoiceSession } from '@/lib/liveVoice';
 import { useChatStore } from '@/store/chat';
 import { useFeatureFlagsStore } from '@/store/featureFlags';
 import { useLanguagesStore } from '@/store/languages';
@@ -48,6 +50,7 @@ export default function QuizScreen() {
 
   const explanationEnabled = useFeatureFlagsStore((state) => state.flags.explanation);
   const chatExplanationEnabled = useFeatureFlagsStore((state) => state.flags.chat_explanation);
+  const voiceFlag = useFeatureFlagsStore((state) => state.flags.voice);
   const profile = useUserProfileStore((state) => state.user);
 
   // Prevent screenshots (no-op on web via hook wrapper)
@@ -126,9 +129,16 @@ export default function QuizScreen() {
 
   const handleAskAIChat = useCallback(() => {
     if (!translatedQuestion) return;
+    // Modalità voce (web): apre la chat con il microfono pronto e il
+    // question_id della domanda corrente (fast-path cache in retrieveForVoice).
+    if (voiceFlag && isVoiceSupported()) {
+      void startVoiceSession({ questionId: question?.id ?? null, lang: i18n.language });
+      router.navigate('/(tabs)/chat');
+      return;
+    }
     sendMessage(translatedQuestion, i18n.language, [], question?.id);
     router.navigate('/(tabs)/chat');
-  }, [translatedQuestion, question?.id, i18n.language, sendMessage, router]);
+  }, [translatedQuestion, question?.id, i18n.language, sendMessage, router, voiceFlag]);
 
   if (progressLoading) {
     return (

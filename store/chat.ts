@@ -38,6 +38,11 @@ interface ChatState {
   clearChat: () => Promise<void>;
   loadMessages: () => Promise<void>;
   loadRemainingRequests: () => Promise<void>;
+  /** Turno vocale completato: la edge function ha già persistito in chat_messages,
+   *  qui si aggiunge solo la copia locale per la UI senza ricaricare. */
+  addVoiceTurn: (userText: string, assistantText: string) => void;
+  /** Aggiornamento remaining in tempo reale dagli eventi `rate` della sessione vocale. */
+  setRemainingRequests: (n: number) => void;
   /** @internal logica condivisa tra sendMessage e retryMessage */
   _performSend: (userMsg: ChatMessage, langCode: string, customHistory?: ChatMessage[]) => Promise<void>;
 }
@@ -226,5 +231,21 @@ export const useChatStore = create<ChatState>()(
         console.error('Failed to load remaining requests:', error);
       }
     },
+
+    addVoiceTurn: (userText: string, assistantText: string) => {
+      const now = new Date().toISOString();
+      set((state) => {
+        const messages = [...state.messages];
+        if (userText) {
+          messages.push({ id: generateUUID(), role: 'user', content: userText, created_at: now });
+        }
+        if (assistantText) {
+          messages.push({ id: generateUUID(), role: 'assistant', content: assistantText, created_at: now });
+        }
+        return { messages };
+      });
+    },
+
+    setRemainingRequests: (n: number) => set({ remainingRequests: n }),
   })
 );

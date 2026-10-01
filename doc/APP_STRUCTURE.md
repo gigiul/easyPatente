@@ -13,10 +13,10 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 - **`constants/`**: Valori costanti trasversali allo sviluppo (come i design token su `Colors.ts`).
 - **`hooks/`**: Custom hooks React che contengono la logica di business. Qui avviene la comunicazione tra UI, Zustand stores e le chiamate Supabase (es: `useAuth`, `useCategories`, `useQuizQuestions`).
 - **`queries/`**: Funzioni specifiche per eseguire query al database Supabase (separazione della query logic dal resto del frontend). Contiene moduli dedicati a progressione, errori (`mistakes.ts`) e dati generali.
-- **`store/`**: Gestione dello state globale dell'app con **Zustand**. Ci sono store dedicati a settori logici (`user`, `languages`, `quizBatches`, `categories`, `quizQuestions`).
+- **`store/`**: Gestione dello state globale dell'app con **Zustand**. Ci sono store dedicati a settori logici (`user`, `languages`, `quizBatches`, `categories`, `quizQuestions`, `chat`, `voice`).
 - **`i18n/`**: Configurazioni e file per la localizzazione (i18next). Contiene la cartella `locales` con i file JSON per le varie lingue (`it`, `en`, `es`, `bn`, ecc.).
 - **`types/`**: Definizioni dei tipi TypeScript che descrivono i modelli dei dati in arrivo da Supabase e altre interfacce dell'app.
-- **`lib/`**: File di libreria o configurazioni di root come `supabase.ts` (inizializzazione del client Supabase), `storage.ts` (storage locale/async con fallback `localStorage` su web), `alert.ts`/`alert.web.ts` (wrapper `AppAlert` per `Alert.alert` → `window.confirm` su web) e `device.ts`/`auth.ts`.
+- **`lib/`**: File di libreria o configurazioni di root come `supabase.ts` (inizializzazione del client Supabase), `storage.ts` (storage locale/async con fallback `localStorage` su web), `alert.ts`/`alert.web.ts` (wrapper `AppAlert` per `Alert.alert` → `window.confirm` su web), `device.ts`/`auth.ts` e il layer vocale `liveVoice.ts` (session manager WS verso `functions/v1/live`) + `liveAudio.web.ts`/`liveAudio.ts` (cattura/playback audio PCM16 16 kHz, AudioWorklet su web, no-op su native).
 - **`doc/`**: Documentazione (`APP_STRUCTURE.md`, `PROJECT.md`).
 
 ---
@@ -79,11 +79,23 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   - Mostra la schermata dei risultati al termine della simulazione (Superato/Non Superato con soglia max 3 errori) e l'elenco degli errori commessi con confronto tra risposta data e risposta corretta (senza spiegazioni/descrizioni aggiuntive).
   - Anche questa schermata è un **orchestratore**: collega `useExamSession` (timer con resume da `started_at`, risposta con auto-advance, submit con conferma, score calcolato in locale, persistenza **immediata** via `useQuizPersistence`) e compone la UI con i sottocomponenti di `components/exam/` (`ExamHeader`, `ExamQuestionCard`, `ExamAnswerBar`, `ExamResultsScreen`, quest'ultimo condividendo `ErrorListItem` in variante verde senza spiegazioni).
 
-### 5. Schermate Legali
+### 5. Chat AI (testuale e vocale)
+- **`app/(tabs)/chat.tsx`**:
+  - Chat con l'assistente AI groundata sul manuale (Edge Function `chat`; visibile con flag `chat` + `profiles.has_ai`).
+  - Bolle conversazionali, storico in `store/chat.ts` (`history`, `questionId`, `remainingRequests`), azione "pulisci chat".
+  - **Modalità vocale** (flag `voice`, web-first): il tasto microfono avvia una sessione full-duplex
+    (`lib/liveVoice.ts` → WS `functions/v1/live`); mentre è attiva la barra voce sostituisce l'input con
+    lo stato live (connessione / ascolto / ricerca nel manuale / risposta) e le trascrizioni parziali
+    vengono mostrate come bolle sintetiche; la sessione si stoppa uscendo dalla schermata (`useFocusEffect`).
+  - Banner errore vocale tradotto (`voice.errors.*`) e contatore richieste residue condiviso con la chat testuale.
+- **`app/quiz.tsx`**: da una domanda del quiz, "Chat AI" apre la chat **in modalità vocale con `question_id`**
+  (fast-path cache del RAG) quando `voice` è attivo e il browser supporta l'audio; altrimenti mantiene il flusso testuale.
+
+### 6. Schermate Legali
 - **`app/terms.tsx`**: Termini e condizioni di servizio in italiano (esclusione di responsabilità, precisazione sulla revisione dei quiz didattici, conformità d'uso).
 - **`app/privacy.tsx`**: Informativa sulla privacy sintetica in italiano (GDPR compliant, trasparenza sui dati raccolti ed eliminazione immediata account).
 
-### 6. Supporto Web (Expo Web)
+### 7. Supporto Web (Expo Web)
 - **`app.config.ts`**: aggiunge `web: { bundler:'metro', output:'static', favicon }` e `dotenv` per `.env`/`.env.production` (via `APP_ENV`/`NODE_ENV`); `extra` espone `supabaseUrl`/`supabaseAnonKey`/`supabaseStorageUrl` per `Constants` su web.
 - **`app/_layout.tsx`**: imposta `<title>Quiz Patente 2026</title>` via `expo-router/head` + `document.title` per la tab browser; `Stack` invariato.
 - **`components/AppImageViewer.tsx` / `AppImageViewer.web.tsx`**: wrapper per `react-native-image-viewing` (manca build web) → su web `Modal`+`expo-image`.
@@ -137,9 +149,11 @@ Il progetto sfrutta le funzioni PostgreSQL eseguite lato DB (tramite `supabase.r
 
 ## ⚡ Edge Functions (RAG)
 
-Moduli condivisi in `supabase/functions/_shared/` (`env`, `cors`, `llm`, `embedding`, `retrieval`) usati da
-entrambe le funzioni. Modello da `GEMINI_MODEL` (DEV: `gemini-flash-lite-latest`), re-rank da
-`GEMINI_RERANK_MODEL`. Entrambe sono **deployate su DEV**.
+Moduli condivisi in `supabase/functions/_shared/` (`env`, `cors`, `llm`, `embedding`, `retrieval`,
+`guards`) usati dalle funzioni HTTP; la vocale (`live`) riusa `guards` + `retrieval`. Modello da
+`GEMINI_MODEL` (DEV: `gemini-flash-lite-latest`), re-rank da `GEMINI_RERANK_MODEL`.
+`explain-question` e `chat` sono **deployate su DEV**; `live` è al momento **solo locale**
+(`supabase functions serve`).
 
 - **`explain-question`** — spiegazione della domanda con retrieval ibrida:
   cache (`question_translations.explanation`) → Path A **sign-pinned** (`image_sign_type` ≠
@@ -149,6 +163,11 @@ entrambe le funzioni. Modello da `GEMINI_MODEL` (DEV: `gemini-flash-lite-latest`
 - **`chat`** — assistente conversazionale con rate limit (`has_ai`, `chat_daily_limit`); se il payload contiene
   `question_id` usa la stessa retrieval ibrida e inietta la spiegazione già cache di quella domanda, altrimenti
   parte dalla sola domanda utente. Risposta con `retrieval_path`/`reranked` e `remaining_requests`.
+- **`live`** — proxy **WebSocket** verso Gemini Live API (`gemini-3.8-live`) per la chat vocale
+  full-duplex: auth via `?access_token` (config `verify_jwt = false`), **RAG obbligatorio** tramite
+  tool `retrieve_manual_context` (`behavior = BLOCKING`, senza re-rank), persistenza delle trascrizioni
+  in `chat_messages` a ogni turno con consumo 1 richiesta/turno, history + custom vocabulary per l'ASR,
+  cap sessione (`VOICE_SESSION_MAX_SECONDS`) e idle timeout (`VOICE_IDLE_SECONDS`).
 
 ## DB Schema SQL
 
@@ -301,6 +320,14 @@ Implmentare un hook che nel caso venga flaggato a true un parametro nel db visua
   `question_translations.explanation`. La chat accetta `question_id` per contestualizzarsi alla domanda aperta.
   Restano da fare: promozione su PROD, evaluation estesa e test sui modelli di produzione (vedi
   `doc/EXECUTION_PLAN_RAG_IMAGES.md`).
+- **Chat vocale full-duplex (Gemini Live API)** — 🟡 implementata in locale (deploy DEV pendente):
+  Conversazione vocale in tempo reale (`gemini-3.8-live`) sempre groundata dal RAG tramite tool
+  `retrieve_manual_context` (`behavior = BLOCKING`), con proxy Edge Function WS
+  (`supabase/functions/live/`), web-first (AudioWorklet PCM16 in `lib/liveAudio.web.ts`), riuso di
+  rate limit/history/UI della chat testuale (`store/voice.ts`, `lib/liveVoice.ts`, flag
+  `feature_flags.voice` default `false` via migration `20260930100000_add_voice_feature_flag`).
+  Piano completo con fasi ed exit criteria: `doc/PLAN_VOICE_CHAT.md`. Restano: test locale completo
+  in browser, deploy DEV e attivazione esplicita del flag.
 - **Statistiche Globali**:
   Dashboard analitica avanzata per tracciare le performance a lungo termine (progressione apprendimento, argomenti più falliti, percentuale probabilità di passare l'esame reale).
 

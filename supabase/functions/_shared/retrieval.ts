@@ -1,5 +1,6 @@
 // Shared hybrid retrieval for explain-question and chat.
 
+import { generateEmbedding } from "./embedding.ts";
 import { runRerankLLM } from "./llm.ts";
 //
 // Path A — sign-aware: when the image was identified offline (image_sign_type)
@@ -173,4 +174,92 @@ export function buildContext(chunks: any[]): string {
     ].filter(Boolean).join(" — ");
     return meta ? `${meta}\n${c.text}` : c.text;
   }).join("\n\n---\n\n");
+}
+
+// ── Voice path (Live API, piano VOICE D4) ─────────────────────────────────
+// Variante della retrieval per la chat vocale:
+//  - NESSUN re-rank: retrieveChunks senza questionText non reranka mai
+//  - fast-path: se question_id ha già la spiegazione in cache → contesto
+//    immediato, zero embedding + zero query vettoriale (target ~50ms)
+//  - langCode serve solo per il lookup della spiegazione; i filtri sui chunk
+//    restano "it" come nella chat testuale.
+
+export interface VoiceRetrievalResult {
+  chunks: any[];
+  context: string;
+  path: "cache" | "sign" | "cosine";
+  identifiedSign: string | null;
+  fromCache: boolean;
+}
+
+export async function retrieveForVoice(
+  supabase: any,
+  opts: { question: string; questionId?: string | null; langCode?: string },
+): Promise<VoiceRetrievalResult> {
+  const question = opts.question ?? "";
+  const questionId = opts.questionId ?? null;
+  const langCode = opts.langCode ?? "it";
+
+  if (questionId) {
+    const { data: q } = await supabase
+      .from("questions")
+      .select("id, category_id, image_sign_type, embedding")
+      .eq("id", questionId)
+      .maybeSingle();
+
+    if (q) {
+      const { data: translations } = await supabase
+        .from("question_translations")
+        .select("lang_code, explanation")
+        .eq("question_id", questionId)
+        .in("lang_code", [...new Set([langCode, "it"])]);
+      const byLang = new Map((translations || []).map((t: any) => [t.lang_code, t.explanation]));
+      const cached: string | null = byLang.get(langCode) || byLang.get("it") || null;
+      const identifiedSign = identifiedSignOf(q.image_sign_type);
+
+      // Fast path: la spiegazione è già grounded (generata da explain-question
+      // con la retrieval completa): nessun embedding, nessuna query.
+      if (cached) {
+        const note = identifiedSign
+          ? `Nota: la domanda mostra il segnale stradale "${identifiedSign}".`
+          : "";
+        const context = [note, `Spiegazione della domanda:\n${cached}`]
+          .filter(Boolean).join("\n\n");
+        return { chunks: [], context, path: "cache", identifiedSign, fromCache: true };
+      }
+
+      // Domanda nota, spiegazione non ancora cacheata: embedding già in DB
+      // (zero chiamate) + retrieval ibrida SENZA re-rank (nessun questionText).
+      const embedding: any = q.embedding ?? await generateEmbedding(question);
+      const retrieval = await retrieveChunks(supabase, {
+        embedding,
+        categoryId: q.category_id,
+        imageSignType: q.image_sign_type,
+      });
+      const note = retrieval.useSignPath && retrieval.identifiedSign
+        ? `Nota: la domanda mostra il segnale stradale "${retrieval.identifiedSign}".`
+        : "";
+      const context = [note, buildContext(retrieval.chunks)]
+        .filter(Boolean).join("\n\n");
+      return {
+        chunks: retrieval.chunks,
+        context,
+        path: retrieval.retrievalPath,
+        identifiedSign: retrieval.identifiedSign,
+        fromCache: false,
+      };
+    }
+  }
+
+  // Testo libero: embedding + coseno puro, stesso filtro "it" della chat.
+  const embedding = await generateEmbedding(question);
+  const { data, error } = await supabase.rpc("match_manual_chunks", {
+    query_embedding: embedding,
+    match_count: 5,
+    filter_language: "it",
+    filter_category_id: null,
+  });
+  if (error) throw new Error(`match_manual_chunks failed: ${error.message}`);
+  const chunks = data ?? [];
+  return { chunks, context: buildContext(chunks), path: "cosine", identifiedSign: null, fromCache: false };
 }

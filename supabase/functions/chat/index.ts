@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { corsHeaders, json } from "../_shared/cors.ts";
 import { generateEmbedding } from "../_shared/embedding.ts";
+import { consumeChatRequest, createAdminClient, guardChatAccess } from "../_shared/guards.ts";
 import { runLLM } from "../_shared/llm.ts";
 import { buildContext, retrieveChunks } from "../_shared/retrieval.ts";
 
@@ -12,53 +12,16 @@ serve(async (req) => {
   }
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: corsHeaders });
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
-    Deno.env.get("SUPABASE_SECRET_KEYS") ??
-    Deno.env.get("SUPABASE_SECRET_KEY") ?? "";
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  const supabase = createAdminClient();
 
   try {
     const { message, lang_code = "it", history = [], question_id } = await req.json();
     if (!message) return json({ error: "message required" }, 400);
 
-    // ── 1. Authenticate user ──
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Unauthorized" }, 401);
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) return json({ error: "Unauthorized" }, 401);
-
-    // ── 2. Retrieve profile ──
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("has_ai, request_count, last_request_at, chat_daily_limit")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.has_ai) {
-      return json({ error: "Chat AI non attiva per il tuo account", code: "AI_NOT_ENABLED" }, 403);
-    }
-
-    const dailyLimit = profile.chat_daily_limit ?? 20;
-
-    // ── 3. Rate limit (resets at midnight) ──
-    const now = new Date();
-    const lastRequest = profile.last_request_at ? new Date(profile.last_request_at) : null;
-    let requestCount = profile.request_count || 0;
-
-    if (lastRequest && lastRequest.toDateString() !== now.toDateString()) {
-      requestCount = 0;
-    }
-
-    if (requestCount >= dailyLimit) {
-      return json({
-        error: `Hai raggiunto il limite di ${dailyLimit} richieste giornaliere. Torna domani!`,
-        code: "RATE_LIMIT",
-        remaining_requests: 0,
-      }, 429);
-    }
+    // ── 1-3. Auth + has_ai + rate limit (shared con `live`) ──
+    const guard = await guardChatAccess(supabase, req.headers.get("Authorization"));
+    if (!guard.ok) return json(guard.body, guard.status);
+    const { user, requestCount, dailyLimit, now } = guard;
 
     // ── 3b. Contesto della domanda in corso (opzionale, passato dal quiz) ──
     // Consente alla chat di: (a) usare l'hibrid retrieval già usata da
@@ -162,13 +125,7 @@ Formato della risposta:
     ]);
 
     // ── 7. Increment counter ──
-    await supabase
-      .from("profiles")
-      .update({
-        request_count: requestCount + 1,
-        last_request_at: now.toISOString(),
-      })
-      .eq("id", user.id);
+    await consumeChatRequest(supabase, user.id, requestCount, now);
 
     // ── 8. Return response ──
     const remainingRequests = dailyLimit - (requestCount + 1);
