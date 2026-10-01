@@ -146,7 +146,7 @@ function ErrorListItemBase({
             </View>
           </View>
           {secondaryText ? (
-            <ThemedText style={[styles.secondaryText, { color: iconColor }]}>{secondaryText}</ThemedText>
+            <ThemedText style={[styles.secondaryQuestionText, { color: iconColor }]}>{secondaryText}</ThemedText>
           ) : null}
           {secondaryExplanation ? (
             <ThemedText style={[styles.secondaryExplanation, { color: iconColor }]}>
@@ -281,9 +281,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
-  secondaryText: {
-    fontSize: 15,
-    lineHeight: 21,
+  secondaryQuestionText: {
+    fontSize: 20,
+    lineHeight: 28,
   },
   secondaryExplanation: {
     fontSize: 13,

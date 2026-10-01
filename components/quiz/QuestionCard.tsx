@@ -122,7 +122,7 @@ export function QuestionCard({
               <Ionicons name="volume-high" size={18} color="#6B7280" />
             </Pressable>
           </View>
-          <ThemedText style={[styles.secondaryText, { color: iconColor }]}>{secondaryText}</ThemedText>
+          <ThemedText style={[styles.secondaryQuestionText, { color: iconColor }]}>{secondaryText}</ThemedText>
         </View>
       ) : null}
     </View>
@@ -162,8 +162,8 @@ const styles = StyleSheet.create({
     color: '#2563EB',
   },
   questionText: {
-    fontSize: 18,
-    lineHeight: 27,
+    fontSize: 20,
+    lineHeight: 29,
     fontWeight: '500',
   },
   imageContainer: {
@@ -201,9 +201,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
-  secondaryText: {
-    fontSize: 15,
-    lineHeight: 21,
+  secondaryQuestionText: {
+    fontSize: 20,
+    lineHeight: 28,
   },
   playOverlay: {
     justifyContent: 'flex-end',

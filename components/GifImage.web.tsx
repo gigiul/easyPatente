@@ -84,7 +84,6 @@ export default function GifImage({
   return (
     <View style={style}>
       {/* Hidden img used only to load & capture the first frame */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imgRef}
         src={uri}

@@ -55,7 +55,7 @@ export function ExamQuestionCard({
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={[styles.secondaryText, { color: iconColor }]}>{secondaryText}</ThemedText>
+          <ThemedText style={[styles.secondaryQuestionText, { color: iconColor }]}>{secondaryText}</ThemedText>
         </View>
       ) : null}
 
@@ -150,9 +150,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
-  secondaryText: {
-    fontSize: 15,
-    lineHeight: 21,
+  secondaryQuestionText: {
+    fontSize: 20,
+    lineHeight: 28,
   },
   playOverlay: {
     justifyContent: 'flex-end',

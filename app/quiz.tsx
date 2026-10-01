@@ -17,11 +17,11 @@ import { useSignedQuizImages } from '@/hooks/useSignedQuizImages';
 import { useChatStore } from '@/store/chat';
 import { useFeatureFlagsStore } from '@/store/featureFlags';
 import { useLanguagesStore } from '@/store/languages';
-import { useUserProfileStore } from '@/store/user';
 import type { QuizQuestion } from '@/store/quizQuestions';
+import { useUserProfileStore } from '@/store/user';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
 
@@ -108,6 +108,21 @@ export default function QuizScreen() {
   const handleSpeakSecondaryExplanation = () => {
     if (secondaryExplanation && secondaryLanguage) speakText(secondaryExplanation, secondaryLanguage);
   };
+
+  // Ferma il TTS quando cambia batch o domanda
+  useEffect(() => {
+    Speech.stop();
+  }, [batchId]);
+  useEffect(() => {
+    Speech.stop();
+  }, [quiz.currentQuestionIndex]);
+
+  // Ferma il TTS quando si esce dalla schermata quiz
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
 
   const handleAskAIChat = useCallback(() => {
     if (!translatedQuestion) return;

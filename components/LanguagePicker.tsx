@@ -35,7 +35,7 @@ export function LanguagePicker({ value, onChange, title, languages, excludeLangu
     : languages;
 
   const displayLanguages = allowNone
-    ? [{ code: '', name: '-', native_name: '', is_active: true, is_default: false, created_at: '' }, ...filteredLanguages]
+    ? [{ code: '', name: '-', native_name: '', is_active: true, is_default: false, tts_locale: null, created_at: '' }, ...filteredLanguages]
     : filteredLanguages;
 
   const renderLanguageItem = ({ item }: { item: Language }) => (
