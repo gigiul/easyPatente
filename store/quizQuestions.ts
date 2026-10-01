@@ -1,18 +1,23 @@
 import { create } from 'zustand';
 
+export interface QuizQuestionTranslation {
+  lang_code: string;
+  text: string;
+  explanation: string;
+}
+
 export interface QuizQuestion {
   id: string;
   code: string;
-  image_url: string | null;
+  image_filename: string | null;
+  image_url?: string | null;
   is_free: boolean;
+  is_correct: boolean;
   category_id: string;
   created_at: string;
   position: number;
-  translation: {
-    lang_code: string;
-    text: string;
-    explanation: string;
-  } | null;
+  translation: QuizQuestionTranslation | null;
+  secondaryTranslation?: QuizQuestionTranslation | null;
 }
 
 interface QuizQuestionsState {

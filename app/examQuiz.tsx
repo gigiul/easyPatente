@@ -1,47 +1,39 @@
-import { usePreventScreenCapture } from '@/hooks/usePreventScreenCapture';
-import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { Image } from 'expo-image';
-import GifImage from '@/components/GifImage';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-
-import AppImageViewer from '@/components/AppImageViewer';
-import { AppAlert as Alert } from '@/lib/alert';
-
-import { ThemedButton } from '@/components/ThemedButton';
+import { ExamAnswerBar } from '@/components/exam/ExamAnswerBar';
+import { ExamHeader } from '@/components/exam/ExamHeader';
+import { ExamQuestionCard } from '@/components/exam/ExamQuestionCard';
+import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
+import { useExamSession } from '@/hooks/useExamSession';
 import { useLanguage } from '@/hooks/useLanguage';
+import { usePreventScreenCapture } from '@/hooks/usePreventScreenCapture';
+import { useQuizColors } from '@/hooks/useQuizColors';
 import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
-import { useQuizScore } from '@/hooks/useQuizScore';
-import { useQuizTheme } from '@/hooks/useQuizTheme';
-import { useThemeColor } from '@/hooks/useThemeColor';
-import { getSignedImageUrl } from '@/lib/supabase';
-import { recordExamMistakes } from '@/queries/mistakes';
-import { updateQuizProgression } from '@/queries/quizProgression';
+import { useSignedQuizImages } from '@/hooks/useSignedQuizImages';
+import type { QuizQuestion } from '@/store/quizQuestions';
+import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-const EXAM_DURATION_SECONDS = 20 * 60; // 20 minutes
+/** Stable empty list so the review images are only resolved once the exam is completed. */
+const NO_QUESTIONS: QuizQuestion[] = [];
 
 export default function ExamQuizScreen() {
   const { t, i18n } = useTranslation();
-  const { batchId, forceItalian } = useLocalSearchParams<{ batchId: string, forceItalian?: string }>();
+  const { batchId, forceItalian } = useLocalSearchParams<{ batchId: string; forceItalian?: string }>();
   const isForcedItalian = forceItalian === 'true';
   const router = useRouter();
   const { session } = useAuth();
   const userId = session?.user?.id || '';
 
-  const { progress: quizProgress, loading: progressLoading } = useQuizProgression(userId, String(batchId));
+  const { progress, loading: progressLoading, loadedBatchId } = useQuizProgression(
+    userId,
+    String(batchId)
+  );
   const { secondaryLanguage } = useLanguage();
   const { questions } = useQuizQuestions(
     String(batchId),
@@ -49,205 +41,30 @@ export default function ExamQuizScreen() {
     isForcedItalian ? null : secondaryLanguage
   );
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<any>({});
-  const [quizCompleted, setQuizCompleted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(EXAM_DURATION_SECONDS);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
-  const currentQuestion = questions[currentQuestionIndex] as any;
-  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
-  const [isImageLoading, setIsImageLoading] = useState(false);
-  const [isPlayingGif, setIsPlayingGif] = useState(false);
-  const [playingErrorGifs, setPlayingErrorGifs] = useState<Record<string, boolean>>({});
-  const mainImageRef = useRef<any>(null);
-  const errorImageRefs = useRef<Record<string, any>>({});
-  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
-  const [signedErrorUrls, setSignedErrorUrls] = useState<Record<string, string>>({});
-
-  // Reset GIF playing state when question changes
-  useEffect(() => {
-    setIsPlayingGif(false);
-  }, [currentQuestionIndex]);
-
-  useEffect(() => {
-    const filename = currentQuestion?.image_filename;
-    if (!filename || signedUrls[filename]) return;
-    getSignedImageUrl(filename).then((url) => {
-      if (url) setSignedUrls((prev) => (prev[filename] ? prev : { ...prev, [filename]: url }));
-    });
-  }, [currentQuestion?.image_filename, signedUrls]);
-
-  // Prefetch signed URL + pixels for the next questions so navigation is instant
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      for (let i = 1; i <= 2; i++) {
-        const filename = (questions[currentQuestionIndex + i] as any)?.image_filename;
-        if (!filename) continue;
-        const url = await getSignedImageUrl(filename);
-        if (cancelled || !url) continue;
-        setSignedUrls((prev) => (prev[filename] ? prev : { ...prev, [filename]: url }));
-        Image.prefetch(url).catch(() => {});
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentQuestionIndex, questions]);
-
-  useEffect(() => {
-    if (!quizCompleted) return;
-    const incorrect = questions.filter((q: any) => {
-      const ua = answers[q.id];
-      return typeof ua !== 'undefined' && ua !== q.is_correct;
-    });
-    incorrect.forEach((q: any) => {
-      if (q.image_filename && !signedErrorUrls[q.id]) {
-        getSignedImageUrl(q.image_filename).then((url) => {
-          if (url) setSignedErrorUrls((prev) => ({ ...prev, [q.id]: url }));
-        });
-      }
-    });
-  }, [quizCompleted, questions, answers]);
-
-  // Prevent screenshots (no-op on web)
+  // Prevent screenshots (no-op on web via hook wrapper)
   usePreventScreenCapture();
 
-  // Theme colors
-  const backgroundColor = useThemeColor({}, 'background');
-  const textColor = useThemeColor({}, 'text');
-  const iconColor = useThemeColor({}, 'icon');
-  const cardBackgroundColor = useThemeColor({ light: '#FFFFFF', dark: '#1F2937' }, 'background');
-  const borderColor = useThemeColor({ light: '#E2E8F0', dark: '#374151' }, 'icon');
-  const secondaryBackgroundColor = useThemeColor({ light: '#F8FAFC', dark: '#111827' }, 'background');
-  const quizTheme = useQuizTheme();
+  const exam = useExamSession({
+    userId,
+    batchId: String(batchId),
+    questions,
+    progress,
+    progressLoading,
+    loadedBatchId,
+  });
 
-  // --- Initialization & State Restoration ---
-  useEffect(() => {
-    if (quizProgress && quizProgress.length > 0 && Object.keys(answers).length === 0) {
-      const progressRecord = quizProgress[0];
-      if (progressRecord.answers) {
-        setAnswers(progressRecord.answers);
-      }
-      if (progressRecord.completed) {
-        setQuizCompleted(true);
-      }
-      // Resume timer logic if needed based on started_at, but for now just start fresh or use remaining time
-      if (!progressRecord.completed && progressRecord.started_at) {
-        const startedTime = new Date(progressRecord.started_at).getTime();
-        const now = new Date().getTime();
-        const diffSeconds = Math.floor((now - startedTime) / 1000);
-        const remaining = Math.max(EXAM_DURATION_SECONDS - diffSeconds, 0);
-        setTimeLeft(remaining);
-        if (remaining === 0) {
-          submitExam(progressRecord.answers);
-        }
-      }
-    }
-  }, [quizProgress]);
+  const question = exam.currentQuestion;
+  const images = useSignedQuizImages(
+    questions,
+    exam.currentQuestionIndex,
+    exam.quizCompleted ? exam.incorrectQuestions : NO_QUESTIONS
+  );
+  const colors = useQuizColors();
 
-  // --- Timer logic ---
-  useEffect(() => {
-    if (quizCompleted || timeLeft <= 0 || questions.length === 0) return;
+  const translatedQuestion = question?.translation?.text || '';
+  const secondaryText = question?.secondaryTranslation?.text || null;
+  const secondaryLanguageLabel = secondaryLanguage ? t(`user.language.${secondaryLanguage}`) : '';
 
-    /* @ts-ignore */
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          // Timer finished
-          submitExam(answers, true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timerRef.current!);
-  }, [quizCompleted, timeLeft, answers, questions.length]);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const s = (seconds % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
-
-  const getTranslatedQuestion = () => currentQuestion?.translation?.text || '';
-  const getSecondaryTranslation = (type: 'text' | 'explanation') =>
-    currentQuestion?.secondaryTranslation?.[type] || null;
-
-  // --- Actions ---
-  const handleAnswer = async (answer: boolean) => {
-    const questionId = currentQuestion?.id;
-    const updatedAnswers = { ...answers, [questionId]: answer };
-    setAnswers(updatedAnswers);
-
-    // Auto advance without showing result
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      // Background save
-      updateQuizProgression(userId, String(batchId), updatedAnswers, currentQuestionIndex + 2, false);
-    } else {
-      await updateQuizProgression(userId, String(batchId), updatedAnswers, currentQuestionIndex + 1, false);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex + 2, false);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-      updateQuizProgression(userId, String(batchId), answers, currentQuestionIndex, false);
-    }
-  };
-
-  const attemptSubmit = () => {
-    // Check for missed questions
-    const answeredCount = Object.keys(answers).length;
-    let message = t('exam.alerts.submitConfirm');
-    if (answeredCount < questions.length) {
-      message = t('exam.alerts.submitIncomplete', { answered: answeredCount, total: questions.length });
-    }
-
-    Alert.alert(
-      t('exam.alerts.submitTitle'),
-      message,
-      [
-        { text: t('exam.alerts.cancel'), style: 'cancel' },
-        {
-          text: t('exam.alerts.submit'),
-          style: 'destructive',
-          onPress: () => submitExam(answers)
-        }
-      ]
-    );
-  };
-
-  const submitExam = async (finalAnswers: any, isTimeOut = false) => {
-    if (isTimeOut) {
-      Alert.alert(t('exam.alerts.timeOutTitle'), t('exam.alerts.timeOutMessage'));
-    }
-    setQuizCompleted(true);
-    await updateQuizProgression(userId, String(batchId), finalAnswers, currentQuestionIndex + 1, true);
-    // Record mistakes in the background (non-blocking)
-    recordExamMistakes(String(batchId)).catch((err) =>
-      console.warn('Could not record exam mistakes:', err)
-    );
-  };
-
-  const toggleErrorGif = (id: string) => {
-    setPlayingErrorGifs(prev => ({ ...prev, [id]: true }));
-    errorImageRefs.current[id]?.startAnimating();
-  };
-
-  // --- Rendering ---
   if (progressLoading || questions.length === 0) {
     return (
       <ThemedView style={styles.container}>
@@ -256,394 +73,92 @@ export default function ExamQuizScreen() {
     );
   }
 
-  // 1. RESULTS SCREEN
-  if (quizCompleted) {
-    const MAX_ERRORS = 3;
-    const isPassed = incorrectCount <= MAX_ERRORS;
-    const incorrectQuestions = questions.filter((q: any) => {
-      const userAnswer = answers[q.id];
-      return typeof userAnswer !== 'undefined' && userAnswer !== q.is_correct;
-    });
-
+  if (exam.quizCompleted) {
     return (
-      <ThemedView style={[styles.container, { backgroundColor }]}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.resultsScrollContent}>
-          <View style={[styles.resultsCard, { backgroundColor: isPassed ? quizTheme.passed.bg : quizTheme.failed.bg }]}>
-            <View style={styles.resultsBanner}>
-              <Ionicons name={isPassed ? "shield-checkmark" : "close-circle"} size={64} color={isPassed ? quizTheme.passed.icon : quizTheme.failed.icon} />
-              <ThemedText style={[styles.resultsTitlePassed, { color: isPassed ? quizTheme.passed.title : quizTheme.failed.title }]}>
-                {isPassed ? t('exam.results.passed') : t('exam.results.failed')}
-              </ThemedText>
-              <ThemedText style={styles.resultsSubtitle}>
-                {isPassed
-                  ? t('exam.results.passedMessage')
-                  : t('exam.results.failedMessage', { incorrect: incorrectCount, total: questions.length, max: MAX_ERRORS })}
-              </ThemedText>
-            </View>
-
-            <View style={styles.scorePillsRow}>
-              <View style={[styles.scorePill, { backgroundColor: quizTheme.scorePills.correct.bg, borderColor: quizTheme.scorePills.correct.border }]}>
-                <ThemedText style={[styles.scorePillValue, { color: quizTheme.scorePills.correct.text }]}>{score}</ThemedText>
-                <ThemedText style={[styles.scorePillLabel, { color: quizTheme.scorePills.correct.text }]}>{t('exam.results.correct')}</ThemedText>
-              </View>
-              <View style={[styles.scorePill, { backgroundColor: quizTheme.scorePills.incorrect.bg, borderColor: quizTheme.scorePills.incorrect.border }]}>
-                <ThemedText style={[styles.scorePillValue, { color: quizTheme.scorePills.incorrect.text }]}>{incorrectCount}</ThemedText>
-                <ThemedText style={[styles.scorePillLabel, { color: quizTheme.scorePills.incorrect.text }]}>{t('exam.results.incorrect')}</ThemedText>
-              </View>
-            </View>
-
-            <View style={styles.restartContainer}>
-              <ThemedButton title={t('exam.results.backToHome')} onPress={() => router.replace('/(tabs)/exam')} />
-            </View>
-          </View>
-
-          {/* ── ERRORS LIST ────────────────────────────────────────── */}
-          {incorrectQuestions.length > 0 && (
-            <View style={styles.errorsSection}>
-              <ThemedText style={[styles.errorsTitle, { color: textColor }]}>
-                {t('exam.incorrectQuestions')}
-              </ThemedText>
-              {incorrectQuestions.map((q: any, index: number) => (
-                <View
-                  key={q.id}
-                  style={[
-                    styles.errorItem,
-                    {
-                      backgroundColor: cardBackgroundColor,
-                      borderColor: borderColor
-                    }
-                  ]}
-                >
-                  <View style={styles.errorHeader}>
-                    <View style={styles.errorNumberBadge}>
-                      <ThemedText style={styles.errorNumberText}>{index + 1}</ThemedText>
-                    </View>
-                    <ThemedText style={[styles.errorQuestionText, { color: textColor }]}>
-                      {q.translation?.text || ''}
-                    </ThemedText>
-                  </View>
-
-                  {q.image_filename && (
-                    <View style={styles.errorImageContainer}>
-                      <Pressable
-                        style={{ flex: 1 }}
-                        onPress={() => {
-                          if (q.image_filename.toLowerCase().endsWith('.gif') && !playingErrorGifs[q.id]) {
-                            toggleErrorGif(q.id);
-                          }
-                        }}
-                      >
-                        {q.image_filename.toLowerCase().endsWith('.gif') ? (
-                          <GifImage
-                            uri={signedErrorUrls[q.id]}
-                            style={styles.errorImage}
-                            contentFit="contain"
-                            playing={!!playingErrorGifs[q.id]}
-                          />
-                        ) : (
-                          <Image
-                            ref={(el) => {
-                              if (el) errorImageRefs.current[q.id] = el;
-                            }}
-                            source={{ uri: signedErrorUrls[q.id] }}
-                            style={styles.errorImage}
-                            contentFit="contain"
-                            autoplay
-                          />
-                        )}
-                        {q.image_filename.toLowerCase().endsWith('.gif') && !playingErrorGifs[q.id] && (
-                          <View style={[StyleSheet.absoluteFill, styles.playOverlay]}>
-                            <View style={styles.playButtonBackgroundSmall}>
-                              <Ionicons name="play" size={24} color="#fff" style={{ marginLeft: 2 }} />
-                            </View>
-                          </View>
-                        )}
-                      </Pressable>
-                    </View>
-                  )}
-
-                  <View style={styles.errorAnswersRow}>
-                    <View style={[styles.errorAnswerBadge, { backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1 }]}>
-                      <Ionicons name="close-circle" size={16} color="#DC2626" />
-                      <ThemedText style={[styles.errorBadgeText, { color: '#B91C1C' }]}>
-                        {t('quiz.yourAnswer', { answer: answers[q.id] ? t('quiz.true') : t('quiz.false') })}
-                      </ThemedText>
-                    </View>
-                    <View style={[styles.errorAnswerBadge, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0', borderWidth: 1 }]}>
-                      <Ionicons name="checkmark-circle" size={16} color="#059669" />
-                      <ThemedText style={[styles.errorBadgeText, { color: '#047857' }]}>
-                        {t('quiz.correctAnswerIs', { answer: q.is_correct ? t('quiz.true') : t('quiz.false') })}
-                      </ThemedText>
-                    </View>
-                  </View>
-
-                  {q.secondaryTranslation?.text && (
-                    <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor, marginTop: 12 }]}>
-                      <View style={styles.secondaryHeader}>
-                        <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
-                          <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
-                            {t(`user.language.${secondaryLanguage}`)}
-                          </ThemedText>
-                        </View>
-                      </View>
-                      <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
-                        {q.secondaryTranslation.text}
-                      </ThemedText>
-                    </View>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
-        </ScrollView>
-      </ThemedView>
+      <ExamResultsScreen
+        score={exam.score}
+        incorrectCount={exam.incorrectCount}
+        questions={questions}
+        incorrectQuestions={exam.incorrectQuestions}
+        answers={exam.answers}
+        secondaryLanguage={secondaryLanguage}
+        images={images}
+        onBackToHome={() => router.replace('/(tabs)/exam')}
+      />
     );
   }
 
-  // 2. EXAM ACTIVE SCREEN
-  const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
-  const userAnswer = answers[currentQuestion?.id];
-  const hasAnswered = typeof userAnswer !== 'undefined';
-  const isGif = currentQuestion?.image_filename?.toLowerCase().endsWith('.gif');
-  const signedImageUrl = currentQuestion?.image_filename
-    ? signedUrls[currentQuestion.image_filename] ?? null
-    : null;
-  const showImageLoader =
-    !!currentQuestion?.image_filename && (!signedImageUrl || isImageLoading);
+  const isFirst = exam.currentQuestionIndex === 0;
+  const isLast = exam.currentQuestionIndex === questions.length - 1;
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor }]}>
-
+    <ThemedView style={[styles.container, { backgroundColor: colors.backgroundColor }]}>
       {/* ── Header with Timer ── */}
-      <View style={[styles.header, { backgroundColor: cardBackgroundColor, borderBottomColor: borderColor }]}>
-        <View style={styles.headerTitleRow}>
-          <View style={styles.timerBadge}>
-            <Ionicons name="timer-outline" size={18} color={timeLeft < 120 ? '#DC2626' : '#2563EB'} />
-            <ThemedText style={[styles.timerText, { color: timeLeft < 120 ? '#DC2626' : '#2563EB' }]}>
-              {formatTime(timeLeft)}
-            </ThemedText>
-          </View>
-          <ThemedText style={[styles.questionIndicator, { color: textColor }]}>
-            {t('exam.questionOf', { current: currentQuestionIndex + 1, total: questions.length })}
-          </ThemedText>
-        </View>
-
-        <View style={[styles.headerProgressTrack, { backgroundColor: borderColor }]}>
-          <View style={[styles.headerProgressFill, { width: `${progressPercent}%` }]} />
-        </View>
-      </View>
+      <ExamHeader
+        current={exam.currentQuestionIndex + 1}
+        total={questions.length}
+        timeLeft={exam.timeLeft}
+      />
 
       {/* ── Question Content ── */}
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={[styles.questionCard, { backgroundColor: cardBackgroundColor }]}>
-          <ThemedText style={[styles.questionText, { color: textColor }]}>
-            {getTranslatedQuestion()}
-          </ThemedText>
-
-          {getSecondaryTranslation('text') && (
-            <View style={[styles.secondaryLanguageCard, { backgroundColor: secondaryBackgroundColor, borderColor, marginTop: 16 }]}>
-              <View style={styles.secondaryHeader}>
-                <View style={[styles.languageBadge, { backgroundColor: borderColor }]}>
-                  <ThemedText style={[styles.languageBadgeText, { color: iconColor }]}>
-                    {t(`user.language.${secondaryLanguage}`)}
-                  </ThemedText>
-                </View>
-              </View>
-              <ThemedText style={[styles.secondaryText, { color: iconColor }]}>
-                {getSecondaryTranslation('text')}
-              </ThemedText>
-            </View>
-          )}
-
-          {currentQuestion?.image_filename && (
-            <View style={[styles.imageContainer, { backgroundColor: secondaryBackgroundColor }]}>
-              <Pressable onPress={() => {
-                if (isGif && !isPlayingGif) {
-                  setIsPlayingGif(true);
-                  mainImageRef.current?.startAnimating();
-                } else {
-                  setIsImageViewerVisible(true);
-                }
-              }}>
-                {isGif ? (
-                  <GifImage
-                    key={currentQuestion.image_filename}
-                    uri={signedImageUrl ?? undefined}
-                    style={styles.questionImage}
-                    contentFit="contain"
-                    playing={isPlayingGif}
-                    onLoadStart={() => setIsImageLoading(true)}
-                    onLoad={() => setIsImageLoading(false)}
-                    onError={() => setIsImageLoading(false)}
-                  />
-                ) : (
-                  <Image
-                    ref={mainImageRef}
-                    key={currentQuestion.image_filename}
-                    source={{ uri: signedImageUrl ?? undefined }}
-                    style={styles.questionImage}
-                    contentFit="contain"
-                    autoplay
-                    onLoadStart={() => setIsImageLoading(true)}
-                    onLoad={() => setIsImageLoading(false)}
-                    onError={() => setIsImageLoading(false)}
-                  />
-                )}
-                {isGif && !isPlayingGif && (
-                  <View style={[StyleSheet.absoluteFill, styles.playOverlay]}>
-                    <View style={styles.playButtonBackground}>
-                      <Ionicons name="play" size={36} color="#fff" style={{ marginLeft: 4 }} />
-                    </View>
-                  </View>
-                )}
-              </Pressable>
-              {showImageLoader && (
-                <View style={[StyleSheet.absoluteFill, styles.imageLoader]}>
-                  <ActivityIndicator color="#059669" />
-                </View>
-              )}
-              <AppImageViewer
-                images={signedImageUrl ? [{ uri: signedImageUrl }] : []}
-                imageIndex={0}
-                visible={isImageViewerVisible}
-                onRequestClose={() => setIsImageViewerVisible(false)}
-              />
-            </View>
-          )}
-        </View>
+        <ExamQuestionCard
+          key={question?.id ?? 'no-question'}
+          question={question}
+          text={translatedQuestion}
+          secondaryText={secondaryText}
+          languageLabel={secondaryLanguageLabel}
+          imageUrl={images.getUrl(question?.image_filename)}
+        />
       </ScrollView>
 
       {/* ── Sticky Answer Bar (Exclusive Selection) ── */}
-      <View style={[styles.stickyAnswerBar, { backgroundColor: cardBackgroundColor, borderTopColor: borderColor }]}>
-        <View style={styles.answerButtons}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.answerButton,
-              styles.falseButton,
-              pressed && styles.answerButtonPressed,
-              hasAnswered && userAnswer === false && styles.selectedFalseButton,
-            ]}
-            onPress={() => handleAnswer(false)}
-          >
-            <Ionicons name="close-circle" size={32} color={hasAnswered && userAnswer === false ? '#fff' : '#DC2626'} />
-            <ThemedText style={[styles.answerButtonText, { color: hasAnswered && userAnswer === false ? '#fff' : '#DC2626' }]}>
-              {t('exam.false')}
-            </ThemedText>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.answerButton,
-              styles.trueButton,
-              pressed && styles.answerButtonPressed,
-              hasAnswered && userAnswer === true && styles.selectedTrueButton,
-            ]}
-            onPress={() => handleAnswer(true)}
-          >
-            <Ionicons name="checkmark-circle" size={32} color={hasAnswered && userAnswer === true ? '#fff' : '#059669'} />
-            <ThemedText style={[styles.answerButtonText, { color: hasAnswered && userAnswer === true ? '#fff' : '#059669' }]}>
-              {t('exam.true')}
-            </ThemedText>
-          </Pressable>
-        </View>
-      </View>
+      <ExamAnswerBar hasAnswered={exam.hasAnswered} userAnswer={exam.userAnswer} onAnswer={exam.answer} />
 
       {/* ── Bottom Navigation Bar ── */}
-      <BlurView intensity={80} tint={backgroundColor === '#000000' ? 'dark' : 'light'} style={[styles.navigationBar, { borderTopColor: borderColor }]}>
+      <BlurView
+        intensity={80}
+        tint={colors.backgroundColor === '#000000' ? 'dark' : 'light'}
+        style={[styles.navigationBar, { borderTopColor: colors.borderColor }]}
+      >
         <View style={styles.navContent}>
           <Pressable
-            style={[styles.navButton, currentQuestionIndex === 0 && styles.navButtonDisabled]}
-            onPress={handlePrevious}
-            disabled={currentQuestionIndex === 0}
+            style={[styles.navButton, isFirst && styles.navButtonDisabled]}
+            onPress={exam.previous}
+            disabled={isFirst}
           >
-            <Ionicons name="chevron-back" size={20} color={currentQuestionIndex === 0 ? '#9CA3AF' : '#2563EB'} />
-            <ThemedText style={[styles.navButtonText, currentQuestionIndex === 0 && styles.navButtonTextDisabled]}>
+            <Ionicons name="chevron-back" size={20} color={isFirst ? '#9CA3AF' : '#2563EB'} />
+            <ThemedText style={[styles.navButtonText, isFirst && styles.navButtonTextDisabled]}>
               {t('exam.back')}
             </ThemedText>
           </Pressable>
 
-          {currentQuestionIndex === questions.length - 1 ? (
-            <Pressable style={styles.submitButton} onPress={attemptSubmit}>
+          {isLast ? (
+            <Pressable style={styles.submitButton} onPress={exam.attemptSubmit}>
               <ThemedText style={styles.submitButtonText}>{t('exam.submit')}</ThemedText>
             </Pressable>
           ) : (
-            <Pressable style={styles.navButton} onPress={handleNext}>
+            <Pressable style={styles.navButton} onPress={exam.next}>
               <ThemedText style={styles.navButtonText}>{t('exam.next')}</ThemedText>
               <Ionicons name="chevron-forward" size={20} color="#2563EB" />
             </Pressable>
           )}
         </View>
       </BlurView>
-
     </ThemedView>
   );
 }
 
-// Same styles as quiz.tsx roughly, tailored for exam mode
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    paddingTop: 56,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-  },
-  backButton: { marginRight: 10 },
-  headerTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700' },
-  headerSubtitle: { fontSize: 14, marginTop: 2 },
-  timerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-  },
-  timerText: { fontSize: 16, fontWeight: '700' },
-  questionIndicator: { fontSize: 15, fontWeight: '600' },
-  headerProgressTrack: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  headerProgressFill: { height: '100%', backgroundColor: '#059669', borderRadius: 3 },
   scrollView: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 20 },
-  resultsScrollContent: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  questionCard: {
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 4,
-    minHeight: 200,
-    justifyContent: 'center',
+  navigationBar: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingBottom: 28,
+    borderTopWidth: 1,
   },
-  questionText: { fontSize: 20, lineHeight: 30, fontWeight: '500', textAlign: 'center' },
-  imageContainer: { marginTop: 20, borderRadius: 12, overflow: 'hidden' },
-  questionImage: { width: '100%', height: 200 },
-  imageLoader: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.02)',
-  },
-  stickyAnswerBar: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, borderTopWidth: 1 },
-  answerButtons: { flexDirection: 'row', gap: 12 },
-  answerButton: {
-    flex: 1, paddingVertical: 18, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
-    flexDirection: 'row', gap: 8, borderWidth: 2,
-  },
-  answerButtonPressed: { opacity: 0.75, transform: [{ scale: 0.97 }] },
-  trueButton: { backgroundColor: '#F0FDF4', borderColor: '#86EFAC' },
-  falseButton: { backgroundColor: '#FFF1F2', borderColor: '#FECDD3' },
-  selectedTrueButton: { backgroundColor: '#059669', borderColor: '#059669' },
-  selectedFalseButton: { backgroundColor: '#DC2626', borderColor: '#DC2626' },
-  answerButtonText: { fontSize: 18, fontWeight: '700' },
-  navigationBar: { paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 28, borderTopWidth: 1 },
   navContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   navButton: { flexDirection: 'row', alignItems: 'center', padding: 8, gap: 4 },
   navButtonText: { fontSize: 16, fontWeight: '600', color: '#2563EB' },
@@ -656,133 +171,4 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   submitButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  resultsCard: { padding: 24, borderRadius: 20, alignItems: 'center' },
-  resultsBanner: { alignItems: 'center', marginBottom: 24 },
-  resultsTitlePassed: { fontSize: 24, fontWeight: '800', marginTop: 12 },
-  resultsTitleFailed: { fontSize: 24, fontWeight: '800', marginTop: 12 },
-  resultsSubtitle: { fontSize: 16, textAlign: 'center', marginTop: 8, opacity: 0.8 },
-  scorePillsRow: { flexDirection: 'row', gap: 16, marginBottom: 30, width: '100%', justifyContent: 'center' },
-  scorePill: { alignItems: 'center', padding: 16, borderRadius: 16, borderWidth: 1, width: 100 },
-  scorePillValue: { fontSize: 28, fontWeight: '800', marginVertical: 4 },
-  scorePillLabel: { fontSize: 14, fontWeight: '600' },
-  restartContainer: { width: '100%', marginTop: 10 },
-  errorsSection: {
-    marginTop: 20,
-    paddingBottom: 40,
-    gap: 12,
-  },
-  errorsTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 8,
-    paddingHorizontal: 4,
-  },
-  errorItem: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  errorHeader: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  errorNumberBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#059669',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorNumberText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  errorQuestionText: {
-    flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
-    fontWeight: '600',
-  },
-  errorImageContainer: {
-    width: '100%',
-    height: 120,
-    backgroundColor: 'rgba(0,0,0,0.02)',
-    borderRadius: 8,
-    marginBottom: 12,
-    overflow: 'hidden',
-  },
-  errorImage: {
-    width: '100%',
-    height: '100%',
-  },
-  errorAnswersRow: {
-    flexDirection: 'column',
-    gap: 8,
-    marginBottom: 12,
-  },
-  errorAnswerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    gap: 6,
-  },
-  errorBadgeText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  secondaryLanguageCard: {
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  secondaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  languageBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  languageBadgeText: {
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  secondaryText: {
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  playOverlay: {
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
-    padding: 12,
-  },
-  playButtonBackground: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  playButtonBackgroundSmall: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 });

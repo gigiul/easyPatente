@@ -59,19 +59,25 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 
 ### 4. Svolgimento del Quiz ed Esame
 - **`app/quiz.tsx` (Quiz Screen)**:
-  - È la schermata più complessa contenente la _logica di business_ del testing (`useQuizQuestions`, `useQuizProgression`).
-  - Gestisce la navigazione tra le domande mediante uno state `currentQuestionIndex`.
+  - È la schermata di _orchestrazione_ del testing: collega gli hook di logica (`useQuizSession`, `useQuizExplanations`, `useSignedQuizImages`, `useQuizQuestions`, `useQuizProgression`) e compone la UI con i sottocomponenti di `components/quiz/`.
+  - **Sottocomponenti** (`components/quiz/`): `QuizHeader`, `QuestionCard`, `AnsweredSection`, `AnswerBar`, `QuizBottomNav` (parte di gioco) e `QuizResultsScreen` + `ScorePills` + `ErrorListItem` (schermata risultati, con lista errori memoizzata via `React.memo`).
+  - **Hook di logica**:
+    - `useQuizSession`: stato della sessione (indice domanda, risposte, completamento), score/derivati calcolati **in locale** con `useMemo` e persistenza della progressione (delegata a `useQuizPersistence`) con **debounce** (un solo upsert per azione utente, flush all'unmount).
+    - `useQuizPersistence`: scrittura condivisa su `user_quiz_progress` (dedupe del payload identico, debounce, flush su unmount/cambio batch).
+    - `useQuizExplanations`: cache locale delle spiegazioni (primaria/secondaria) con fetch on-demand.
+    - `useSignedQuizImages`: risoluzione + prefetch delle signed URL delle immagini (prossime domande e immagini degli errori).
   - **Funzionalità incluse nella schermata**:
     - **Audio/TTS:** Integrazione con `expo-speech` per la lettura del testo tradotto.
     - **Supporto multi-lingua:** Visualizzazione contestuale della traduzione secondaria (se configurata).
     - **Progresso:** Barra a riempimento orizzontale posizionata sotto l'header.
-    - **Azioni Interattive (Vero/Falso):** Una volta fornita la risposta, la logica invia il dato al DB (`updateQuizProgression`) e mostra dinamicamente la carta risultato e la _Explanation_ (con lettura sonora/multi-lingua).
-    - **Risultati Finali:** A quiz completato, calcola il punteggio in base alle risposte e lo mostra all'utente con design full-theme compatibile (`useQuizTheme`). 
+    - **Azioni Interattive (Vero/Falso):** Una volta fornita la risposta, lo stato viene salvato e persistito in debounce su `user_quiz_progress` (`updateQuizProgression`) e mostra dinamicamente la carta risultato e la _Explanation_ (con lettura sonora/multi-lingua).
+    - **Risultati Finali:** A quiz completato, il punteggio viene calcolato in locale sulle risposte e mostrato con design full-theme compatibile (`useQuizTheme`).
 - **`app/examQuiz.tsx` (Exam Quiz Screen)**:
   - Variante specializzata per la **Simulazione Esame Reale**.
   - Non mostra le spiegazioni né la correttezza della risposta durante lo svolgimento.
   - Integra un Timer rigoroso da 20 minuti con elaborazione di submit automatica allo scadere del tempo.
   - Mostra la schermata dei risultati al termine della simulazione (Superato/Non Superato con soglia max 3 errori) e l'elenco degli errori commessi con confronto tra risposta data e risposta corretta (senza spiegazioni/descrizioni aggiuntive).
+  - Anche questa schermata è un **orchestratore**: collega `useExamSession` (timer con resume da `started_at`, risposta con auto-advance, submit con conferma, score calcolato in locale, persistenza **immediata** via `useQuizPersistence`) e compone la UI con i sottocomponenti di `components/exam/` (`ExamHeader`, `ExamQuestionCard`, `ExamAnswerBar`, `ExamResultsScreen`, quest'ultimo condividendo `ErrorListItem` in variante verde senza spiegazioni).
 
 ### 5. Schermate Legali
 - **`app/terms.tsx`**: Termini e condizioni di servizio in italiano (esclusione di responsabilità, precisazione sulla revisione dei quiz didattici, conformità d'uso).

@@ -91,53 +91,6 @@ export async function fetchIncorrectQuestions(userId: string, batchId?: string) 
   return incorrectQuestions;
 }
 
-export async function calculateQuizScore(userId: string, batchId: string) {
-  const { data, error } = await supabase
-    .from('user_quiz_progress')
-    .select(`
-      answers
-    `)
-    .eq('user_id', userId)
-    .eq('batch_id', batchId)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) return { score: 0, total: 0, incorrectCount: 0 };
-
-  // Ora prendiamo le domande del batch separatamente
-  const { data: batchData, error: batchError } = await supabase
-    .from('quiz_batch_questions')
-    .select(`
-      question_id,
-      questions!inner(
-        id,
-        is_correct
-      )
-    `)
-    .eq('batch_id', batchId);
-
-  if (batchError) throw batchError;
-
-  const answers = data.answers || {};
-  const questions = batchData || [];
-  
-  let score = 0;
-  let total = questions.length;
-  let incorrectCount = 0;
-
-  questions.forEach((batchQuestion: any) => {
-    const question = batchQuestion.questions;
-    const userAnswer = answers[question.id];
-    if (userAnswer === question.is_correct) {
-      score++;
-    } else {
-      incorrectCount++;
-    }
-  });
-
-  return { score, total, incorrectCount };
-}
-
 export async function fetchExamHistory(userId: string) {
   const { data, error } = await supabase.rpc('get_user_exam_history', {
     p_user_id: userId,
