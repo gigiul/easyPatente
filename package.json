@@ -4,11 +4,12 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "android:dev": "expo run:android",
+    "android:dev": "NODE_ENV=development expo run:android",
     "android:prod": "NODE_ENV=production expo run:android",
     "android": "expo run:android",
-    "web:export:dev": "npx dotenv-cli -e .env -- expo export --platform web --clear && npx serve dist -p 5432",
+    "web:export:dev": "npx dotenv-cli -e .env.development -- expo export --platform web --clear && npx serve dist -p 5432",
     "web:export:prod": "npx dotenv-cli -e .env.production -- expo export --platform web --clear && npx serve dist -p 5432",
+    "web:export:local": "npx dotenv-cli -e .env.local -- expo export --platform web --clear && npx serve dist -p 5432",
     "lint": "expo lint",
     "build:preview": "NODE_ENV=development eas build --platform android --profile preview --local",
     "build:release": "NODE_ENV=production eas build --platform android --profile production --local"

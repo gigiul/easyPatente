@@ -239,5 +239,24 @@
     "clearChatMessage": "Vuoi cancellare tutti i messaggi? Il contesto della conversazione verrà resettato.",
     "clearChatCancel": "Annulla",
     "clearChatConfirm": "Cancella"
+  },
+  "voice": {
+    "micButton": "Attiva chat vocale",
+    "stopButton": "Chiudi chat vocale",
+    "status": {
+      "connecting": "Connessione…",
+      "listening": "In ascolto…",
+      "thinking": "Cerco nel manuale…",
+      "speaking": "Risposta in corso…"
+    },
+    "errors": {
+      "auth": "Sessione scaduta. Accedi di nuovo per continuare.",
+      "notEnabled": "La chat AI non è attiva per il tuo account.",
+      "rateLimit": "Hai raggiunto il limite di richieste giornaliere. Torna domani!",
+      "idle": "Sessione chiusa per inattività.",
+      "sessionEnded": "Sessione terminata.",
+      "connection": "Connessione persa. Riprova.",
+      "micDenied": "Microfono non disponibile. Controlla i permessi del browser."
+    }
   }
 }

@@ -235,6 +235,44 @@ chat_messages.user_id → profiles.id (auth.users.id)
 - Rate limiting with daily count
 - RAG context for responses based on the manual
 
+### live (chat vocale full-duplex)
+
+**Endpoint**: `WS /functions/v1/live?access_token=<SUPABASE_JWT>`
+
+**Ruolo**: proxy bidirezionale tra browser e **Gemini Live API**
+(`wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent`),
+modello da `GEMINI_LIVE_MODEL` (default `gemini-3.8-live`). Config in
+`config.toml`: `[functions.live] verify_jwt = false` — il token Supabase
+arriva in query string (i browser non possono mandare header su una connessione
+WS) e viene verificato dentro la funzione (`?access_token`).
+
+**Flow**:
+1. Upgrade WS → auth via `?access_token` (gli eventi in arrivo durante
+   l'handshake vengono accodati in un outbox e rilasciati dopo l'apertura)
+2. `guardChatAccess` (`_shared/guards.ts`): `4401` senza token, `4403` senza
+   `profiles.has_ai`, `4429` quota esaurita (risponde anche in testo JSON
+   prima della chiusura)
+3. Setup sessione Gemini: `systemInstruction` (lingua + history ultime 6
+   `chat_messages`), `tools` = **`retrieve_manual_context`** (`behavior = BLOCKING`,
+   obbligatorio su ogni risposta) + tool `rate_limit` in-sessione,
+   `inputAudioTranscription.customVocabulary` (BASE_VOCAB + `sign_to_chunk.sign_name`
+   + `VOICE_CUSTOM_VOCAB`)
+4. Audio/testo in arrivo → `realtimeInput` verso Gemini; a ogni tool call →
+   `retrieveForVoice` (`_shared/retrieval.ts`, **senza re-rank**, con fast-path
+   cache su `question_id`) → risposta dello strumento → generazione
+5. A `turnComplete`: persistenza in `chat_messages` (trascrizioni input/output;
+   fallback su `realtimeInput.text` per la riga user) + `consumeChatRequest`
+   (1 richiesta/turno) → evento `proxyStatus { used, remaining, rate }`
+6. Chiusure custom: `4000` cap sessione (`VOICE_SESSION_MAX_SECONDS`, default
+   300s), `4401/4403/4429` guard, `4408` idle (`VOICE_IDLE_SECONDS`, default
+   120s), `1011` upstream Gemini
+
+> Client: `lib/liveVoice.ts` (session manager Zustand) + `lib/liveAudio.web.ts`
+> (AudioWorklet PCM16 16 kHz, barge-in), store `store/voice.ts`, UI in
+> `app/(tabs)/chat.tsx`. Flag `feature_flags.voice` (migration
+> `20260930100000_add_voice_feature_flag`, default `false`). Piano e fasi:
+> `doc/PLAN_VOICE_CHAT.md`.
+
 ---
 
 ## LLM Models
@@ -246,6 +284,7 @@ chat_messages.user_id → profiles.id (auth.users.id)
 | **LM Studio** (local) | `google/gemma-4-26b-a4b-qat` | Explanation/response generation | Requires ngrok in dev |
 | **LM Studio** (local) | `text-embedding-embeddinggemma-300m` | Text embedding (768 dim) | Always used for embeddings |
 | **Gemini API** (cloud) | `gemini-flash-latest` | Explanation/response generation | Free tier: 15 RPM |
+| **Gemini Live API** (cloud) | `gemini-3.8-live` | Voice chat (WS, funzione `live`) | Richiede `GEMINI_API_KEY`; cap sessione 300s |
 
 ### Provider Configuration
 
@@ -272,6 +311,12 @@ LLM_MODEL=google/gemma-4-26b-a4b-qat
 # Gemini API (only if LLM_PROVIDER=gemini)
 GEMINI_API_KEY=your-api-key
 GEMINI_MODEL=gemini-flash-latest
+
+# Voice — Gemini Live API (funzione `live`; usa la stessa GEMINI_API_KEY)
+GEMINI_LIVE_MODEL=gemini-3.8-live
+VOICE_SESSION_MAX_SECONDS=300
+VOICE_IDLE_SECONDS=120
+VOICE_CUSTOM_VOCAB=extra,termini,separati,da,virgole
 
 # Embedding Provider
 EMBEDDING_PROVIDER=cloudflare|lmstudio
@@ -312,6 +357,9 @@ supabase secrets set LLM_PROVIDER=lmstudio LLM_ENDPOINT="https://ngrok-url" LLM_
 # Gemini API
 supabase secrets set LLM_PROVIDER=gemini GEMINI_API_KEY="your-api-key" GEMINI_MODEL="gemini-flash-latest"
 
+# Voice (Gemini Live — funzione `live`, opzionale, default già corretti)
+supabase secrets set GEMINI_LIVE_MODEL="gemini-3.8-live" VOICE_SESSION_MAX_SECONDS="300" VOICE_IDLE_SECONDS="120"
+
 # Cloudflare Embedding (default)
 supabase secrets set EMBEDDING_PROVIDER=cloudflare CLOUDFLARE_ACCOUNT_ID="your-account-id" CLOUDFLARE_API_TOKEN="your-api-token"
 
@@ -338,7 +386,7 @@ Category UUIDs are shared constants between quizConverter and the DB:
 |-----------|---------|
 | `domandeVF/` | PNG pages extracted from the T/F questions PDF (source for quizConverter) |
 | `supabase/` | Supabase CLI configuration + Edge Functions |
-| `supabase/functions/` | Edge Functions (explain-question, chat) |
+| `supabase/functions/` | Edge Functions (explain-question, chat, live) |
 | `supabase_backup/` | Database backups |
 | `signs.json` | Italian road sign database (80 signs, used by signImageMatcher) |
 | `tmp/` | Temporary files |
@@ -351,6 +399,8 @@ Category UUIDs are shared constants between quizConverter and the DB:
 |------|-------------|
 | `explanation` | Show/hide AI explanations in questions |
 | `chat` | Enable/disable AI Chat tab |
+| `chat_explanation` | Show/hide the "explain this question" button in chat |
+| `voice` | Enable/disable voice chat (Gemini Live); default `false`, richiede inoltre `chat` + `profiles.has_ai` |
 
 **Note**: Chat also requires `profiles.has_ai = true` to be visible.
 
@@ -380,3 +430,9 @@ Category UUIDs are shared constants between quizConverter and the DB:
     `20260928130200_align_function_definitions`). Left intentionally different in PROD: category
     `icon_url`/`category_translations.title`, storage policy `easyPatenteProd`, and runtime/user data
     (`chat_messages`, `user_devices`, `user_quiz_progress`).
+11. **Voice (Gemini Live)**: il flag `feature_flags.voice` va attivato esplicitamente sul DB target
+    dopo il deploy (`UPDATE ... SET is_active = true WHERE name = 'voice'`). **Wall-clock free tier
+    VERIFICATO il 2026-09-30**: le sessioni WS vengono tagliate dalla piattaforma a ~150s (close
+    `1006`); su DEV `VOICE_SESSION_MAX_SECONDS=145` fa chiudere la funzione pulitamente con `4000`
+    **pima** del taglio, e il client riconnette automaticamente (catena di sessioni illimitata).
+    Con il piano a pagamento (400s) si può rialzare il cap.

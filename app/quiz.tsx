@@ -18,6 +18,8 @@ import {
 } from 'react-native';
 
 import { AppAlert as Alert } from '@/lib/alert';
+import { isVoiceSupported } from '@/lib/liveAudio';
+import { startVoiceSession } from '@/lib/liveVoice';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -54,6 +56,7 @@ export default function QuizScreen() {
   const { languages } = useLanguagesStore();
   const explanationEnabled = useFeatureFlagsStore((state) => state.flags.explanation);
   const chatExplanationEnabled = useFeatureFlagsStore((state) => state.flags.chat_explanation);
+  const voiceFlag = useFeatureFlagsStore((state) => state.flags.voice);
   const profile = useUserProfileStore((state) => state.user);
   const { score, incorrectCount } = useQuizScore(userId, String(batchId), answers, quizCompleted);
   const currentQuestion = questions[currentQuestionIndex] as any;
@@ -107,9 +110,16 @@ export default function QuizScreen() {
   const handleAskAIChat = useCallback(() => {
     const questionText = getTranslatedQuestion();
     if (!questionText) return;
+    // Modalità voce (web): apre la chat con il microfono pronto e il
+    // question_id della domanda corrente (fast-path cache in retrieveForVoice).
+    if (voiceFlag && isVoiceSupported()) {
+      void startVoiceSession({ questionId: currentQuestion?.id ?? null, lang: i18n.language });
+      router.navigate('/(tabs)/chat');
+      return;
+    }
     sendMessage(questionText, i18n.language, [], currentQuestion?.id);
     router.navigate('/(tabs)/chat');
-  }, [currentQuestion?.id, getTranslatedQuestion, i18n.language, router, sendMessage]);
+  }, [currentQuestion?.id, getTranslatedQuestion, i18n.language, router, sendMessage, voiceFlag]);
 
   // Carica la seconda lingua quando serve (al cambio domanda)
   useEffect(() => {
