@@ -14,6 +14,9 @@ interface ExamQuestionCardProps {
   secondaryText: string | null;
   languageLabel: string;
   imageUrl: string | null;
+  /** Presente solo per i testi in italiano: in esame l'audio e' consentito solo in italiano. */
+  onSpeak?: () => void;
+  onSpeakSecondary?: () => void;
 }
 
 export function ExamQuestionCard({
@@ -22,6 +25,8 @@ export function ExamQuestionCard({
   secondaryText,
   languageLabel,
   imageUrl,
+  onSpeak,
+  onSpeakSecondary,
 }: ExamQuestionCardProps) {
   const { textColor, iconColor, cardBackgroundColor, secondaryBackgroundColor, borderColor } =
     useQuizColors();
@@ -44,6 +49,21 @@ export function ExamQuestionCard({
 
   return (
     <View style={[styles.questionCard, { backgroundColor: cardBackgroundColor }]}>
+      {onSpeak ? (
+        <View style={styles.questionTopRow}>
+          <Pressable
+            onPress={onSpeak}
+            style={({ pressed }) => [
+              styles.speakButtonSmall,
+              { backgroundColor: secondaryBackgroundColor },
+              pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] },
+            ]}
+          >
+            <Ionicons name="volume-high" size={20} color="#2563EB" />
+          </Pressable>
+        </View>
+      ) : null}
+
       <ThemedText style={[styles.questionText, { color: textColor }]}>{text}</ThemedText>
 
       {secondaryText ? (
@@ -54,6 +74,18 @@ export function ExamQuestionCard({
                 {languageLabel}
               </ThemedText>
             </View>
+            {onSpeakSecondary ? (
+              <Pressable
+                onPress={onSpeakSecondary}
+                style={({ pressed }) => [
+                  styles.speakButtonSmall,
+                  { backgroundColor: borderColor },
+                  pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] },
+                ]}
+              >
+                <Ionicons name="volume-high" size={18} color="#6B7280" />
+              </Pressable>
+            ) : null}
           </View>
           <ThemedText style={[styles.secondaryQuestionText, { color: iconColor }]}>{secondaryText}</ThemedText>
         </View>
@@ -121,6 +153,15 @@ const styles = StyleSheet.create({
     elevation: 4,
     minHeight: 200,
     justifyContent: 'center',
+  },
+  questionTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 4,
+  },
+  speakButtonSmall: {
+    padding: 5,
+    borderRadius: 8,
   },
   questionText: { fontSize: 20, lineHeight: 30, fontWeight: '500', textAlign: 'center' },
   imageContainer: { marginTop: 20, borderRadius: 12, overflow: 'hidden' },

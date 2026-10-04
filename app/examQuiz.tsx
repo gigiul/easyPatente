@@ -12,10 +12,12 @@ import { useQuizColors } from '@/hooks/useQuizColors';
 import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useSignedQuizImages } from '@/hooks/useSignedQuizImages';
+import { speak as speakTts, stop as stopTts } from '@/lib/tts';
 import type { QuizQuestion } from '@/store/quizQuestions';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -35,7 +37,7 @@ export default function ExamQuizScreen() {
     String(batchId)
   );
   const { secondaryLanguage } = useLanguage();
-  const { questions } = useQuizQuestions(
+  const { questions, ready: questionsReady } = useQuizQuestions(
     String(batchId),
     isForcedItalian ? 'it' : i18n.language,
     isForcedItalian ? null : secondaryLanguage
@@ -64,6 +66,43 @@ export default function ExamQuizScreen() {
   const translatedQuestion = question?.translation?.text || '';
   const secondaryText = question?.secondaryTranslation?.text || null;
   const secondaryLanguageLabel = secondaryLanguage ? t(`user.language.${secondaryLanguage}`) : '';
+
+  // La lingua da usare e' quella del testo che sta per essere letto, non uno
+  // stato globale: cosi' testo e voce non possono mai disallinearsi.
+  const primaryLangCode =
+    question?.translation?.lang_code || (isForcedItalian ? 'it' : i18n.language);
+  const secondaryLangCode = question?.secondaryTranslation?.lang_code || secondaryLanguage;
+
+  // In modalita' esame l'audio e' disponibile solo per i testi in italiano,
+  // che siano principali o secondari.
+  const isItalianLang = (code?: string | null) =>
+    !!code && code.replace(/_/g, '-').toLowerCase().startsWith('it');
+  const canSpeakPrimary = isItalianLang(primaryLangCode) && !!translatedQuestion;
+  const canSpeakSecondary = isItalianLang(secondaryLangCode) && !!secondaryText;
+
+  const handleSpeakQuestion = () => {
+    if (!questionsReady) return;
+    void speakTts(translatedQuestion, primaryLangCode);
+  };
+  const handleSpeakSecondaryQuestion = () => {
+    if (!questionsReady || !secondaryText || !secondaryLangCode) return;
+    void speakTts(secondaryText, secondaryLangCode);
+  };
+
+  // Ferma il TTS quando cambia batch o domanda
+  useEffect(() => {
+    stopTts();
+  }, [batchId]);
+  useEffect(() => {
+    stopTts();
+  }, [exam.currentQuestionIndex]);
+
+  // Ferma il TTS quando si esce dalla schermata esame
+  useEffect(() => {
+    return () => {
+      stopTts();
+    };
+  }, []);
 
   if (progressLoading || questions.length === 0) {
     return (
@@ -109,6 +148,8 @@ export default function ExamQuizScreen() {
           secondaryText={secondaryText}
           languageLabel={secondaryLanguageLabel}
           imageUrl={images.getUrl(question?.image_filename)}
+          onSpeak={canSpeakPrimary ? handleSpeakQuestion : undefined}
+          onSpeakSecondary={canSpeakSecondary ? handleSpeakSecondaryQuestion : undefined}
         />
       </ScrollView>
 
