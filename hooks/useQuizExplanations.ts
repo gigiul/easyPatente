@@ -10,8 +10,8 @@ interface UseQuizExplanationsOptions {
 }
 
 /**
- * Local cache of (possibly AI generated) explanations, keyed by question id
- * and `${questionId}_${lang}` for the secondary language.
+ * Local cache of (possibly AI generated) explanations, keyed by
+ * `${questionId}_${lang}` for both the primary and the secondary language.
  */
 export function useQuizExplanations({
   language,
@@ -22,9 +22,20 @@ export function useQuizExplanations({
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const requestedRef = useRef<Set<string>>(new Set());
 
+  // Le cache sono per lingua: cambiando lingua non deve restare il testo vecchio.
+  const primaryCacheKey = useCallback(
+    (questionId: string) => `${questionId}_${language}`,
+    [language]
+  );
+  const secondaryCacheKey = useCallback(
+    (questionId: string) => `${questionId}_${secondaryLanguage || 'none'}`,
+    [secondaryLanguage]
+  );
+
   const fetch = useCallback(
     async (questionId: string, questionText: string) => {
-      setLoading((prev) => ({ ...prev, [questionId]: true }));
+      const cacheKey = primaryCacheKey(questionId);
+      setLoading((prev) => ({ ...prev, [cacheKey]: true }));
       try {
         const data = await fetchExplanationApi(
           questionId,
@@ -33,20 +44,20 @@ export function useQuizExplanations({
           secondaryLanguage || undefined
         );
         if (data.explanation) {
-          setLocal((prev) => ({ ...prev, [questionId]: data.explanation }));
+          setLocal((prev) => ({ ...prev, [cacheKey]: data.explanation }));
         }
         if (data.secondary_explanation && secondaryLanguage) {
-          const key = `${questionId}_${secondaryLanguage}`;
+          const key = secondaryCacheKey(questionId);
           const secondary = data.secondary_explanation;
           setLocal((prev) => ({ ...prev, [key]: secondary }));
         }
       } catch (error) {
         console.error('Failed to fetch explanation:', error);
       } finally {
-        setLoading((prev) => ({ ...prev, [questionId]: false }));
+        setLoading((prev) => ({ ...prev, [cacheKey]: false }));
       }
     },
-    [language, secondaryLanguage]
+    [language, secondaryLanguage, primaryCacheKey, secondaryCacheKey]
   );
 
   const fetchForQuestion = useCallback(
@@ -70,8 +81,8 @@ export function useQuizExplanations({
 
   const getExplanation = useCallback(
     (target: QuizQuestion | null | undefined) =>
-      (target && local[target.id]) || target?.translation?.explanation || '',
-    [local]
+      (target && local[primaryCacheKey(target.id)]) || target?.translation?.explanation || '',
+    [local, primaryCacheKey]
   );
 
   const getSecondaryText = useCallback(
@@ -83,17 +94,17 @@ export function useQuizExplanations({
     (target: QuizQuestion | null | undefined) => {
       if (!target || !secondaryLanguage) return null;
       return (
-        local[`${target.id}_${secondaryLanguage}`] ||
+        local[secondaryCacheKey(target.id)] ||
         target.secondaryTranslation?.explanation ||
         null
       );
     },
-    [local, secondaryLanguage]
+    [local, secondaryLanguage, secondaryCacheKey]
   );
 
   const isLoading = useCallback(
-    (target: QuizQuestion | null | undefined) => !!target && !!loading[target.id],
-    [loading]
+    (target: QuizQuestion | null | undefined) => !!target && !!loading[primaryCacheKey(target.id)],
+    [loading, primaryCacheKey]
   );
 
   return {

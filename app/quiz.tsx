@@ -14,13 +14,12 @@ import { useQuizProgression } from '@/hooks/useQuizProgression';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { useQuizSession } from '@/hooks/useQuizSession';
 import { useSignedQuizImages } from '@/hooks/useSignedQuizImages';
+import { speak as speakTts, stop as stopTts } from '@/lib/tts';
 import { useChatStore } from '@/store/chat';
 import { useFeatureFlagsStore } from '@/store/featureFlags';
-import { useLanguagesStore } from '@/store/languages';
 import type { QuizQuestion } from '@/store/quizQuestions';
 import { useUserProfileStore } from '@/store/user';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as Speech from 'expo-speech';
 import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
@@ -36,7 +35,6 @@ export default function QuizScreen() {
   const userId = session?.user?.id || '';
   const sendMessage = useChatStore((state) => state.sendMessage);
   const { secondaryLanguage } = useLanguage();
-  const { languages } = useLanguagesStore();
 
   const {
     progress,
@@ -44,7 +42,11 @@ export default function QuizScreen() {
     loadedBatchId,
     refresh: refreshProgression,
   } = useQuizProgression(userId, String(batchId));
-  const { questions } = useQuizQuestions(String(batchId), i18n.language, secondaryLanguage);
+  const { questions, ready: questionsReady } = useQuizQuestions(
+    String(batchId),
+    i18n.language,
+    secondaryLanguage
+  );
 
   const explanationEnabled = useFeatureFlagsStore((state) => state.flags.explanation);
   const chatExplanationEnabled = useFeatureFlagsStore((state) => state.flags.chat_explanation);
@@ -82,45 +84,40 @@ export default function QuizScreen() {
   const secondaryExplanation = explanations.getSecondaryExplanation(question);
   const secondaryLanguageLabel = secondaryLanguage ? t(`user.language.${secondaryLanguage}`) : '';
 
-  const speakText = useCallback(
-    async (text: string, langCode: string) => {
-      try {
-        await Speech.stop();
-        const lang = languages.find((l) => l.code === langCode);
-        Speech.speak(text, {
-          language: lang?.tts_locale || langCode,
-          pitch: 1.0,
-          rate: 0.9,
-          volume: 1.0,
-        });
-      } catch (error) {
-        console.error('Error speaking text:', error);
-      }
-    },
-    [languages]
-  );
+  // La lingua da usare e' quella del testo che sta per essere letto, non uno
+  // stato globale: cosi' testo e voce non possono mai disallinearsi.
+  const primaryLangCode = question?.translation?.lang_code || i18n.language;
+  const secondaryLangCode = question?.secondaryTranslation?.lang_code || secondaryLanguage;
 
-  const handleSpeakQuestion = () => speakText(translatedQuestion, i18n.language);
-  const handleSpeakSecondaryQuestion = () => {
-    if (secondaryText && secondaryLanguage) speakText(secondaryText, secondaryLanguage);
+  const handleSpeakQuestion = () => {
+    if (!questionsReady) return;
+    void speakTts(translatedQuestion, primaryLangCode);
   };
-  const handleSpeakExplanation = () => speakText(explanation, i18n.language);
+  const handleSpeakSecondaryQuestion = () => {
+    if (!questionsReady || !secondaryText || !secondaryLangCode) return;
+    void speakTts(secondaryText, secondaryLangCode);
+  };
+  const handleSpeakExplanation = () => {
+    if (!questionsReady) return;
+    void speakTts(explanation, primaryLangCode);
+  };
   const handleSpeakSecondaryExplanation = () => {
-    if (secondaryExplanation && secondaryLanguage) speakText(secondaryExplanation, secondaryLanguage);
+    if (!questionsReady || !secondaryExplanation || !secondaryLangCode) return;
+    void speakTts(secondaryExplanation, secondaryLangCode);
   };
 
   // Ferma il TTS quando cambia batch o domanda
   useEffect(() => {
-    Speech.stop();
+    stopTts();
   }, [batchId]);
   useEffect(() => {
-    Speech.stop();
+    stopTts();
   }, [quiz.currentQuestionIndex]);
 
   // Ferma il TTS quando si esce dalla schermata quiz
   useEffect(() => {
     return () => {
-      Speech.stop();
+      stopTts();
     };
   }, []);
 
