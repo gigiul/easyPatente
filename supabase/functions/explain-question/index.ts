@@ -22,6 +22,10 @@ serve(async (req) => {
   try {
     const { question_id, question_text, lang_code = "it", secondary_lang } = await req.json();
     if (!question_id) return json({ error: "question_id required" }, 400);
+    const wantsSecondary = (sourceExplanation: string) =>
+      secondary_lang && secondary_lang !== lang_code
+        ? resolveSecondaryExplanation(supabase, question_id, secondary_lang, sourceExplanation)
+        : Promise.resolve(null);
 
     // ── 1. Cache: check if Italian explanation already exists ──
     const { data: italianTranslation } = await supabase
@@ -49,21 +53,7 @@ serve(async (req) => {
       };
       // If target language is Italian, return directly
       if (lang_code === "it") {
-        let secondaryExplanation = null;
-        if (secondary_lang && secondary_lang !== "it") {
-          const { data: sec } = await supabase
-            .from("question_translations").select("explanation")
-            .eq("question_id", question_id).eq("lang_code", secondary_lang).single();
-          if (sec?.explanation) {
-            secondaryExplanation = sec.explanation;
-          } else {
-            // Translate from Italian
-            const secLangName = LANG_NAMES[secondary_lang] || secondary_lang;
-            secondaryExplanation = await callLLM(`Traduci in ${secLangName}. Restituisci SOLO la traduzione, senza aggiungere testo introduttivo o spiegazioni:\n\n${italianExplanation}`, secLangName);
-            await supabase.from("question_translations").update({ explanation: secondaryExplanation })
-              .eq("question_id", question_id).eq("lang_code", secondary_lang);
-          }
-        }
+        const secondaryExplanation = await wantsSecondary(italianExplanation);
         return json({ explanation: italianExplanation, secondary_explanation: secondaryExplanation, sources: null, from_cache: true, ...cacheMeta });
       }
 
@@ -83,20 +73,7 @@ serve(async (req) => {
       }
 
       // Handle secondary language
-      let secondaryExplanation = null;
-      if (secondary_lang && secondary_lang !== lang_code) {
-        const { data: sec } = await supabase
-          .from("question_translations").select("explanation")
-          .eq("question_id", question_id).eq("lang_code", secondary_lang).single();
-        if (sec?.explanation) {
-          secondaryExplanation = sec.explanation;
-        } else {
-          const secLangName = LANG_NAMES[secondary_lang] || secondary_lang;
-          secondaryExplanation = await callLLM(`Traduci in ${secLangName}. Restituisci SOLO la traduzione, senza aggiungere testo introduttivo o spiegazioni:\n\n${italianExplanation}`, secLangName);
-          await supabase.from("question_translations").update({ explanation: secondaryExplanation })
-            .eq("question_id", question_id).eq("lang_code", secondary_lang);
-        }
-      }
+      const secondaryExplanation = await wantsSecondary(italianExplanation);
 
       return json({ explanation: targetExplanation, secondary_explanation: secondaryExplanation, sources: null, from_cache: true, ...cacheMeta });
     }
@@ -187,8 +164,9 @@ serve(async (req) => {
 
     // If target language is Italian, return
     if (lang_code === "it") {
+      const secondaryExplanation = await wantsSecondary(generatedExplanation);
       return json({
-        explanation: generatedExplanation, secondary_explanation: null, sources: null,
+        explanation: generatedExplanation, secondary_explanation: secondaryExplanation, sources: null,
         from_cache: false, has_image: !!imageBase64,
         retrieval_path: retrievalPath, identified_sign: identifiedSign, reranked,
         sections: chunks.map((c: any) => c.section),
@@ -202,20 +180,7 @@ serve(async (req) => {
       .eq("question_id", question_id).eq("lang_code", lang_code);
 
     // Handle secondary language
-    let secondaryExplanation = null;
-    if (secondary_lang && secondary_lang !== lang_code) {
-      const { data: sec } = await supabase
-        .from("question_translations").select("explanation")
-        .eq("question_id", question_id).eq("lang_code", secondary_lang).single();
-      if (sec?.explanation) {
-        secondaryExplanation = sec.explanation;
-      } else {
-        const secLangName = LANG_NAMES[secondary_lang] || secondary_lang;
-        secondaryExplanation = await callLLM(`Traduci in ${secLangName}. Restituisci SOLO la traduzione, senza aggiungere testo introduttivo o spiegazioni:\n\n${generatedExplanation}`, secLangName);
-        await supabase.from("question_translations").update({ explanation: secondaryExplanation })
-          .eq("question_id", question_id).eq("lang_code", secondary_lang);
-      }
-    }
+    const secondaryExplanation = await wantsSecondary(generatedExplanation);
 
     const sources = chunks.map((c: any) => ({
       chapter: c.chapter, section: c.section, page_start: c.page_start,
@@ -235,6 +200,28 @@ serve(async (req) => {
 });
 
 // ── Prompts ──
+
+/**
+ * Spiegazione nella lingua secondaria: usa la cache `question_translations`,
+ * altrimenti traduce da `sourceExplanation` (sempre l'italiano) e salva.
+ */
+async function resolveSecondaryExplanation(
+  supabase: any,
+  questionId: string,
+  secondaryLang: string,
+  sourceExplanation: string,
+): Promise<string> {
+  const { data: sec } = await supabase
+    .from("question_translations").select("explanation")
+    .eq("question_id", questionId).eq("lang_code", secondaryLang).maybeSingle();
+  if (sec?.explanation) return sec.explanation;
+
+  const secLangName = LANG_NAMES[secondaryLang] || secondaryLang;
+  const translated = await callLLM(`Traduci in ${secLangName}. Restituisci SOLO la traduzione, senza aggiungere testo introduttivo o spiegazioni:\n\n${sourceExplanation}`, secLangName);
+  await supabase.from("question_translations").update({ explanation: translated })
+    .eq("question_id", questionId).eq("lang_code", secondaryLang);
+  return translated;
+}
 
 function textPrompt(question: string, context: string, lang: string): string {
   return `Scrivi la spiegazione come la scriverebbe il manuale di teoria: tono didattico, asseritivo, in prima persona del manuale.
