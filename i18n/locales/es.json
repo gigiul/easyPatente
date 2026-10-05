@@ -257,5 +257,12 @@
       "connection": "Conexión perdida. Inténtalo de nuevo.",
       "micDenied": "Micrófono no disponible. Comprueba los permisos."
     }
+  },
+  "tts": {
+    "missingVoiceTitle": "Voz no disponible",
+    "missingVoice": "No hay una voz instalada para {{language}}: el texto se leerá con la voz del sistema y podría tener un acento incorrecto.",
+    "hintIOS": "En iPhone/iPad: Ajustes → Accesibilidad → Contenido hablado → Voces, y descarga la voz de {{language}}.",
+    "hintAndroid": "En Android: Ajustes → Sistema → Idiomas y entrada → Salida de texto a voz → Instalar datos de voz, y añade la voz de {{language}}.",
+    "hintGeneric": "Instala la voz de {{language}} en los ajustes de texto a voz del dispositivo."
   }
 }
