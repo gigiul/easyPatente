@@ -14,6 +14,8 @@ const TTS_LOCALES: Record<string, string> = {
 };
 
 const VOICES_TIMEOUT_MS = 2000;
+/** Ritardo del ricontrollo voci prima di avvertire l'utente. */
+const VOICES_RECHECK_DELAY_MS = 1500;
 
 export function resolveTtsLocale(langCode: string): string {
   return TTS_LOCALES[langCode] || langCode;
@@ -62,16 +64,9 @@ function warnMissingVoice(locale: string): void {
   );
 }
 
-/**
- * Sceglie la voce per la lingua richiesta su un elenco APPENA letto.
- *
- * Restituisce undefined quando la voce non e' presente: passare a expo-speech
- * un identificativo assente lo fa infatti cadere sulla PRIMA voce della lista
- * (voce di sistema, qualsiasi lingua) senza errore alcuno — in pratica legge
- * tutto con la voce predefinita, che su iPhone e' Alice (inglese).
- */
-function selectVoice(voices: Speech.Voice[], langCode: string): string | undefined {
-  if (!voices.length) return undefined;
+/** Voci capaci di leggere la lingua richiesta: match esatto, altrimenti base. */
+function candidatesFor(voices: Speech.Voice[], langCode: string): Speech.Voice[] {
+  if (!voices.length) return [];
 
   const locale = resolveTtsLocale(langCode);
   const base = locale.split('-')[0].toLowerCase();
@@ -81,16 +76,43 @@ function selectVoice(voices: Speech.Voice[], langCode: string): string | undefin
   const byLanguage = voices.filter(
     (voice) => voice.language?.toLowerCase().split('-')[0] === base
   );
-  const candidates = exact.length ? exact : byLanguage;
+  return exact.length ? exact : byLanguage;
+}
 
-  if (!candidates.length) {
-    warnMissingVoice(locale);
-    return undefined;
-  }
+/**
+ * Sceglie la voce per la lingua richiesta su un elenco APPENA letto.
+ *
+ * Restituisce undefined quando la voce non e' presente: passare a expo-speech
+ * un identificativo assente lo fa infatti cadere sulla PRIMA voce della lista
+ * (voce di sistema, qualsiasi lingua) senza errore alcuno — in pratica legge
+ * tutto con la voce predefinita, che su iPhone e' Alice (inglese).
+ */
+function selectVoice(voices: Speech.Voice[], langCode: string): string | undefined {
+  const candidates = candidatesFor(voices, langCode);
+  if (!candidates.length) return undefined;
 
   const chosen =
     candidates.find((voice) => voice.quality === Speech.VoiceQuality.Enhanced) || candidates[0];
   return chosen.identifier;
+}
+
+/**
+ * L'allarme "voce mancante" non va dato subito: la prima lista che torna dai
+ * browser e' spesso parziale (Chrome risolve appena trova UNA voce, di solito
+ * quella di sistema) e la lettura con la sola lingua funziona comunque, perche'
+ * e' il motore TTS a scegliere. Ricontrolla dopo un attimo e avvisa solo se la
+ * voce per la lingua manca ANCORA — cosi' non si allarma a vuoto.
+ */
+function scheduleVoiceCheck(langCode: string): void {
+  const locale = resolveTtsLocale(langCode);
+  if (warnedLocales.has(locale)) return;
+
+  setTimeout(() => {
+    void currentVoices().then((voices) => {
+      if (warnedLocales.has(locale) || !voices.length) return;
+      if (!candidatesFor(voices, langCode).length) warnMissingVoice(locale);
+    });
+  }, VOICES_RECHECK_DELAY_MS);
 }
 
 async function speakNow(text: string, langCode: string, current: number): Promise<void> {
@@ -104,6 +126,10 @@ async function speakNow(text: string, langCode: string, current: number): Promis
 
   // Una stop()/lettura successiva e' arrivata mentre aspettavamo le voci
   if (current !== generation) return;
+
+  // Nessuna voce trovata: si legge comunque con la sola lingua (funziona) e
+  // l'eventuale avviso viene deciso da un ricontrollo differito.
+  if (!voice) scheduleVoiceCheck(langCode);
 
   try {
     await Speech.stop();
