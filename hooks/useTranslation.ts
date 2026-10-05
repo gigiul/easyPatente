@@ -1,18 +1,14 @@
-import bn from '@/i18n/locales/bn.json';
-import en from '@/i18n/locales/en.json';
 import es from '@/i18n/locales/es.json';
 import it from '@/i18n/locales/it.json';
 import { useCallback } from 'react';
 import { useLanguage } from './useLanguage';
 
-type TranslationType = typeof en;
+type TranslationType = typeof it;
 type LanguageCode = keyof typeof translations;
 
 const translations = {
-  en,
   it,
   es,
-  bn,
 } as const;
 
 type TranslationKey = string;
@@ -20,7 +16,7 @@ type TranslationParams = Record<string, string | number>;
 
 export function useTranslation() {
   const { currentLanguage } = useLanguage();
-  const currentTranslations = translations[currentLanguage as LanguageCode] || translations.en;
+  const currentTranslations = translations[currentLanguage as LanguageCode] || translations.it;
 
   const t = useCallback((key: TranslationKey, params?: TranslationParams): string => {
     const keys = key.split('.');
