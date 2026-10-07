@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppAlert as Alert } from '@/lib/alert';
+import { clampSiteLanguages, getSiteConfig } from '@/lib/siteConfig';
 
 import { LanguagePicker } from '@/components/LanguagePicker';
 import { ThemedText } from '@/components/ThemedText';
@@ -37,6 +38,19 @@ export default function UserScreen() {
 
   useEffect(() => {
     const { lang_primary, lang_secondary } = userProfile || {};
+
+    // Dedicated site (e.g. bn.easypatente.it): fixed pair it + site secondary,
+    // client-side clamp only (no DB write).
+    if (getSiteConfig()) {
+      const { primary, secondary } = clampSiteLanguages(lang_primary, lang_secondary);
+      if (primary) {
+        setPrimaryLanguage(primary);
+        i18n.changeLanguage(primary);
+      }
+      setSecondaryLanguage(secondary ?? '');
+      return;
+    }
+
     if (lang_primary) {
       setPrimaryLanguage(lang_primary);
       i18n.changeLanguage(lang_primary);

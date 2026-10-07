@@ -1,3 +1,4 @@
+import bn from '@/i18n/locales/bn.json';
 import es from '@/i18n/locales/es.json';
 import it from '@/i18n/locales/it.json';
 import { useCallback } from 'react';
@@ -9,6 +10,7 @@ type LanguageCode = keyof typeof translations;
 const translations = {
   it,
   es,
+  bn,
 } as const;
 
 type TranslationKey = string;
