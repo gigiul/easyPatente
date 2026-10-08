@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -19,6 +19,8 @@ export default function HomeScreen() {
   const { categories, hardCategories, loading } = useCategories();
   const { isPremium: isUserPremium } = usePremiumStatus();
   const [activeTab, setActiveTab] = useState<ActiveTab>('categories');
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 900;
 
   const tabBg = useThemeColor({ light: '#F3F4F6', dark: '#1F2937' }, 'background');
   const tabActiveBg = useThemeColor({ light: '#FFFFFF', dark: '#374151' }, 'background');
@@ -26,6 +28,9 @@ export default function HomeScreen() {
   const tabInactiveText = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
   const secondaryTextColor = useThemeColor({ light: '#6B7280', dark: '#9CA3AF' }, 'text');
   const skeletonColor = useThemeColor({ light: '#E5E7EB', dark: '#374151' }, 'background');
+  const mutedSurface = useThemeColor({ light: '#F8FAFC', dark: '#111827' }, 'background');
+  const accentSurface = useThemeColor({ light: '#EEF4FF', dark: '#172554' }, 'background');
+  const accentColor = useThemeColor({ light: '#2563EB', dark: '#60A5FA' }, 'text');
 
   const cardBg = useThemeColor({ light: '#b1cbffff', dark: '#1F2937' }, 'background');
   const cardBorder = useThemeColor({ light: '#E5E7EB', dark: '#374151' }, 'background');
@@ -113,13 +118,42 @@ export default function HomeScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.headerTitle}>
-        {t('quiz.title')}
-      </ThemedText>
-      <ThemedText style={styles.subtitle}>{t('quiz.subtitle')}</ThemedText>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.page}>
+        <View style={[styles.shell, isDesktop && styles.desktopShell]}>
+          <View style={styles.topbar}>
+            <View>
+              <ThemedText style={styles.eyebrow}>EASYPATENTE / TRAINING DESK</ThemedText>
+              <ThemedText type="title" style={styles.headerTitle}>{t('quiz.title')}</ThemedText>
+              <ThemedText style={styles.subtitle}>{t('quiz.subtitle')}</ThemedText>
+            </View>
+            <View style={[styles.statusPill, { backgroundColor: accentSurface }]}>
+              <View style={[styles.statusDot, { backgroundColor: accentColor }]} />
+              <ThemedText style={[styles.statusText, { color: accentColor }]}>Ready to practice</ThemedText>
+            </View>
+          </View>
 
-      {/* ── Tab Switcher ── */}
-      <View style={[styles.tabBar, { backgroundColor: tabBg }]}>
+          {isDesktop && (
+            <View style={styles.overviewRow}>
+              <View style={[styles.overviewCard, { backgroundColor: accentSurface }]}>
+                <ThemedText style={styles.cardEyebrow}>YOUR NEXT STEP</ThemedText>
+                <ThemedText type="defaultSemiBold" style={styles.overviewTitle}>Choose a topic and keep your momentum.</ThemedText>
+                <ThemedText style={[styles.overviewCopy, { color: secondaryTextColor }]}>Short focused sessions make the road to your licence easier.</ThemedText>
+              </View>
+              <View style={[styles.metricCard, { backgroundColor: mutedSurface, borderColor: cardBorder }]}>
+                <ThemedText style={styles.cardEyebrow}>ACTIVE TOPICS</ThemedText>
+                <ThemedText style={styles.metricValue}>{categories.length}</ThemedText>
+                <ThemedText style={[styles.metricLabel, { color: secondaryTextColor }]}>available to study</ThemedText>
+              </View>
+              <View style={[styles.metricCard, { backgroundColor: mutedSurface, borderColor: cardBorder }]}>
+                <ThemedText style={styles.cardEyebrow}>MODE</ThemedText>
+                <ThemedText style={styles.metricValue}>15</ThemedText>
+                <ThemedText style={[styles.metricLabel, { color: secondaryTextColor }]}>questions per batch</ThemedText>
+              </View>
+            </View>
+          )}
+
+          {/* ── Tab Switcher ── */}
+          <View style={[styles.tabBar, { backgroundColor: tabBg }]}>
         <Pressable
           style={[
             styles.tabItem,
@@ -163,32 +197,40 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
-        {loading ? (
-          renderSkeleton()
-        ) : activeTab === 'categories' ? (
-          renderCategoryGrid(categories)
-        ) : (
-          renderCategoryGrid(hardCategories)
-        )}
+            {loading ? (
+              renderSkeleton()
+            ) : activeTab === 'categories' ? (
+              renderCategoryGrid(categories)
+            ) : (
+              renderCategoryGrid(hardCategories)
+            )}
+          </ScrollView>
+        </View>
       </ScrollView>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  headerTitle: {
-    marginTop: 60,
-    marginBottom: 8,
-    paddingHorizontal: 16,
-  },
-  subtitle: {
-    marginBottom: 20,
-    opacity: 0.7,
-    paddingHorizontal: 16,
-  },
+  container: { flex: 1 },
+  page: { paddingBottom: 40 },
+  shell: { width: '100%' },
+  desktopShell: { maxWidth: 1180, alignSelf: 'center', paddingHorizontal: 36 },
+  topbar: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingTop: 42, paddingBottom: 28 },
+  eyebrow: { fontSize: 11, letterSpacing: 1.8, opacity: 0.55, marginBottom: 12 },
+  headerTitle: { marginBottom: 8, paddingHorizontal: 0, fontSize: 38, lineHeight: 44 },
+  subtitle: { marginBottom: 0, opacity: 0.7, paddingHorizontal: 0, maxWidth: 560 },
+  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9, marginTop: 6 },
+  statusDot: { width: 7, height: 7, borderRadius: 4 },
+  statusText: { fontSize: 12, fontWeight: '600' },
+  overviewRow: { flexDirection: 'row', gap: 14, marginBottom: 28 },
+  overviewCard: { flex: 2, borderRadius: 18, padding: 22, minHeight: 142 },
+  metricCard: { flex: 1, borderRadius: 18, padding: 22, minHeight: 142, borderWidth: 1 },
+  cardEyebrow: { fontSize: 10, fontWeight: '700', letterSpacing: 1.4, opacity: 0.58, marginBottom: 12 },
+  overviewTitle: { fontSize: 19, lineHeight: 25, marginBottom: 8 },
+  overviewCopy: { fontSize: 13, lineHeight: 19, maxWidth: 360 },
+  metricValue: { fontSize: 34, fontWeight: '700', marginBottom: 2 },
+  metricLabel: { fontSize: 12 },
 
   // ── Tab Bar ──
   tabBar: {
