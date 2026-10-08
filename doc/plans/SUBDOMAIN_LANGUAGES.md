@@ -11,7 +11,7 @@
 
 ## 1. Goal
 
-Create a per-language site via subdomain (e.g. `bn.easypatente.it`) **without** duplicating the
+Create a per-language site via subdomain (e.g. `bn.quizpatenteitaliana.it`) **without** duplicating the
 codebase, branches or database:
 
 - **One branch**, one Vercel deploy, one Supabase.
@@ -37,7 +37,7 @@ The schema is **already** multi-lingual per-row (`question_translations`, `categ
 | D4 | **Shared accounts**, cross-site profile clamp **without DB write** | A profile with `lang_primary='es'` (set on the apex) visiting `bn.` shows it/bn for the session; the next explicit change from the picker saves normally |
 | D5 | **Upstream filter in `fetchLanguages()`** | Through `store/languages.ts` (shared store) the filter automatically propagates to `LanguagePicker` and the default fallbacks — zero changes to the component |
 | D6 | **Host→site mapping in code** (`lib/siteConfig.ts`), not in the DB | Few subdomains (`bn` and `es` registered at launch); a new site = 1 line + release. Future alternative: `languages.subdomain` column |
-| D7 | **Apex `easypatente.it` = open case** | No hostname match → `null` → full list (current behavior). Future decision (keep / redirect / fixed pair) is independent and non-blocking |
+| D7 | **Apex `quizpatenteitaliana.it` = open case** | No hostname match → `null` → full list (current behavior). Future decision (keep / redirect / fixed pair) is independent and non-blocking |
 
 ## 3. Code changes
 
@@ -48,7 +48,7 @@ export type SiteConfig = {
   site: string;              // 'bn' | 'es' | ...
   languages: string[];       // ['it', 'bn'] | ['it', 'es']
   defaultPrimary: string;    // 'it' — always italian
-  defaultSecondary: string;  // 'bn' on bn.easypatente.it, 'es' on es.easypatente.it
+  defaultSecondary: string;  // 'bn' on bn.quizpatenteitaliana.it, 'es' on es.quizpatenteitaliana.it
   meta: { title: string; description: string };
 };
 
@@ -62,7 +62,7 @@ Registered sites at launch: **`bn`** and **`es`** (both `SITES` + `SITE_BASES` i
 - Reads `window.location.hostname` **only** behind the guard
   `Platform.OS === 'web' && typeof window !== 'undefined'` → native/mobile unchanged (`null`).
 - Priority: `process.env.EXPO_PUBLIC_SITE` (local tests + future per-language builds) → hostname.
-- No match (`easypatente.it`, localhost, mobile) → `null` → full language list.
+- No match (`quizpatenteitaliana.it`, localhost, mobile) → `null` → full language list.
 
 ### 3.2 `queries/languages.ts` — upstream filter
 
@@ -106,9 +106,9 @@ Until then, the UI on `bn.` falls back to `it` (i18next) / missing keys (custom 
 ## 4. Vercel deploy (console config, not code)
 
 - **One project, one static deploy** (`expo export --platform web`, already working).
-- Domains: `easypatente.it` (apex, A record) + `bn.easypatente.it` (CNAME) + `es.easypatente.it` (CNAME).
+- Domains: `quizpatenteitaliana.it` (apex, A record) + `bn.quizpatenteitaliana.it` (CNAME) + `es.quizpatenteitaliana.it` (CNAME).
   **Hobby plan: 50 domains per project, subdomains free**. Wildcard alternative
-  `*.easypatente.it` (requires Vercel nameservers or `_acme-challenge` delegation).
+  `*.quizpatenteitaliana.it` (requires Vercel nameservers or `_acme-challenge` delegation).
   Domain not purchased yet — current deploy target is `easy-patente.vercel.app`, where the
   hostname never matches a site entry → full language list until the domain exists.
 - No `vercel.json` needed.
@@ -120,7 +120,7 @@ Until then, the UI on `bn.` falls back to `it` (i18next) / missing keys (custom 
 
 1. `npm run typecheck` + `npm run lint`
 2. `npm run web:export:prod` + `npx serve dist`
-3. Subdomain test: `/etc/hosts` → `127.0.0.1 bn.easypatente.it`, or
+3. Subdomain test: `/etc/hosts` → `127.0.0.1 bn.quizpatenteitaliana.it`, or
    `EXPO_PUBLIC_SITE=bn` in env
 4. Cases:
    - unknown/apex hostname → full list (unchanged)
@@ -143,7 +143,7 @@ Until then, the UI on `bn.` falls back to `it` (i18next) / missing keys (custom 
 
 ## 7. Out of scope / future
 
-- Apex `easypatente.it`: keep online (full list) / redirect to subdomains /
+- Apex `quizpatenteitaliana.it`: keep online (full list) / redirect to subdomains /
   fixed pair — independent decision, one line or one redirect rule.
 - Per-language SEO: if prerendered HTML/meta is needed, build matrix from the same branch
   with `EXPO_PUBLIC_SITE` (override already anticipated by D3/3.1).

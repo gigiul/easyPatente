@@ -23,9 +23,9 @@ export const DEFAULT_META = {
 
 /** Per-language base URL — used for canonical/hreflang (apex = it) */
 export const SITE_BASES: Record<string, string> = {
-  it: 'https://easypatente.it',
-  bn: 'https://bn.easypatente.it',
-  es: 'https://es.easypatente.it',
+  it: 'https://quizpatenteitaliana.it',
+  bn: 'https://bn.quizpatenteitaliana.it',
+  es: 'https://es.quizpatenteitaliana.it',
 };
 
 const SITES: Record<string, SiteConfig> = {
@@ -62,7 +62,7 @@ function resolveSite(): SiteConfig | null {
 
   if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
 
-  // 'bn.easypatente.it' → 'bn'; apex/localhost/unknown → null
+  // 'bn.quizpatenteitaliana.it' → 'bn'; apex/localhost/unknown → null
   const label = window.location.hostname.split('.')[0];
   return SITES[label] ?? null;
 }

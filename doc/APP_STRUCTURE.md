@@ -97,7 +97,7 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 
 ### 7. Supporto Web (Expo Web)
 - **`app.config.ts`**: aggiunge `web: { bundler:'metro', output:'static', favicon }` e `dotenv` per `.env`/`.env.production` (via `APP_ENV`/`NODE_ENV`); `extra` espone `supabaseUrl`/`supabaseAnonKey`/`supabaseStorageUrl` per `Constants` su web.
-- **`app/_layout.tsx`**: sets `<title>`/description via `expo-router/head` + `document.title` for the browser tab, with **per-subdomain** values (`lib/siteConfig.ts`) and runtime injection of `canonical` + `hreflang`; `Stack` unchanged. On a dedicated site (e.g. `bn.easypatente.it`) it enforces the fixed language pair (primary `it`, secondary = site language) without writing to the DB.
+- **`app/_layout.tsx`**: sets `<title>`/description via `expo-router/head` + `document.title` for the browser tab, with **per-subdomain** values (`lib/siteConfig.ts`) and runtime injection of `canonical` + `hreflang`; `Stack` unchanged. On a dedicated site (e.g. `bn.quizpatenteitaliana.it`) it enforces the fixed language pair (primary `it`, secondary = site language) without writing to the DB.
 - **`components/AppImageViewer.tsx` / `AppImageViewer.web.tsx`**: wrapper per `react-native-image-viewing` (manca build web) → su web `Modal`+`expo-image`.
 - **`hooks/usePreventScreenCapture.ts` / `.web.ts`**: no-op su web (evita `UnavailabilityError` di `expo-screen-capture`).
 - **`lib/alert.ts` / `alert.web.ts`**: `AppAlert.alert` → `Alert.alert` su native, `window.confirm/alert` su web (fix `logout`, `deleteAccount`, `clearChat`, `finishQuiz`).

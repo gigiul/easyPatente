@@ -15,7 +15,7 @@ export async function fetchLanguages() {
     throw error;
   }
 
-  // Dedicated site (e.g. bn.easypatente.it): only the site's fixed language pair.
+  // Dedicated site (e.g. bn.quizpatenteitaliana.it): only the site's fixed language pair.
   // Filtering happens upstream → propagates through the store to LanguagePicker
   // and the default-language fallbacks.
   const site = getSiteConfig();

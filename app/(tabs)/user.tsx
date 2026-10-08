@@ -39,7 +39,7 @@ export default function UserScreen() {
   useEffect(() => {
     const { lang_primary, lang_secondary } = userProfile || {};
 
-    // Dedicated site (e.g. bn.easypatente.it): fixed pair it + site secondary,
+    // Dedicated site (e.g. bn.quizpatenteitaliana.it): fixed pair it + site secondary,
     // client-side clamp only (no DB write).
     if (getSiteConfig()) {
       const { primary, secondary } = clampSiteLanguages(lang_primary, lang_secondary);
