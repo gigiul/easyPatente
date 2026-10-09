@@ -5,8 +5,13 @@ import { getDeviceId } from '../lib/device';
 import { storage } from '../lib/storage';
 import { supabase } from '../lib/supabase';
 import { isAllowedEmailDomain } from '../lib/emailValidation';
+import { isFeatureFlagEnabled } from '../store/featureFlags';
 
 const SESSION_KEY = '@auth_session';
+const DEVICE_BINDING_FLAG = 'device_binding';
+
+// Se il flag non si legge (fetch fallito / non autenticato) il blocco resta ATTIVO.
+const isDeviceBindingEnabled = () => isFeatureFlagEnabled(DEVICE_BINDING_FLAG, true);
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
@@ -69,6 +74,11 @@ export function useAuth() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error };
 
+    // Blocco dispositivo disattivato (es. DEV) → login da qualsiasi device
+    if (!(await isDeviceBindingEnabled())) {
+      return { error: null };
+    }
+
     const deviceId = await getDeviceId();
     const { data: isValid, error: deviceError } = await supabase.rpc('validate_device', { p_device_id: deviceId });
 
@@ -95,7 +105,7 @@ export function useAuth() {
     if (error) return { error };
 
     // Su PROD con email confirmation, signUp non ha sessione (auth.uid()=null) → register_device fallirebbe con 23502
-    if (data.session) {
+    if (data.session && (await isDeviceBindingEnabled())) {
       const deviceId = await getDeviceId();
       await supabase.rpc('register_device', { p_device_id: deviceId });
     }
