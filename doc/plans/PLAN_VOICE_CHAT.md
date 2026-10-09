@@ -154,6 +154,15 @@ Edge function grezza `live` con solo: upgrade WS + `EdgeRuntime.waitUntil` + ech
 
 **Verifica**: `npx tsc --noEmit` zero errori sui nuovi file (gli errori residui sono pre-esistenti), `expo lint` pulito sui nuovi file, `expo export --platform web` riuscito.
 
+### Fase 3 — Variante NATIVA ✅ COMPLETATA (2026-10-02)
+
+- [x] **`@edkimmel/expo-audio-stream@1.1.1`**: mic PCM16 16kHz mono (eventi base64 ogni 100ms, `requestPermissionsAsync` integrato) + `Pipeline` playback nativo jitter-buffered (PCM16 24kHz, `targetBufferMs: 80`, `playbackMode: 'voiceProcessing'` per AEC iOS; Android usa sorgente mic `VOICE_COMMUNICATION` con AEC di sistema).
+- [x] **`lib/liveAudio.ts`** riscritto (stesso contratto `LiveAudioIO`, nessun cambio nei consumatori): `isVoiceSupported() → true` su native; prime spinte in coda finché `Pipeline.connect` non risolve; turno output aperto dalla prima spinta e chiuso da `stopOutput()` → `invalidateTurn` (barge-in).
+- [x] **`app.config.ts`**: plugin `@edkimmel/expo-audio-stream` (NSMicrophoneUsageDescription) + `android.permissions: ['RECORD_AUDIO']`.
+- ⚠️ Richiede **dev build** (`expo run:android` / EAS): il modulo nativo non esiste in Expo Go. **Da verificare su dispositivo** (mic + playback + barge-in): non testabile in CI/locale.
+
+**Verifica**: `npx tsc --noEmit` zero errori, `expo lint` 0 errori (7 warning pre-esistenti), `expo config --type prebuild` risolve plugin e permessi.
+
 ### Fase 4 — UI in `app/(tabs)/chat.tsx`
 - Toggle microfono nella barra input (visibile solo se `feature_flags.voice && chat && profile.has_ai`).
 - Indicatore stato live (waveform "in ascolto", "cerco nel manuale…" da `proxyStatus`, onda "risposta in corso").
