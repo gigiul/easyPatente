@@ -46,6 +46,26 @@ export async function updateUserLanguage(languageId: string | null, type: 'prima
   return null;
 }
 
+/** Swap support: persists both languages in a single update. */
+export async function updateUserLanguages(primary: string | null, secondary: string | null) {
+  const profile = useUserProfileStore.getState().user;
+  if (!profile) throw new Error('User profile not found');
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ lang_primary: primary, lang_secondary: secondary })
+    .eq('id', profile.id)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  if (data) {
+    useUserProfileStore.getState().setProfile(data);
+    return data;
+  }
+  return null;
+}
+
 export async function deleteUserAccount() {
   const { error } = await supabase.rpc('delete_user_account');
   if (error) throw error;

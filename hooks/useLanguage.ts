@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 export function useLanguage() {
   const { i18n } = useTranslation();
   const userProfile = useUserProfileStore((state) => state.user);
-  // On a dedicated site the secondary is always the subdomain's fixed pair
-  // (clamped client-side only, no DB write).
+  // On a dedicated site the secondary defaults to the subdomain's language for
+  // out-of-site values, but stays optional (null is preserved). Client-side only.
   const secondaryLanguage = clampSiteLanguages(userProfile?.lang_primary, userProfile?.lang_secondary)
     .secondary;
 

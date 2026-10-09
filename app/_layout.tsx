@@ -56,8 +56,9 @@ export default function RootLayout() {
     const siteCfg = getSiteConfig();
 
     if (siteCfg) {
-      // Dedicated site (e.g. bn.quizpatenteitaliana.it): fixed pair it + site secondary.
-      // Client-side clamp only (no DB write).
+      // Dedicated site (e.g. bn.quizpatenteitaliana.it): primary kept within the
+      // site pair (it by default, swappable), secondary optional (site language
+      // only as out-of-site fallback). Client-side clamp only (no DB write).
       const { primary, secondary } = clampSiteLanguages(lang_primary, lang_secondary);
       if (primary) i18n.changeLanguage(primary);
       if (secondary) setSecondaryLanguagePreference(secondary);

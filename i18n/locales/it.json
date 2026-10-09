@@ -74,6 +74,7 @@
     "language": {
       "title": "Lingua principale",
       "description": "Lingua preferita per l'interfaccia",
+      "swap": "Inverti lingue",
       "en": "Inglese",
       "it": "Italiano",
       "es": "Spagnolo",

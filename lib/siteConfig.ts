@@ -73,10 +73,13 @@ export function getSiteConfig(): SiteConfig | null {
 }
 
 /**
- * Enforces the site's fixed language pair (primary = italian, secondary = subdomain language).
+ * Enforces the site's language rules.
  * - No site → values untouched (no clamping).
- * - primary → ALWAYS defaultPrimary ('it') on a dedicated site.
- * - secondary → if missing/off-site/equal to primary → defaultSecondary ('bn').
+ * - primary → must belong to the site pair: kept when valid (the swap button
+ *   can move it to the site language), otherwise fallback to defaultPrimary ('it').
+ * - secondary → OPTIONAL even on a dedicated site: null stays null (the picker
+ *   can clear it and the choice persists). Only an out-of-site value (or one
+ *   equal to primary) falls back to defaultSecondary for the session.
  * No DB write: the next explicit change from the picker saves normally.
  */
 export function clampSiteLanguages(
@@ -88,14 +91,21 @@ export function clampSiteLanguages(
     return { primary: langPrimary ?? null, secondary: langSecondary ?? null };
   }
 
-  const primary = cfg.defaultPrimary;
+  const primary =
+    langPrimary && langPrimary !== langSecondary && cfg.languages.includes(langPrimary)
+      ? langPrimary
+      : cfg.defaultPrimary;
 
-  const secondary =
-    langSecondary && cfg.languages.includes(langSecondary) && langSecondary !== primary
-      ? langSecondary
-      : cfg.defaultSecondary !== primary
+  let secondary: string | null = null;
+  if (langSecondary && langSecondary !== primary && cfg.languages.includes(langSecondary)) {
+    secondary = langSecondary;
+  } else if (langSecondary) {
+    // Out-of-site / invalid value (cross-site profile) → session fallback.
+    secondary =
+      cfg.defaultSecondary !== primary
         ? cfg.defaultSecondary
         : cfg.languages.find((c) => c !== primary) ?? null;
+  }
 
   return { primary, secondary };
 }

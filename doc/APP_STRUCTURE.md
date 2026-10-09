@@ -97,13 +97,13 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 
 ### 7. Supporto Web (Expo Web)
 - **`app.config.ts`**: aggiunge `web: { bundler:'metro', output:'static', favicon }` e `dotenv` per `.env`/`.env.production` (via `APP_ENV`/`NODE_ENV`); `extra` espone `supabaseUrl`/`supabaseAnonKey`/`supabaseStorageUrl` per `Constants` su web.
-- **`app/_layout.tsx`**: sets `<title>`/description via `expo-router/head` + `document.title` for the browser tab, with **per-subdomain** values (`lib/siteConfig.ts`) and runtime injection of `canonical` + `hreflang`; `Stack` unchanged. On a dedicated site (e.g. `bn.quizpatenteitaliana.it`) it enforces the fixed language pair (primary `it`, secondary = site language) without writing to the DB.
+- **`app/_layout.tsx`**: sets `<title>`/description via `expo-router/head` + `document.title` for the browser tab, with **per-subdomain** values (`lib/siteConfig.ts`) and runtime injection of `canonical` + `hreflang`; `Stack` unchanged. On a dedicated site (e.g. `bn.quizpatenteitaliana.it`) it enforces primary `it` while the secondary stays optional (site language only as out-of-site fallback) without writing to the DB.
 - **`components/AppImageViewer.tsx` / `AppImageViewer.web.tsx`**: wrapper per `react-native-image-viewing` (manca build web) → su web `Modal`+`expo-image`.
 - **`hooks/usePreventScreenCapture.ts` / `.web.ts`**: no-op su web (evita `UnavailabilityError` di `expo-screen-capture`).
 - **`lib/alert.ts` / `alert.web.ts`**: `AppAlert.alert` → `Alert.alert` su native, `window.confirm/alert` su web (fix `logout`, `deleteAccount`, `clearChat`, `finishQuiz`).
 - **`lib/storage.ts`**: mirror `AsyncStorage` ↔ `localStorage` su web.
 - **`lib/supabase.ts`**: priorizza `Constants.expoConfig.extra` su `process.env` per coerenza web/native.
-- **`lib/siteConfig.ts`**: subdomain detection on web (`window.location.hostname`, `EXPO_PUBLIC_SITE` override) → maps host → fixed language pair (`it` + site language) and per-site meta; `null` on apex/mobile → full list. Used by `queries/languages.ts` (upstream filter), `app/_layout.tsx`, `app/(tabs)/user.tsx` and `hooks/useLanguage.ts`. Plan: `doc/plans/SUBDOMAIN_LANGUAGES.md`.
+- **`lib/siteConfig.ts`**: subdomain detection on web (`window.location.hostname`, `EXPO_PUBLIC_SITE` override) → maps host → language rules (primary `it` + optional site secondary) and per-site meta; `null` on apex/mobile → full list. Used by `queries/languages.ts` (upstream filter), `app/_layout.tsx`, `app/(tabs)/user.tsx` and `hooks/useLanguage.ts`. Plan: `doc/plans/SUBDOMAIN_LANGUAGES.md`.
 - **`metro.config.js`**: `unstable_enablePackageExports:false` + `babel.config.js` `babel-plugin-transform-import-meta` fix `zustand@5` `import.meta` su web.
 - **`package.json`**: `web:export:dev` (`dotenv-cli -e .env`) e `web:export:prod` (`-e .env.production`) con `--clear && npx serve dist`.
 ----

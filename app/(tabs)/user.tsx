@@ -14,7 +14,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import i18n from '@/i18n';
-import { deleteUserAccount, updateUserLanguage } from '@/queries/user';
+import { deleteUserAccount, updateUserLanguage, updateUserLanguages } from '@/queries/user';
 import { useLanguagesStore } from '@/store/languages';
 import { useUserProfileStore } from '@/store/user';
 
@@ -39,8 +39,9 @@ export default function UserScreen() {
   useEffect(() => {
     const { lang_primary, lang_secondary } = userProfile || {};
 
-    // Dedicated site (e.g. bn.quizpatenteitaliana.it): fixed pair it + site secondary,
-    // client-side clamp only (no DB write).
+    // Dedicated site (e.g. bn.quizpatenteitaliana.it): primary kept within the
+    // site pair (it by default, swappable), secondary optional (site language
+    // only as out-of-site fallback), client-side clamp only (no DB write).
     if (getSiteConfig()) {
       const { primary, secondary } = clampSiteLanguages(lang_primary, lang_secondary);
       if (primary) {
@@ -55,8 +56,10 @@ export default function UserScreen() {
       setPrimaryLanguage(lang_primary);
       i18n.changeLanguage(lang_primary);
     }
-    if (lang_secondary) {
-      setSecondaryLanguage(lang_secondary);
+    // Profile is the source of truth: sync even when secondary is null/cleared,
+    // otherwise a transient effect run with the stale value sticks forever.
+    if (userProfile) {
+      setSecondaryLanguage(lang_secondary ?? '');
     }
     if (!lang_primary && languages.length > 0) {
       const setDefaultLanguage = async () => {
@@ -78,6 +81,25 @@ export default function UserScreen() {
     setSecondaryLanguage(langCode || null);
     await updateUserLanguage(langCode || null, 'secondary');
   };
+
+  // Swap primary ↔ secondary (only when a secondary is set): lets the user use
+  // their mother tongue as UI language even where the primary dropdown is locked
+  // (dedicated site). Persists both languages in one DB update.
+  const handleSwapLanguages = async () => {
+    if (!primaryLanguage || !secondaryLanguage) return;
+    const newPrimary = secondaryLanguage;
+    const newSecondary = primaryLanguage;
+    setPrimaryLanguage(newPrimary);
+    setSecondaryLanguage(newSecondary);
+    await i18n.changeLanguage(newPrimary);
+    await updateUserLanguages(newPrimary, newSecondary);
+  };
+
+  // On a dedicated site the primary dropdown stays locked to the current value:
+  // exclude the other member of the site pair when the secondary is empty.
+  const site = getSiteConfig();
+  const siteOtherLanguage =
+    site && primaryLanguage ? site.languages.find((c) => c !== primaryLanguage) ?? null : null;
 
   const handleLogout = async () => {
     Alert.alert(
@@ -183,11 +205,29 @@ export default function UserScreen() {
               value={primaryLanguage}
               onChange={handlePrimaryLanguageChange}
               title={t('user.language.title')}
-              excludeLanguage={secondaryLanguage}
+              excludeLanguage={secondaryLanguage || siteOtherLanguage}
               languages={languages}
             />
           </View>
-          <View style={[styles.separator, { backgroundColor: borderColor }]} />
+          {primaryLanguage && secondaryLanguage ? (
+            <>
+              <View style={[styles.separator, { backgroundColor: borderColor }]} />
+              <Pressable
+                style={({ pressed }) => [styles.swapRow, pressed && styles.rowPressed]}
+                onPress={handleSwapLanguages}
+                accessibilityRole="button"
+                accessibilityLabel={t('user.language.swap')}
+              >
+                <Ionicons name="swap-horizontal" size={18} color={accentColor} />
+                <ThemedText style={[styles.swapText, { color: accentColor }]}>
+                  {t('user.language.swap')}
+                </ThemedText>
+              </Pressable>
+              <View style={[styles.separator, { backgroundColor: borderColor }]} />
+            </>
+          ) : (
+            <View style={[styles.separator, { backgroundColor: borderColor }]} />
+          )}
           <View style={styles.pickerContainer}>
             <LanguagePicker
               value={secondaryLanguage}
@@ -310,6 +350,17 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     width: '100%',
+  },
+  swapRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+  },
+  swapText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   row: {
     flexDirection: 'row',
