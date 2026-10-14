@@ -4,11 +4,11 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import { useTranslation } from 'react-i18next';
 import {
   Animated,
-  FlatList,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -206,25 +206,26 @@ export default function ChatScreen() {
   const canStartVoice =
     voiceAvailable && chatEnabled && (remainingRequests === null || remainingRequests > 0);
   const [inputText, setInputText] = useState('');
-  const flatListRef = useRef<FlatList>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
 
-  // Scroll to bottom of the list, deferring by one frame to ensure
-  // that FlatList has updated layout with the latest messages.
-  const scrollToEnd = useCallback((animated: boolean) => {
+  // Scroll to bottom of the list.
+  // Using ScrollView ensures exact pixel scrolling on both web and native,
+  // without the virtualization/approximate frame bugs of FlatList.
+  const scrollToBottom = useCallback((animated: boolean) => {
     requestAnimationFrame(() => {
-      flatListRef.current?.scrollToEnd({ animated });
+      scrollViewRef.current?.scrollToEnd({ animated });
     });
   }, []);
 
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => {
-      flatListRef.current?.scrollToEnd({ animated: true });
+      scrollToBottom(true);
     });
     const willShowSub =
       Platform.OS === 'ios'
         ? Keyboard.addListener('keyboardWillShow', () => {
-          flatListRef.current?.scrollToEnd({ animated: true });
+          scrollToBottom(true);
         })
         : null;
 
@@ -232,7 +233,7 @@ export default function ChatScreen() {
       showSub.remove();
       willShowSub?.remove();
     };
-  }, []);
+  }, [scrollToBottom]);
 
   const iconColor = useThemeColor({}, 'icon');
   const borderColor = useThemeColor({ light: '#E2E8F0', dark: '#374151' }, 'icon');
@@ -301,7 +302,7 @@ export default function ChatScreen() {
 
     (async () => {
       await loadMessages();
-      if (!cancelled) scrollToEnd(false);
+      if (!cancelled) scrollToBottom(false);
     })();
 
     loadRemainingRequests();
@@ -309,41 +310,14 @@ export default function ChatScreen() {
     return () => {
       cancelled = true;
     };
-  }, [session?.user?.id]);
+  }, [session?.user?.id, scrollToBottom]);
 
-  // expo-router tabs stay mounted: a useEffect on mount is not enough
-  // to scroll every time the tab is REOPENED. useFocusEffect triggers
-  // on every focus (including initial opening), covering exactly
-  // the case "scroll to bottom when tab opens".
+  // expo-router tabs stay mounted: scroll to bottom on every focus.
   useFocusEffect(
     useCallback(() => {
-      scrollToEnd(false);
-    }, [scrollToEnd])
+      scrollToBottom(false);
+    }, [scrollToBottom])
   );
-
-  // Scroll to bottom again every time a new message arrives or
-  // the content/status of the last one changes (AI response, retry, streaming).
-  // The second, delayed scroll handles any late markdown reflows
-  // (code blocks, lists, headings) measured after initial render.
-  const lastMessageSignatureRef = useRef('');
-
-  useEffect(() => {
-    const last = messages[messages.length - 1];
-    const signature = last
-      ? `${messages.length}:${last.id}:${last.content?.length ?? 0}:${last.status ?? ''}`
-      : `${messages.length}`;
-    const voiceSignature = voiceActive
-      ? `:${voiceUserText.length}:${voiceAssistantText.length}:${voiceStatus}`
-      : '';
-
-    const fullSignature = signature + voiceSignature;
-    if (fullSignature === lastMessageSignatureRef.current) return;
-    lastMessageSignatureRef.current = fullSignature;
-
-    scrollToEnd(true);
-    const timer = setTimeout(() => scrollToEnd(true), 250);
-    return () => clearTimeout(timer);
-  }, [messages, scrollToEnd, voiceActive, voiceUserText, voiceAssistantText, voiceStatus]);
 
   const rows = useMemo(() => {
     const list: any[] = [...messages];
@@ -359,13 +333,38 @@ export default function ChatScreen() {
     return list;
   }, [messages, sending, voiceActive, voiceUserText, voiceAssistantText]);
 
-  // Smooth scroll using onContentSizeChange instead of useEffect
-  const onContentSizeChange = useCallback(
-    (_contentWidth: number, contentHeight: number) => {
-      flatListRef.current?.scrollToEnd({ animated: false });
-    },
-    []
-  );
+  // Scroll smoothly ONLY when a new message or bubble is added
+  // (new user message, assistant response, typing dot, or new voice bubble).
+  // Avoids continuous jarring scrollToEnd calls during partial voice transcription.
+  const prevRowsCountRef = useRef(rows.length);
+  const prevLastMsgIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+    const isNewMsg = !!lastMsg && lastMsg.id !== prevLastMsgIdRef.current;
+    const isRowAdded = rows.length > prevRowsCountRef.current;
+
+    prevRowsCountRef.current = rows.length;
+    if (lastMsg) {
+      prevLastMsgIdRef.current = lastMsg.id;
+    }
+
+    if (isNewMsg || isRowAdded) {
+      scrollToBottom(true);
+    }
+  }, [rows.length, messages, scrollToBottom]);
+
+  // When content size changes (e.g. markdown rendering/reflowing):
+  // in normal text mode, pin to bottom so the new response is fully visible.
+  // In voice mode, do not scroll during streaming to prevent visual jitter.
+  const voiceActiveRef = useRef(voiceActive);
+  voiceActiveRef.current = voiceActive;
+
+  const onContentSizeChange = useCallback(() => {
+    if (!voiceActiveRef.current) {
+      scrollToBottom(false);
+    }
+  }, [scrollToBottom]);
 
   const handleSend = async () => {
     const text = inputText.trim();
@@ -537,20 +536,19 @@ export default function ChatScreen() {
             </ThemedText>
           </View>
         ) : (
-          <FlatList
-            ref={flatListRef}
-            data={rows}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            onContentSizeChange={onContentSizeChange}
-            onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          <ScrollView
+            ref={scrollViewRef}
             style={styles.messageList}
             contentContainerStyle={styles.messageListContent}
-            removeClippedSubviews
-            maxToRenderPerBatch={10}
-            updateCellsBatchingPeriod={50}
-            windowSize={11}
-          />
+            onContentSizeChange={onContentSizeChange}
+            keyboardShouldPersistTaps="handled"
+          >
+            {rows.map((item) => (
+              <React.Fragment key={item.id}>
+                {renderItem({ item })}
+              </React.Fragment>
+            ))}
+          </ScrollView>
         )}
 
         {/* Error message */}
