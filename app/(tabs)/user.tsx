@@ -195,6 +195,14 @@ export default function UserScreen() {
           </View>
         </View>
 
+        {/* DEV environment banner */}
+        {process.env.EXPO_PUBLIC_ENV === 'development' && (
+          <View style={styles.devBanner}>
+            <Ionicons name="construct-outline" size={14} color="#7C3AED" />
+            <ThemedText style={styles.devBannerText}>DEV</ThemedText>
+          </View>
+        )}
+
         {/* LINGUA - CORE FEATURE */}
         <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
           {t('user.sections.language')}
@@ -279,6 +287,26 @@ export default function UserScreen() {
 }
 
 const styles = StyleSheet.create({
+  devBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    alignSelf: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 20,
+    backgroundColor: '#EDE9FE',
+    borderWidth: 1,
+    borderColor: '#7C3AED',
+    marginBottom: 8,
+  },
+  devBannerText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#7C3AED',
+    letterSpacing: 1,
+  },
   container: {
     flex: 1,
   },
