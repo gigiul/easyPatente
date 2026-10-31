@@ -142,22 +142,22 @@ export default function QuizScreen() {
   if (quiz.quizCompleted) {
     return (
       <ThemedView style={styles.container}><QuizSaveStatus state={quiz.saveState} onRetry={quiz.retry} />
-      <QuizResultsScreen
-        title={String(batchTitle ?? '')}
-        score={quiz.score}
-        incorrectCount={quiz.incorrectCount}
-        questions={questions}
-        incorrectQuestions={quiz.incorrectQuestions}
-        answers={quiz.answers}
-        explanationEnabled={explanationEnabled}
-        secondaryLanguage={secondaryLanguage}
-        explanations={explanations}
-        images={images}
-        previousDisabled={true}
-        onBack={() => router.back()}
-        onPrevious={quiz.previous}
-        onReset={quiz.reset}
-      /></ThemedView>
+        <QuizResultsScreen
+          title={String(batchTitle ?? '')}
+          score={quiz.score}
+          incorrectCount={quiz.incorrectCount}
+          questions={questions}
+          incorrectQuestions={quiz.incorrectQuestions}
+          answers={quiz.answers}
+          explanationEnabled={explanationEnabled}
+          secondaryLanguage={secondaryLanguage}
+          explanations={explanations}
+          images={images}
+          previousDisabled={true}
+          onBack={() => router.back()}
+          onPrevious={quiz.previous}
+          onReset={quiz.reset}
+        /></ThemedView>
     );
   }
 
@@ -212,7 +212,7 @@ export default function QuizScreen() {
 
       <QuizBottomNav
         onPrevious={quiz.previous}
-        previousDisabled={true}
+        previousDisabled={quiz.currentQuestionIndex === 0}
         counter={`${quiz.currentQuestionIndex + 1} / ${questions.length}`}
         right={{
           label: quiz.hasAnswered ? t('quiz.nextQuestion') : t('quiz.skipQuestion'),
