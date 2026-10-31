@@ -1,0 +1,702 @@
+--- a/manual_chunks/v1/cap-18/sez-03/001.json
++++ b/manual_chunks/v1/cap-18/sez-03/001.json
+@@ -3,13 +3,20 @@
+   "chapter_id": "cap-18",
+   "section": "AUTOSTRADA",
+   "section_id": "cap-18-sez-03",
+-  "text": "L'autostrada è una strada a carreggiate indipendenti o separate da spartitraffico, ciascuna con almeno due corsie di marcia e corsia di emergenza, priva di incroci a raso (sono invece presenti gli incroci a livelli sfalsati) e accessi privati (garage, stradelle) e munita di corsie di accelerazione e di decelerazione per l'ingresso e l'uscita dei veicoli. È riservata alla circolazione di alcune categorie di veicoli a motore (motocicli di almeno 150 cm3; autoveicoli che siano in grado di raggiungere la velocità di 80 km/h) ed è contraddistinta da appositi segnali di inizio e fine (figg. 196, 195). Il limite massimo di velocità è di 130 km/h e la segnaletica è di colore verde.",
+-  "embedding_text": "Circolazione sulle Strade extraurbane Principali e sulle Autostrade — AUTOSTRADA\n\nL'autostrada è una strada a carreggiate indipendenti o separate da spartitraffico, ciascuna con almeno due corsie di marcia e corsia di emergenza, priva di incroci a raso (sono invece presenti gli incroci a livelli sfalsati) e accessi privati (garage, stradelle) e munita di corsie di accelerazione e di decelerazione per l'ingresso e l'uscita dei veicoli. È riservata alla circolazione di alcune categorie di veicoli a motore (motocicli di almeno 150 cm3; autoveicoli che siano in grado di raggiungere la velocità di 80 km/h) ed è contraddistinta da appositi segnali di inizio e fine (figg. 196, 195). Il limite massimo di velocità è di 130 km/h e la segnaletica è di colore verde.",
++  "text": "L'autostrada è una strada a carreggiate indipendenti o separate da spartitraffico, ciascuna con almeno due corsie di marcia e corsia di emergenza, priva di incroci a raso (sono invece presenti gli incroci a livelli sfalsati) e accessi privati (garage, stradelle) e munita di corsie di accelerazione e di decelerazione per l'ingresso e l'uscita dei veicoli. È riservata alla circolazione di alcune categorie di veicoli a motore (motocicli termici da almeno 150 cm³ o elettrici da almeno 11 kW; in deroga, sono ammessi motocicli termici da almeno 120 cm³ o elettrici da almeno 6 kW se condotti da maggiorenni; autoveicoli che siano in grado di raggiungere la velocità di 80 km/h) ed è contraddistinta da appositi segnali di inizio e fine (figg. 196, 195). Il limite massimo di velocità è di 130 km/h e la segnaletica è di colore verde.",
++  "embedding_text": "Circolazione sulle Strade extraurbane Principali e sulle Autostrade — AUTOSTRADA\n\nL'autostrada è una strada a carreggiate indipendenti o separate da spartitraffico, ciascuna con almeno due corsie di marcia e corsia di emergenza, priva di incroci a raso (sono invece presenti gli incroci a livelli sfalsati) e accessi privati (garage, stradelle) e munita di corsie di accelerazione e di decelerazione per l'ingresso e l'uscita dei veicoli. È riservata alla circolazione di alcune categorie di veicoli a motore (motocicli termici da almeno 150 cm³ o elettrici da almeno 11 kW; in deroga, sono ammessi motocicli termici da almeno 120 cm³ o elettrici da almeno 6 kW se condotti da maggiorenni; autoveicoli che siano in grado di raggiungere la velocità di 80 km/h) ed è contraddistinta da appositi segnali di inizio e fine (figg. 196, 195). Il limite massimo di velocità è di 130 km/h e la segnaletica è di colore verde.",
+   "source_file": [
+-    "manual-page-088.md"
++    "manual-page-088.md",
++    "https://aci.gov.it/codice-della-strada/art-175/"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Art. 175, commi 2 e 2-bis CdS"
++  ],
+   "keywords": [
+-    "autostrada"
++    "autostrada",
++    "motocicli",
++    "120 cm3",
++    "6 kW",
++    "maggiorenni"
+   ]
+ }--- a/manual_chunks/v1/cap-18/sez-04/001.json
++++ b/manual_chunks/v1/cap-18/sez-04/001.json
+@@ -3,14 +3,19 @@
+   "chapter_id": "cap-18",
+   "section": "SONO AMMESSI A CIRCOLARE IN AUTOSTRADA:",
+   "section_id": "cap-18-sez-04",
+-  "text": "Autovetture con rimorchio o trainanti un carrello-appendice; autocaravan (camper); autocarri; autoarticolati; autobus; motocicli di cilindrata uguale o superiore a 150 cm3.",
+-  "embedding_text": "Circolazione sulle Strade extraurbane Principali e sulle Autostrade — SONO AMMESSI A CIRCOLARE IN AUTOSTRADA:\n\nAutovetture con rimorchio o trainanti un carrello-appendice; autocaravan (camper); autocarri; autoarticolati; autobus; motocicli di cilindrata uguale o superiore a 150 cm3.",
++  "text": "Autovetture con rimorchio o trainanti un carrello-appendice; autocaravan (camper); autocarri; autoarticolati; autobus; motocicli termici da almeno 150 cm³ o elettrici da almeno 11 kW; in deroga, sono ammessi motocicli termici da almeno 120 cm³ o elettrici da almeno 6 kW se condotti da maggiorenni.",
++  "embedding_text": "Circolazione sulle Strade extraurbane Principali e sulle Autostrade — SONO AMMESSI A CIRCOLARE IN AUTOSTRADA:\n\nAutovetture con rimorchio o trainanti un carrello-appendice; autocaravan (camper); autocarri; autoarticolati; autobus; motocicli termici da almeno 150 cm³ o elettrici da almeno 11 kW; in deroga, sono ammessi motocicli termici da almeno 120 cm³ o elettrici da almeno 6 kW se condotti da maggiorenni.",
+   "source_file": [
+-    "manual-page-088.md"
++    "manual-page-088.md",
++    "https://aci.gov.it/codice-della-strada/art-175/"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Art. 175, commi 2 e 2-bis CdS"
++  ],
+   "keywords": [
+-    "sono ammessi a circolare in autostrada:",
+-    "autovetture"
++    "veicoli ammessi",
++    "motocicli",
++    "autostrada",
++    "strada extraurbana principale"
+   ]
+ }--- a/manual_chunks/v1/cap-18/sez-05/001.json
++++ b/manual_chunks/v1/cap-18/sez-05/001.json
+@@ -3,13 +3,19 @@
+   "chapter_id": "cap-18",
+   "section": "SONO ESCLUSI DALLA CIRCOLAZIONE IN AUTOSTRADA:",
+   "section_id": "cap-18-sez-05",
+-  "text": "Non possono entrare: autovetture che non sono in grado di sviluppare una velocità di almeno 80 km/h; ciclomotori; motocicli di cilindrata inferiore a 150 cm3; macchine agricole e macchine operatrici; veicoli con carico non opportunamente sistemato e fissato, o con carico di materiale sciolto e scoperto, che può dispersersi; veicoli non in regola con la prescritta revisione o in cattive condizioni d'uso, di equipaggiamento o di gommatura (ad esempio: pneumatici consumati, indicatori di direzione guasti).",
+-  "embedding_text": "Circolazione sulle Strade extraurbane Principali e sulle Autostrade — SONO ESCLUSI DALLA CIRCOLAZIONE IN AUTOSTRADA:\n\nNon possono entrare: autovetture che non sono in grado di sviluppare una velocità di almeno 80 km/h; ciclomotori; motocicli di cilindrata inferiore a 150 cm3; macchine agricole e macchine operatrici; veicoli con carico non opportunamente sistemato e fissato, o con carico di materiale sciolto e scoperto, che può dispersersi; veicoli non in regola con la prescritta revisione o in cattive condizioni d'uso, di equipaggiamento o di gommatura (ad esempio: pneumatici consumati, indicatori di direzione guasti).",
++  "text": "Non possono entrare: autovetture che non sono in grado di sviluppare una velocità di almeno 80 km/h; ciclomotori; motocicli termici sotto 150 cm³ o elettrici sotto 11 kW, salvo la deroga per conducenti maggiorenni con almeno 120 cm³ termici o 6 kW elettrici; macchine agricole e macchine operatrici; veicoli con carico non opportunamente sistemato e fissato, o con carico di materiale sciolto e scoperto, che può dispersersi; veicoli non in regola con la prescritta revisione o in cattive condizioni d'uso, di equipaggiamento o di gommatura (ad esempio: pneumatici consumati, indicatori di direzione guasti).",
++  "embedding_text": "Circolazione sulle Strade extraurbane Principali e sulle Autostrade — SONO ESCLUSI DALLA CIRCOLAZIONE IN AUTOSTRADA:\n\nNon possono entrare: autovetture che non sono in grado di sviluppare una velocità di almeno 80 km/h; ciclomotori; motocicli termici sotto 150 cm³ o elettrici sotto 11 kW, salvo la deroga per conducenti maggiorenni con almeno 120 cm³ termici o 6 kW elettrici; macchine agricole e macchine operatrici; veicoli con carico non opportunamente sistemato e fissato, o con carico di materiale sciolto e scoperto, che può dispersersi; veicoli non in regola con la prescritta revisione o in cattive condizioni d'uso, di equipaggiamento o di gommatura (ad esempio: pneumatici consumati, indicatori di direzione guasti).",
+   "source_file": [
+-    "manual-page-088.md"
++    "manual-page-088.md",
++    "https://aci.gov.it/codice-della-strada/art-175/"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Art. 175, commi 2 e 2-bis CdS"
++  ],
+   "keywords": [
+-    "sono esclusi dalla circolazione in autostrada:"
++    "veicoli esclusi",
++    "autostrada",
++    "motocicli",
++    "deroga maggiorenni"
+   ]
+ }--- a/manual_chunks/v1/cap-21/sez-03/001.json
++++ b/manual_chunks/v1/cap-21/sez-03/001.json
+@@ -3,14 +3,19 @@
+   "chapter_id": "cap-21",
+   "section": "SONO ESENTATI (ESCLUSI) DALL'OBBLIGO DI INDOSSARE LE CINTURE",
+   "section_id": "cap-21-sez-03",
+-  "text": "Non devono indossare le cinture di sicurezza: istruttori di guida nello svolgimento della loro attività (gli allievi invece devono regolarmente allacciarla); donne in stato di gravidanza, con certificato delle particolari condizioni di rischio; persone affette da patologie (malattie) particolari (per le quali le cinture siano controindicate), con certificato rilasciato dalla A.S.L. (Azienda Sanitaria Locale).",
+-  "embedding_text": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo — SONO ESENTATI (ESCLUSI) DALL'OBBLIGO DI INDOSSARE LE CINTURE\n\nNon devono indossare le cinture di sicurezza: istruttori di guida nello svolgimento della loro attività (gli allievi invece devono regolarmente allacciarla); donne in stato di gravidanza, con certificato delle particolari condizioni di rischio; persone affette da patologie (malattie) particolari (per le quali le cinture siano controindicate), con certificato rilasciato dalla A.S.L. (Azienda Sanitaria Locale).",
++  "text": "Sono esentati dall'obbligo di indossare la cintura, nei casi previsti dalla legge: gli istruttori mentre svolgono le funzioni di accompagnamento alle esercitazioni di guida; le persone con patologie o condizioni fisiche specificamente controindicate, certificate dall'autorità sanitaria competente; le donne in gravidanza soltanto con certificazione del ginecologo che attesti particolari rischi dovuti alla cintura. La gravidanza, da sola, non dà diritto all'esenzione. L'esenzione non è un divieto di indossare la cintura. L'allievo deve invece utilizzarla. Esistono ulteriori esenzioni per determinati servizi e situazioni disciplinati dall'articolo 172, comma 8.",
++  "embedding_text": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo — SONO ESENTATI (ESCLUSI) DALL'OBBLIGO DI INDOSSARE LE CINTURE\n\nSono esentati dall'obbligo di indossare la cintura, nei casi previsti dalla legge: gli istruttori mentre svolgono le funzioni di accompagnamento alle esercitazioni di guida; le persone con patologie o condizioni fisiche specificamente controindicate, certificate dall'autorità sanitaria competente; le donne in gravidanza soltanto con certificazione del ginecologo che attesti particolari rischi dovuti alla cintura. La gravidanza, da sola, non dà diritto all'esenzione. L'esenzione non è un divieto di indossare la cintura. L'allievo deve invece utilizzarla. Esistono ulteriori esenzioni per determinati servizi e situazioni disciplinati dall'articolo 172, comma 8.",
+   "source_file": [
+-    "manual-page-098.md"
++    "manual-page-098.md",
++    "https://aci.gov.it/codice-della-strada/art-172/"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Art. 172, comma 8 CdS"
++  ],
+   "keywords": [
+-    "sono esentati (esclusi) dall'obbligo di indossare le cinture",
+-    "azienda sanitaria locale"
++    "esenzione cinture",
++    "gravidanza",
++    "certificato medico",
++    "istruttore"
+   ]
+ }--- a/manual_chunks/v1/cap-21/sez-04/001.json
++++ b/manual_chunks/v1/cap-21/sez-04/001.json
+@@ -3,13 +3,20 @@
+   "chapter_id": "cap-21",
+   "section": "SISTEMI DI RITENUTA PER BAMBINI",
+   "section_id": "cap-21-sez-04",
+-  "text": "I passeggeri di età inferiore a 12 anni e di statura (altezza) sotto gli 1,50 metri, devono far uso di sistemi di ritenuta (seggiolini o cuscini) adeguati alla loro statura ed al loro peso. I sistemi di ritenuta (da utilizzare durante la circolazione sia urbana che extraurbana) devono essere di tipo omologato e mantenuti sempre efficienti.",
+-  "embedding_text": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo — SISTEMI DI RITENUTA PER BAMBINI\n\nI passeggeri di età inferiore a 12 anni e di statura (altezza) sotto gli 1,50 metri, devono far uso di sistemi di ritenuta (seggiolini o cuscini) adeguati alla loro statura ed al loro peso. I sistemi di ritenuta (da utilizzare durante la circolazione sia urbana che extraurbana) devono essere di tipo omologato e mantenuti sempre efficienti.",
++  "text": "Nelle autovetture i bambini di statura inferiore a 1,50 m devono viaggiare con un sistema di ritenuta omologato adeguato al bambino, installato e utilizzato secondo le istruzioni. Il criterio ordinario è l'altezza: l'obbligo non è subordinato anche all'avere meno di 12 anni. Seggiolini e cinture devono essere mantenuti efficienti e utilizzati anche nei brevi tragitti e in città. Le deroghe per taxi e NCC e le regole per veicoli senza sistemi di ritenuta vanno considerate separatamente.",
++  "embedding_text": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo — SISTEMI DI RITENUTA PER BAMBINI\n\nNelle autovetture i bambini di statura inferiore a 1,50 m devono viaggiare con un sistema di ritenuta omologato adeguato al bambino, installato e utilizzato secondo le istruzioni. Il criterio ordinario è l'altezza: l'obbligo non è subordinato anche all'avere meno di 12 anni. Seggiolini e cinture devono essere mantenuti efficienti e utilizzati anche nei brevi tragitti e in città. Le deroghe per taxi e NCC e le regole per veicoli senza sistemi di ritenuta vanno considerate separatamente.",
+   "source_file": [
+-    "manual-page-098.md"
++    "manual-page-098.md",
++    "https://aci.gov.it/codice-della-strada/art-172/",
++    "Manuale_PatenteB.pdf#page=211"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Art. 172 CdS"
++  ],
+   "keywords": [
+-    "sistemi di ritenuta per bambini"
++    "seggiolini",
++    "bambini",
++    "1,50 m",
++    "sistemi di ritenuta"
+   ]
+ }--- a/manual_chunks/v1/cap-23/sez-01/001.json
++++ b/manual_chunks/v1/cap-23/sez-01/001.json
+@@ -3,13 +3,21 @@
+   "chapter_id": "cap-23",
+   "section": "Introduzione",
+   "section_id": "cap-23-sez-01",
+-  "text": "Per superare l'esame a quiz è indispensabile conoscere quali veicoli si possono condurre con le patenti A1, A e B, la loro durata di validità (10, 5 o 3 anni, in base all'età) e le modalità per la conferma, o rinnovo, attestante il permanere dei requisiti fisici.\nOccorre poi saper distinguere i vari provvedimenti che riguardano la patente, ossia: la revisione (verifica dei requisiti fisici e dell'idoneità tecnica alla guida), la revoca (permanente), il ritiro (temporaneo) e la sospensione (da 15 giorni a 2 anni). Il ritiro della patente non va confuso con il ritiro della carta di circolazione.",
+-  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — Introduzione\n\nPer superare l'esame a quiz è indispensabile conoscere quali veicoli si possono condurre con le patenti A1, A e B, la loro durata di validità (10, 5 o 3 anni, in base all'età) e le modalità per la conferma, o rinnovo, attestante il permanere dei requisiti fisici.\nOccorre poi saper distinguere i vari provvedimenti che riguardano la patente, ossia: la revisione (verifica dei requisiti fisici e dell'idoneità tecnica alla guida), la revoca (permanente), il ritiro (temporaneo) e la sospensione (da 15 giorni a 2 anni). Il ritiro della patente non va confuso con il ritiro della carta di circolazione.",
++  "text": "Per i quiz occorre conoscere le patenti AM, A1, A2, A, B1, B e BE, il codice 96 della patente B, le abilitazioni e le equivalenze ammesse. La durata ordinaria delle patenti del gruppo B dipende dall'età e comprende il rinnovo biennale dal compimento degli 80 anni. Sono distinti la revisione, che verifica i requisiti per guidare, la revoca, che annulla la patente, il ritiro del documento e la sospensione del diritto di guidare. Sono inoltre rilevanti la patente a punti e le limitazioni dei neopatentati. Le durate della sospensione dipendono dal caso previsto dalla legge e non da un unico intervallo valido per ogni violazione.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — Introduzione\n\nPer i quiz occorre conoscere le patenti AM, A1, A2, A, B1, B e BE, il codice 96 della patente B, le abilitazioni e le equivalenze ammesse. La durata ordinaria delle patenti del gruppo B dipende dall'età e comprende il rinnovo biennale dal compimento degli 80 anni. Sono distinti la revisione, che verifica i requisiti per guidare, la revoca, che annulla la patente, il ritiro del documento e la sospensione del diritto di guidare. Sono inoltre rilevanti la patente a punti e le limitazioni dei neopatentati. Le durate della sospensione dipendono dal caso previsto dalla legge e non da un unico intervallo valido per ogni violazione.",
+   "source_file": [
+-    "manual-page-104.md"
++    "manual-page-104.md",
++    "https://aci.gov.it/codice-della-strada/art-116/",
++    "https://aci.gov.it/codice-della-strada/art-126/",
++    "Manuale_PatenteB.pdf#page=217"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Artt. 116, 126, 126-bis CdS"
++  ],
+   "keywords": [
+-    "occorre"
++    "categorie patenti",
++    "rinnovo",
++    "provvedimenti",
++    "patente a punti"
+   ]
+ }--- a/manual_chunks/v1/cap-23/sez-02/001.json
++++ b/manual_chunks/v1/cap-23/sez-02/001.json
+@@ -3,14 +3,21 @@
+   "chapter_id": "cap-23",
+   "section": "CON LA PATENTE DELLA SOTTOCATEGORIA A1 SI POSSONO GUIDARE",
+   "section_id": "cap-23-sez-02",
+-  "text": "Motocicli fino a 125 cm3 di cilindrata e potenza fino a 11 kw; tricicli (motocarri e motocarrozze); quadricicli di massa fino a 550 kg e potenza fino a 15 kw.",
+-  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — CON LA PATENTE DELLA SOTTOCATEGORIA A1 SI POSSONO GUIDARE\n\nMotocicli fino a 125 cm3 di cilindrata e potenza fino a 11 kw; tricicli (motocarri e motocarrozze); quadricicli di massa fino a 550 kg e potenza fino a 15 kw.",
++  "text": "La patente A1 si consegue da 16 anni. Consente motocicli con cilindrata fino a 125 cm³, potenza fino a 11 kW e rapporto potenza/peso fino a 0,1 kW/kg: i tre limiti devono essere rispettati insieme. Consente tricicli fino a 15 kW e macchine agricole o loro complessi entro i limiti di sagoma e massa dei motoveicoli e con velocità non superiore a 40 km/h. Vale anche per i veicoli AM. Non abilita genericamente a tutti i quadricicli non leggeri della categoria B1.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — CON LA PATENTE DELLA SOTTOCATEGORIA A1 SI POSSONO GUIDARE\n\nLa patente A1 si consegue da 16 anni. Consente motocicli con cilindrata fino a 125 cm³, potenza fino a 11 kW e rapporto potenza/peso fino a 0,1 kW/kg: i tre limiti devono essere rispettati insieme. Consente tricicli fino a 15 kW e macchine agricole o loro complessi entro i limiti di sagoma e massa dei motoveicoli e con velocità non superiore a 40 km/h. Vale anche per i veicoli AM. Non abilita genericamente a tutti i quadricicli non leggeri della categoria B1.",
+   "source_file": [
+-    "manual-page-104.md"
++    "manual-page-104.md",
++    "https://www.mit.gov.it/conseguimento-patente-a1",
++    "https://aci.gov.it/codice-della-strada/art-116/"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Artt. 116 e 125 CdS"
++  ],
+   "keywords": [
+-    "con la patente della sottocategoria a1 si possono guidare",
+-    "motocicli"
++    "patente A1",
++    "16 anni",
++    "125 cm3",
++    "11 kW",
++    "0,1 kW/kg"
+   ]
+ }--- a/manual_chunks/v1/cap-23/sez-03/001.json
++++ b/manual_chunks/v1/cap-23/sez-03/001.json
+@@ -3,14 +3,21 @@
+   "chapter_id": "cap-23",
+   "section": "CON LA PATENTE DI CATEGORIA A SI POSSONO GUIDARE",
+   "section_id": "cap-23-sez-03",
+-  "text": "Motocicli di qualunque cilindrata; tricicli (motocarri e motocarrozze); quadricicli; macchine agricole non eccezionali (non devono superare determinati pesi e dimensioni).",
+-  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — CON LA PATENTE DI CATEGORIA A SI POSSONO GUIDARE\n\nMotocicli di qualunque cilindrata; tricicli (motocarri e motocarrozze); quadricicli; macchine agricole non eccezionali (non devono superare determinati pesi e dimensioni).",
++  "text": "La patente A consente la guida di motocicli senza i limiti di cilindrata e potenza della A1 e A2. L'accesso diretto è da 24 anni; quello graduale è da 20 anni con A2 posseduta da almeno due anni. Per tricicli di potenza superiore a 15 kW occorrono almeno 21 anni. A comprende le abilitazioni A2, A1 e AM; non equivale automaticamente alla B o alla B1. Per macchine agricole o loro complessi restano i limiti di sagoma e massa dei motoveicoli e la velocità massima di 40 km/h.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — CON LA PATENTE DI CATEGORIA A SI POSSONO GUIDARE\n\nLa patente A consente la guida di motocicli senza i limiti di cilindrata e potenza della A1 e A2. L'accesso diretto è da 24 anni; quello graduale è da 20 anni con A2 posseduta da almeno due anni. Per tricicli di potenza superiore a 15 kW occorrono almeno 21 anni. A comprende le abilitazioni A2, A1 e AM; non equivale automaticamente alla B o alla B1. Per macchine agricole o loro complessi restano i limiti di sagoma e massa dei motoveicoli e la velocità massima di 40 km/h.",
+   "source_file": [
+-    "manual-page-104.md"
++    "manual-page-104.md",
++    "https://mit.gov.it/conseguimento-patente-a2-per-esame",
++    "https://aci.gov.it/codice-della-strada/art-116/"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Artt. 115, 116, 124 e 125 CdS"
++  ],
+   "keywords": [
+-    "con la patente di categoria a si possono guidare",
+-    "motocicli"
++    "patente A",
++    "24 anni",
++    "20 anni",
++    "accesso graduale",
++    "tricicli"
+   ]
+ }--- a/manual_chunks/v1/cap-23/sez-04/001.json
++++ b/manual_chunks/v1/cap-23/sez-04/001.json
+@@ -3,14 +3,21 @@
+   "chapter_id": "cap-23",
+   "section": "CON LA PATENTE DI CATEGORIA B SI POSSONO GUIDARE",
+   "section_id": "cap-23-sez-04",
+-  "text": "Motocicli fino a 125 cm3 di cilindrata; macchine agricole; macchine operatrici non eccezionali (non devono superare la massa di 3,5 t.); autocarri di massa fino a 3,5 t. anche se trainanti un rimorchio leggero; autoveicoli, autocaravan (camper), fino a 3,5 t. con un massimo di 9 posti totali (compreso quello del conducente).",
+-  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — CON LA PATENTE DI CATEGORIA B SI POSSONO GUIDARE\n\nMotocicli fino a 125 cm3 di cilindrata; macchine agricole; macchine operatrici non eccezionali (non devono superare la massa di 3,5 t.); autocarri di massa fino a 3,5 t. anche se trainanti un rimorchio leggero; autoveicoli, autocaravan (camper), fino a 3,5 t. con un massimo di 9 posti totali (compreso quello del conducente).",
++  "text": "La patente B si consegue da 18 anni. Abilita ordinariamente ad autoveicoli fino a 3.500 kg di massa massima autorizzata e non più di otto passeggeri oltre al conducente, compresi autocarri e autocaravan. Consente rimorchi leggeri fino a 750 kg; per quelli più pesanti valgono i limiti del complesso e l'eventuale codice 96 o patente BE. Comprende AM e B1 e, solo in Italia, le abilitazioni A1; per tricicli oltre 15 kW occorrono almeno 21 anni. Consente macchine agricole e macchine operatrici non eccezionali. La deroga per alcuni veicoli merci ad alimentazione alternativa fino a 4.250 kg ha condizioni specifiche e non estende in generale il limite della B.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — CON LA PATENTE DI CATEGORIA B SI POSSONO GUIDARE\n\nLa patente B si consegue da 18 anni. Abilita ordinariamente ad autoveicoli fino a 3.500 kg di massa massima autorizzata e non più di otto passeggeri oltre al conducente, compresi autocarri e autocaravan. Consente rimorchi leggeri fino a 750 kg; per quelli più pesanti valgono i limiti del complesso e l'eventuale codice 96 o patente BE. Comprende AM e B1 e, solo in Italia, le abilitazioni A1; per tricicli oltre 15 kW occorrono almeno 21 anni. Consente macchine agricole e macchine operatrici non eccezionali. La deroga per alcuni veicoli merci ad alimentazione alternativa fino a 4.250 kg ha condizioni specifiche e non estende in generale il limite della B.",
+   "source_file": [
+-    "manual-page-104.md"
++    "manual-page-104.md",
++    "https://mit.gov.it/conseguimento-patente-b",
++    "https://aci.gov.it/codice-della-strada/art-116/"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Artt. 116, 124 e 125 CdS"
++  ],
+   "keywords": [
+-    "con la patente di categoria b si possono guidare",
+-    "motocicli"
++    "patente B",
++    "3500 kg",
++    "otto passeggeri",
++    "rimorchi",
++    "abilitazioni"
+   ]
+ }--- a/manual_chunks/v1/cap-23/sez-05/001.json
++++ b/manual_chunks/v1/cap-23/sez-05/001.json
+@@ -3,14 +3,21 @@
+   "chapter_id": "cap-23",
+   "section": "DURATA E CONFERMA DI VALIDITÀ DELLA PATENTE DI CATEGORIA B",
+   "section_id": "cap-23-sez-05",
+-  "text": "La patente di guida di categoria B è valida 10 anni per chi non ha superato i 50 anni di età, 5 anni per chi ha un'età compresa tra i 50 e i 70 anni, mentre è confermata ogni 3 anni a chi ha superato i 70 anni di età. La patente di guida della categoria B è confermata (rinnovata) dalla Motorizzazione Civile, se il titolare è ancora in possesso dei requisiti fisici e psichici richiesti (cioè a seguito di esito favorevole dell'accertamento sanitario) e prevede limitazioni di velocità per i primi 3 anni dalla data di superamento dell'esame: non consente di superare i 90 km/h su strada extraurbana principale ai neopatentati; non consente di superare i 100 km/h in autostrada per i primi tre anni dal conseguimento.",
+-  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — DURATA E CONFERMA DI VALIDITÀ DELLA PATENTE DI CATEGORIA B\n\nLa patente di guida di categoria B è valida 10 anni per chi non ha superato i 50 anni di età, 5 anni per chi ha un'età compresa tra i 50 e i 70 anni, mentre è confermata ogni 3 anni a chi ha superato i 70 anni di età. La patente di guida della categoria B è confermata (rinnovata) dalla Motorizzazione Civile, se il titolare è ancora in possesso dei requisiti fisici e psichici richiesti (cioè a seguito di esito favorevole dell'accertamento sanitario) e prevede limitazioni di velocità per i primi 3 anni dalla data di superamento dell'esame: non consente di superare i 90 km/h su strada extraurbana principale ai neopatentati; non consente di superare i 100 km/h in autostrada per i primi tre anni dal conseguimento.",
++  "text": "Per le patenti AM, A1, A2, A, B1, B e BE la durata ordinaria è dieci anni; se rilasciate o confermate dopo il cinquantesimo anno è cinque anni e dopo il settantesimo è tre anni. Dal compimento degli 80 anni il rinnovo è ogni due anni. Restano possibili durate inferiori o prescrizioni per condizioni sanitarie e regole particolari per le patenti speciali. Il rinnovo richiede la permanenza dei requisiti fisici e psichici accertata dai sanitari abilitati. Gli 80 anni non sono, da soli, un divieto di rinnovare la patente B. Con patente scaduta non si guida salvo un titolo provvisorio valido nei casi ammessi.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — DURATA E CONFERMA DI VALIDITÀ DELLA PATENTE DI CATEGORIA B\n\nPer le patenti AM, A1, A2, A, B1, B e BE la durata ordinaria è dieci anni; se rilasciate o confermate dopo il cinquantesimo anno è cinque anni e dopo il settantesimo è tre anni. Dal compimento degli 80 anni il rinnovo è ogni due anni. Restano possibili durate inferiori o prescrizioni per condizioni sanitarie e regole particolari per le patenti speciali. Il rinnovo richiede la permanenza dei requisiti fisici e psichici accertata dai sanitari abilitati. Gli 80 anni non sono, da soli, un divieto di rinnovare la patente B. Con patente scaduta non si guida salvo un titolo provvisorio valido nei casi ammessi.",
+   "source_file": [
+-    "manual-page-104.md"
++    "manual-page-104.md",
++    "https://aci.gov.it/codice-della-strada/art-126/",
++    "Manuale_PatenteB.pdf#page=218"
+   ],
+-  "article_ref": [],
++  "article_ref": [
++    "Art. 126 CdS"
++  ],
+   "keywords": [
+-    "durata e conferma di validità della patente di categoria b",
+-    "motorizzazione civile"
++    "rinnovo patente",
++    "80 anni",
++    "due anni",
++    "validità",
++    "requisiti psicofisici"
+   ]
+ }--- a/manual_chunks/v1/custom/test_001.json
++++ b/manual_chunks/v1/custom/test_001.json
+@@ -1,13 +1,27 @@
+ {
+-  "chapter": null,
+-  "chapter_id": null,
+-  "section": null,
+-  "section_id": null,
+-  "text": "I limiti previsti per i neopatentati nel 2026 sono disciplinati dal Codice della Strada e hanno l'obiettivo di aumentare la sicurezza stradale durante i primi anni di esperienza alla guida. Per i primi tre anni dal conseguimento della patente di categoria B è possibile guidare esclusivamente autovetture che rispettano contemporaneamente due requisiti: un rapporto tra potenza e tara non superiore a 75 kW per tonnellata e una potenza massima del motore non superiore a 105 kW (circa 142 CV). Entrambe le condizioni devono essere soddisfatte affinché il veicolo sia considerato idoneo. La verifica della compatibilità di un'autovettura con i limiti previsti per i neopatentati può essere effettuata tramite il Portale dell'Automobilista, utilizzando il servizio dedicato alla verifica dell'idoneità del veicolo. Oltre alle limitazioni sulla potenza, i neopatentati sono soggetti a limiti di velocità specifici: in autostrada la velocità massima consentita è di 100 km/h, mentre sulle strade extraurbane principali il limite è di 90 km/h; sulle altre categorie di strade si applicano i limiti ordinari previsti dal Codice della Strada, salvo diversa segnalazione. È inoltre obbligatorio mantenere un tasso alcolemico pari a 0,0 g/l, il che significa che è vietato consumare bevande alcoliche prima di mettersi alla guida. Qualsiasi valore superiore a zero costituisce una violazione della normativa. Le restrizioni relative alla potenza del veicolo, ai limiti di velocità e al divieto assoluto di alcol sono finalizzate a ridurre il rischio di incidenti durante il periodo iniziale di esperienza alla guida e si applicano per i primi tre anni dal conseguimento della patente B, salvo eventuali aggiornamenti normativi successivi.",
+-  "embedding_text": "I limiti previsti per i neopatentati nel 2026 sono disciplinati dal Codice della Strada e hanno l'obiettivo di aumentare la sicurezza stradale durante i primi anni di esperienza alla guida. Per i primi tre anni dal conseguimento della patente di categoria B è possibile guidare esclusivamente autovetture che rispettano contemporaneamente due requisiti: un rapporto tra potenza e tara non superiore a 75 kW per tonnellata e una potenza massima del motore non superiore a 105 kW (circa 142 CV). Entrambe le condizioni devono essere soddisfatte affinché il veicolo sia considerato idoneo. La verifica della compatibilità di un'autovettura con i limiti previsti per i neopatentati può essere effettuata tramite il Portale dell'Automobilista, utilizzando il servizio dedicato alla verifica dell'idoneità del veicolo. Oltre alle limitazioni sulla potenza, i neopatentati sono soggetti a limiti di velocità specifici: in autostrada la velocità massima consentita è di 100 km/h, mentre sulle strade extraurbane principali il limite è di 90 km/h; sulle altre categorie di strade si applicano i limiti ordinari previsti dal Codice della Strada, salvo diversa segnalazione. È inoltre obbligatorio mantenere un tasso alcolemico pari a 0,0 g/l, il che significa che è vietato consumare bevande alcoliche prima di mettersi alla guida. Qualsiasi valore superiore a zero costituisce una violazione della normativa. Le restrizioni relative alla potenza del veicolo, ai limiti di velocità e al divieto assoluto di alcol sono finalizzate a ridurre il rischio di incidenti durante il periodo iniziale di esperienza alla guida e si applicano per i primi tre anni dal conseguimento della patente B, salvo eventuali aggiornamenti normativi successivi.",
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "LIMITAZIONI DEI NEOPATENTATI",
++  "section_id": "cap-23-neopatentati",
++  "text": "Per le patenti B rilasciate dal 14 dicembre 2024, nei primi tre anni gli autoveicoli non devono superare 75 kW/t di potenza specifica riferita alla tara. Per i veicoli M1 si applica anche il limite di 105 kW, compresi elettrici e ibridi plug-in. Le limitazioni di potenza non si applicano ai veicoli al servizio di persone invalide autorizzate quando la persona è a bordo, oppure con a fianco un istruttore di non più di 65 anni, con patente idonea da almeno dieci anni o valida per categoria superiore. Per le patenti anteriori va considerato il regime applicabile alla data di rilascio. Nei primi tre anni di A2, A, B1 e B i massimi sono 100 km/h in autostrada e 90 km/h sulle extraurbane principali, rispettando eventuali limiti inferiori. Per i primi tre anni dalla B e per i conducenti sotto 21 anni è vietato guidare dopo aver assunto alcol: tasso ammesso zero.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — LIMITAZIONI DEI NEOPATENTATI\n\nPer le patenti B rilasciate dal 14 dicembre 2024, nei primi tre anni gli autoveicoli non devono superare 75 kW/t di potenza specifica riferita alla tara. Per i veicoli M1 si applica anche il limite di 105 kW, compresi elettrici e ibridi plug-in. Le limitazioni di potenza non si applicano ai veicoli al servizio di persone invalide autorizzate quando la persona è a bordo, oppure con a fianco un istruttore di non più di 65 anni, con patente idonea da almeno dieci anni o valida per categoria superiore. Per le patenti anteriori va considerato il regime applicabile alla data di rilascio. Nei primi tre anni di A2, A, B1 e B i massimi sono 100 km/h in autostrada e 90 km/h sulle extraurbane principali, rispettando eventuali limiti inferiori. Per i primi tre anni dalla B e per i conducenti sotto 21 anni è vietato guidare dopo aver assunto alcol: tasso ammesso zero.",
+   "source_file": [
+-    "manual_custom_entry.md"
++    "manual_custom_entry.md",
++    "https://aci.gov.it/codice-della-strada/art-117/",
++    "https://aci.gov.it/codice-della-strada/art-186-bis/",
++    "https://ilportaledellautomobilista.it/web/portale-automobilista/ext/patenti_neopatentati"
+   ],
+-  "article_ref": [],
+-  "keywords": []
++  "article_ref": [
++    "Art. 117 CdS",
++    "Art. 186-bis CdS"
++  ],
++  "keywords": [
++    "neopatentati",
++    "75 kW/t",
++    "105 kW",
++    "tre anni",
++    "100 km/h",
++    "90 km/h",
++    "alcol zero"
++  ]
+ }--- a/manual_chunks/v1/cap-14/sez-10/001.json
++++ b/manual_chunks/v1/cap-14/sez-10/001.json
+@@ -3,15 +3,17 @@
+   "chapter_id": "cap-14",
+   "section": "ORDINE DI PRECEDENZA: S - B - L - D.",
+   "section_id": "cap-14-sez-10",
+-  "text": "La regola: se nella raffigurazione dell'incrocio si noti l'esistenza di una o più\nstrade libere ove non sono stati disegnati veicoli, allora, partendo da queste\nstrade libere e girando in senso orario, il primo veicolo che si individua (in que-\nsto caso il veicolo S) passerà per primo in quanto avrà la destra libera (salvo il\ncaso in cui nell'incrocio vi sia il segnale \"Dare Precedenza\" od il Tram e le figg.\n634, 660, 669). La regola: se in un incrocio il conducente di un veicolo intende svoltare a sinistra\n(vedasi il veicolo D), allora questo veicolo prima di proseguire deve far passare i\nveicoli provenienti da destra e di fronte (salvo il caso in cui nell'incrocio vi sia il\nsegnale \"Dare Precedenza\"). ORDINE DI PRECEDENZA: L - C e A insieme - D.\n1° il veicolo L (non incrocia veicoli da destra); 2° i veicoli C e A (transitato il vei-\ncolo L non incrociano altri veicoli da destra); 3° il veicolo D (deve attendere che\ntransitino i veicoli C e A che provengono da destra).",
+-  "embedding_text": "Norme sulla precedenza (incroci) — ORDINE DI PRECEDENZA: S - B - L - D.\n\nLa regola: se nella raffigurazione dell'incrocio si noti l'esistenza di una o più\nstrade libere ove non sono stati disegnati veicoli, allora, partendo da queste\nstrade libere e girando in senso orario, il primo veicolo che si individua (in que-\nsto caso il veicolo S) passerà per primo in quanto avrà la destra libera (salvo il\ncaso in cui nell'incrocio vi sia il segnale \"Dare Precedenza\" od il Tram e le figg.\n634, 660, 669). La regola: se in un incrocio il conducente di un veicolo intende svoltare a sinistra\n(vedasi il veicolo D), allora questo veicolo prima di proseguire deve far passare i\nveicoli provenienti da destra e di fronte (salvo il caso in cui nell'incrocio vi sia il\nsegnale \"Dare Precedenza\"). ORDINE DI PRECEDENZA: L - C e A insieme - D.\n1° il veicolo L (non incrocia veicoli da destra); 2° i veicoli C e A (transitato il vei-\ncolo L non incrociano altri veicoli da destra); 3° il veicolo D (deve attendere che\ntransitino i veicoli C e A che provengono da destra).",
++  "text": "Nello schema con ordine S - B - L - D il veicolo S passa per primo perché ha la destra libera. Si considera la disposizione della specifica figura: la presenza di una strada libera aiuta a individuare il primo veicolo, salvo segnali di precedenza o altre regole particolari. Il veicolo D che svolta a sinistra deve dare precedenza a chi proviene da destra e di fronte, nelle condizioni illustrate.",
++  "embedding_text": "Norme sulla precedenza (incroci) — ORDINE DI PRECEDENZA: S - B - L - D.\n\nNello schema con ordine S - B - L - D il veicolo S passa per primo perché ha la destra libera. Si considera la disposizione della specifica figura: la presenza di una strada libera aiuta a individuare il primo veicolo, salvo segnali di precedenza o altre regole particolari. Il veicolo D che svolta a sinistra deve dare precedenza a chi proviene da destra e di fronte, nelle condizioni illustrate.",
+   "source_file": [
+-    "manual-page-072.md"
++    "manual-page-072.md",
++    "https://github.com/gigiul/easyPatenteRagPipeline/blob/main/imageTranscribe/manualImages/manual-page-072.md"
+   ],
+   "article_ref": [],
+   "keywords": [
+-    "ordine di precedenza: s - b - l - d.",
+-    "dare precedenza",
+-    "tram"
++    "incrocio",
++    "S B L D",
++    "precedenza",
++    "svolta a sinistra"
+   ]
+ }--- a/manual_chunks/v1/cap-14/sez-10/002.json
++++ b/manual_chunks/v1/cap-14/sez-10/002.json
+@@ -1,17 +1,19 @@
+ {
+   "chapter": "Norme sulla precedenza (incroci)",
+   "chapter_id": "cap-14",
+-  "section": "ORDINE DI PRECEDENZA: S - B - L - D.",
+-  "section_id": "cap-14-sez-10",
+-  "text": "La regola: se nella raffigurazione dell'incrocio si noti l'esistenza di una o più\nstrade libere ove non sono stati disegnati veicoli, allora, partendo da queste\nstrade libere e girando in senso orario, il primo veicolo che si individua (in que-\nsto caso il veicolo L) passerà per primo in quanto avrà la destra libera (salvo il\ncaso in cui nell'incrocio vi sia il segnale \"Dare Precedenza\" od il Tram e le figg.\n634, 660, 669).",
+-  "embedding_text": "Norme sulla precedenza (incroci) — ORDINE DI PRECEDENZA: S - B - L - D.\n\nLa regola: se nella raffigurazione dell'incrocio si noti l'esistenza di una o più\nstrade libere ove non sono stati disegnati veicoli, allora, partendo da queste\nstrade libere e girando in senso orario, il primo veicolo che si individua (in que-\nsto caso il veicolo L) passerà per primo in quanto avrà la destra libera (salvo il\ncaso in cui nell'incrocio vi sia il segnale \"Dare Precedenza\" od il Tram e le figg.\n634, 660, 669).",
++  "section": "ORDINE DI PRECEDENZA: L - C e A insieme - D.",
++  "section_id": "cap-14-sez-10b",
++  "text": "Nello schema con ordine L - C e A insieme - D passa per primo L, che non incontra veicoli provenienti da destra. Dopo L possono passare insieme C e A, secondo le traiettorie indicate nella figura, perché non incrociano altri veicoli da destra. D passa per ultimo e attende C e A provenienti dalla sua destra.",
++  "embedding_text": "Norme sulla precedenza (incroci) — ORDINE DI PRECEDENZA: L - C e A insieme - D.\n\nNello schema con ordine L - C e A insieme - D passa per primo L, che non incontra veicoli provenienti da destra. Dopo L possono passare insieme C e A, secondo le traiettorie indicate nella figura, perché non incrociano altri veicoli da destra. D passa per ultimo e attende C e A provenienti dalla sua destra.",
+   "source_file": [
+-    "manual-page-072.md"
++    "manual-page-072.md",
++    "https://github.com/gigiul/easyPatenteRagPipeline/blob/main/imageTranscribe/manualImages/manual-page-072.md"
+   ],
+   "article_ref": [],
+   "keywords": [
+-    "ordine di precedenza: s - b - l - d.",
+-    "dare precedenza",
+-    "tram"
++    "incrocio",
++    "L C A D",
++    "transito contemporaneo",
++    "precedenza"
+   ]
+ }--- /dev/null
++++ b/manual_chunks/v1/cap-23/sez-11/001.json
+@@ -0,0 +1,23 @@
++{
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "PATENTE AM",
++  "section_id": "cap-23-sez-11",
++  "text": "La patente AM si consegue in Italia da 14 anni e abilita ai ciclomotori a due o tre ruote e ai quadricicli leggeri. Per i ciclomotori a due ruote il massimo per costruzione è 45 km/h, con cilindrata fino a 50 cm³ se a combustione interna o potenza nominale continua fino a 4 kW se elettrici. Non abilita ai motocicli A1 né ai quadricicli non leggeri B1. Il trasporto di un passeggero richiede almeno 16 anni e un veicolo omologato per due persone. Il riconoscimento della AM sotto i 16 anni negli altri Stati va verificato per il Paese interessato.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — PATENTE AM\n\nLa patente AM si consegue in Italia da 14 anni e abilita ai ciclomotori a due o tre ruote e ai quadricicli leggeri. Per i ciclomotori a due ruote il massimo per costruzione è 45 km/h, con cilindrata fino a 50 cm³ se a combustione interna o potenza nominale continua fino a 4 kW se elettrici. Non abilita ai motocicli A1 né ai quadricicli non leggeri B1. Il trasporto di un passeggero richiede almeno 16 anni e un veicolo omologato per due persone. Il riconoscimento della AM sotto i 16 anni negli altri Stati va verificato per il Paese interessato.",
++  "source_file": [
++    "https://aci.gov.it/codice-della-strada/art-116/",
++    "https://aci.gov.it/codice-della-strada/art-115/",
++    "Manuale_PatenteB.pdf#page=219"
++  ],
++  "article_ref": [
++    "Artt. 115 e 116 CdS"
++  ],
++  "keywords": [
++    "AM",
++    "ciclomotori",
++    "14 anni",
++    "45 km/h",
++    "passeggero"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-23/sez-12/001.json
+@@ -0,0 +1,23 @@
++{
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "PATENTE A2",
++  "section_id": "cap-23-sez-12",
++  "text": "La patente A2 si consegue da 18 anni. Consente motocicli fino a 35 kW e rapporto potenza/peso fino a 0,2 kW/kg, non derivati da una versione che sviluppi oltre il doppio della potenza del veicolo depotenziato. Non c'è un limite generale di cilindrata a 150 cm³: cilindrata e potenza non vanno confuse. A2 comprende A1 e AM. Per passare alla A con accesso graduale occorrono almeno 20 anni e almeno due anni di A2; la A per accesso diretto richiede 24 anni.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — PATENTE A2\n\nLa patente A2 si consegue da 18 anni. Consente motocicli fino a 35 kW e rapporto potenza/peso fino a 0,2 kW/kg, non derivati da una versione che sviluppi oltre il doppio della potenza del veicolo depotenziato. Non c'è un limite generale di cilindrata a 150 cm³: cilindrata e potenza non vanno confuse. A2 comprende A1 e AM. Per passare alla A con accesso graduale occorrono almeno 20 anni e almeno due anni di A2; la A per accesso diretto richiede 24 anni.",
++  "source_file": [
++    "https://aci.gov.it/codice-della-strada/art-116/",
++    "https://mit.gov.it/conseguimento-patente-a2-per-esame",
++    "Manuale_PatenteB.pdf#page=220"
++  ],
++  "article_ref": [
++    "Artt. 115, 116 e 125 CdS"
++  ],
++  "keywords": [
++    "A2",
++    "18 anni",
++    "35 kW",
++    "0,2 kW/kg",
++    "depotenziamento"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-23/sez-13/001.json
+@@ -0,0 +1,23 @@
++{
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "PATENTE B1",
++  "section_id": "cap-23-sez-13",
++  "text": "La patente B1 si consegue da 16 anni e abilita ai quadricicli non leggeri, categoria L7e, con potenza massima netta fino a 15 kW. Nell'articolo 116, comma 3, lettera e), i limiti di massa a vuoto sono 400 kg, oppure 550 kg per trasporto merci, senza contare le batterie dei veicoli elettrici. Sono i limiti della disposizione sulle abilitazioni: non vanno confusi con masse definite secondo diversi criteri di omologazione. B1 comprende AM, ma non consente in generale autovetture della categoria B o motocicli A1.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — PATENTE B1\n\nLa patente B1 si consegue da 16 anni e abilita ai quadricicli non leggeri, categoria L7e, con potenza massima netta fino a 15 kW. Nell'articolo 116, comma 3, lettera e), i limiti di massa a vuoto sono 400 kg, oppure 550 kg per trasporto merci, senza contare le batterie dei veicoli elettrici. Sono i limiti della disposizione sulle abilitazioni: non vanno confusi con masse definite secondo diversi criteri di omologazione. B1 comprende AM, ma non consente in generale autovetture della categoria B o motocicli A1.",
++  "source_file": [
++    "https://aci.gov.it/codice-della-strada/art-116/",
++    "https://mit.gov.it/conseguimento-patente-b1"
++  ],
++  "article_ref": [
++    "Artt. 115, 116 e 125 CdS"
++  ],
++  "keywords": [
++    "B1",
++    "quadricicli non leggeri",
++    "16 anni",
++    "15 kW",
++    "400 kg",
++    "550 kg"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-23/sez-14/001.json
+@@ -0,0 +1,24 @@
++{
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "PATENTE B, CODICE 96 E PATENTE BE: RIMORCHI",
++  "section_id": "cap-23-sez-14",
++  "text": "Con B una motrice fino a 3.500 kg può trainare un rimorchio fino a 750 kg, anche se il complesso supera 3.500 kg. Se il rimorchio supera 750 kg, con la sola B il complesso deve restare entro 3.500 kg. Per rimorchio non leggero e complesso oltre 3.500 ma non oltre 4.250 kg serve B con codice 96, ottenuto con la prova prevista. BE consente una motrice B con rimorchio o semirimorchio fino a 3.500 kg, permettendo complessi oltre 4.250 kg. Restano sempre i limiti tecnici e di traino del veicolo: la patente non li aumenta.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — PATENTE B, CODICE 96 E PATENTE BE: RIMORCHI\n\nCon B una motrice fino a 3.500 kg può trainare un rimorchio fino a 750 kg, anche se il complesso supera 3.500 kg. Se il rimorchio supera 750 kg, con la sola B il complesso deve restare entro 3.500 kg. Per rimorchio non leggero e complesso oltre 3.500 ma non oltre 4.250 kg serve B con codice 96, ottenuto con la prova prevista. BE consente una motrice B con rimorchio o semirimorchio fino a 3.500 kg, permettendo complessi oltre 4.250 kg. Restano sempre i limiti tecnici e di traino del veicolo: la patente non li aumenta.",
++  "source_file": [
++    "https://mit.gov.it/conseguimento-patente-b",
++    "https://www.mit.gov.it/node/5878",
++    "Manuale_PatenteB.pdf#page=222"
++  ],
++  "article_ref": [
++    "Art. 116 CdS"
++  ],
++  "keywords": [
++    "B96",
++    "codice 96",
++    "BE",
++    "rimorchio",
++    "750 kg",
++    "4250 kg"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-23/sez-15/001.json
+@@ -0,0 +1,22 @@
++{
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "PATENTE A PUNTI: DOTAZIONE E DECURTAZIONI",
++  "section_id": "cap-23-sez-15",
++  "text": "Alla patente sono assegnati inizialmente 20 punti. Le violazioni previste comportano la perdita dei punti indicati dalla tabella del Codice della strada: non tutte le infrazioni hanno lo stesso effetto. Per più violazioni accertate contemporaneamente il massimo ordinario è 15 punti, ma questo tetto non vale quando è prevista sospensione o revoca. I punti sono sottratti al conducente responsabile identificato, non automaticamente al proprietario del veicolo. Il proprietario deve comunicare i dati del conducente quando richiesto secondo legge; l'omissione ha una propria sanzione.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — PATENTE A PUNTI: DOTAZIONE E DECURTAZIONI\n\nAlla patente sono assegnati inizialmente 20 punti. Le violazioni previste comportano la perdita dei punti indicati dalla tabella del Codice della strada: non tutte le infrazioni hanno lo stesso effetto. Per più violazioni accertate contemporaneamente il massimo ordinario è 15 punti, ma questo tetto non vale quando è prevista sospensione o revoca. I punti sono sottratti al conducente responsabile identificato, non automaticamente al proprietario del veicolo. Il proprietario deve comunicare i dati del conducente quando richiesto secondo legge; l'omissione ha una propria sanzione.",
++  "source_file": [
++    "https://aci.gov.it/codice-della-strada/art-126-bis/",
++    "Manuale_PatenteB.pdf#page=223"
++  ],
++  "article_ref": [
++    "Art. 126-bis CdS"
++  ],
++  "keywords": [
++    "patente a punti",
++    "20 punti",
++    "decurtazione",
++    "15 punti",
++    "conducente"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-23/sez-15/002.json
+@@ -0,0 +1,23 @@
++{
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "PATENTE A PUNTI: RECUPERO E BONUS",
++  "section_id": "cap-23-sez-15",
++  "text": "Con punti residui superiori a zero si possono frequentare corsi autorizzati: per AM, A1, A2, A, B1, B e BE il recupero è fino a 6 punti. Se per due anni non si commettono infrazioni con perdita di punti, chi ha da 1 a 19 punti ritorna a 20; chi ne ha almeno 20 riceve 2 punti, fino a un massimo complessivo di 30. Con punteggio esaurito non si applica il semplice recupero automatico biennale: viene disposta la revisione e occorre sostenere gli accertamenti previsti.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — PATENTE A PUNTI: RECUPERO E BONUS\n\nCon punti residui superiori a zero si possono frequentare corsi autorizzati: per AM, A1, A2, A, B1, B e BE il recupero è fino a 6 punti. Se per due anni non si commettono infrazioni con perdita di punti, chi ha da 1 a 19 punti ritorna a 20; chi ne ha almeno 20 riceve 2 punti, fino a un massimo complessivo di 30. Con punteggio esaurito non si applica il semplice recupero automatico biennale: viene disposta la revisione e occorre sostenere gli accertamenti previsti.",
++  "source_file": [
++    "https://www.mit.gov.it/come-fare-per/patenti-mezzi-e-abilitazioni/patente-punti",
++    "https://aci.gov.it/codice-della-strada/art-126-bis/",
++    "Manuale_PatenteB.pdf#page=223"
++  ],
++  "article_ref": [
++    "Art. 126-bis CdS"
++  ],
++  "keywords": [
++    "recupero punti",
++    "6 punti",
++    "due anni",
++    "30 punti",
++    "revisione"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-23/sez-15/003.json
+@@ -0,0 +1,22 @@
++{
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "PATENTE A PUNTI: NEOPATENTATI",
++  "section_id": "cap-23-sez-15",
++  "text": "Per i titolari soggetti alla disciplina dei neopatentati, nei primi tre anni i punti sottratti per le violazioni previste sono raddoppiati. Il raddoppio riguarda i punti e non comporta di per sé il raddoppio di ogni multa. Per ogni anno senza infrazioni che comportino decurtazione, nei primi tre anni è previsto un punto di premio, fino a tre punti complessivi. Il bonus non elimina una violazione già commessa. Al raggiungimento di zero punti si applica la revisione prevista dalla legge.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — PATENTE A PUNTI: NEOPATENTATI\n\nPer i titolari soggetti alla disciplina dei neopatentati, nei primi tre anni i punti sottratti per le violazioni previste sono raddoppiati. Il raddoppio riguarda i punti e non comporta di per sé il raddoppio di ogni multa. Per ogni anno senza infrazioni che comportino decurtazione, nei primi tre anni è previsto un punto di premio, fino a tre punti complessivi. Il bonus non elimina una violazione già commessa. Al raggiungimento di zero punti si applica la revisione prevista dalla legge.",
++  "source_file": [
++    "https://aci.gov.it/codice-della-strada/art-126-bis/",
++    "https://www.mit.gov.it/come-fare-per/patenti-mezzi-e-abilitazioni/patente-punti",
++    "Manuale_PatenteB.pdf#page=223"
++  ],
++  "article_ref": [
++    "Art. 126-bis CdS"
++  ],
++  "keywords": [
++    "neopatentati",
++    "raddoppio punti",
++    "tre anni",
++    "bonus annuale"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-23/sez-16/001.json
+@@ -0,0 +1,22 @@
++{
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "EQUIVALENZE FRA PATENTI",
++  "section_id": "cap-23-sez-16",
++  "text": "Le equivalenze sono specifiche: non è vero che ogni patente abilita a tutte le categorie che la precedono in un elenco. Le categorie di patente comprendono AM; A2 comprende A1, A comprende A1 e A2, e B comprende B1. La B comprende anche A1 soltanto sul territorio italiano; per i tricicli oltre 15 kW occorrono almeno 21 anni. Per le patenti conseguite prima delle riforme vanno verificati separatamente i diritti acquisiti, senza applicare automaticamente le regole delle nuove patenti.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — EQUIVALENZE FRA PATENTI\n\nLe equivalenze sono specifiche: non è vero che ogni patente abilita a tutte le categorie che la precedono in un elenco. Le categorie di patente comprendono AM; A2 comprende A1, A comprende A1 e A2, e B comprende B1. La B comprende anche A1 soltanto sul territorio italiano; per i tricicli oltre 15 kW occorrono almeno 21 anni. Per le patenti conseguite prima delle riforme vanno verificati separatamente i diritti acquisiti, senza applicare automaticamente le regole delle nuove patenti.",
++  "source_file": [
++    "https://www.ilportaledellautomobilista.it/documents/56611/57319/NuovaCircolarePatenti_eTabelle.pdf/53a81c55-07ef-4b04-bdec-cb6be26780d0"
++  ],
++  "article_ref": [
++    "Art. 125 CdS"
++  ],
++  "keywords": [
++    "equivalenze patenti",
++    "AM",
++    "A1",
++    "A2",
++    "B1",
++    "territorio nazionale"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-23/sez-17/001.json
+@@ -0,0 +1,22 @@
++{
++  "chapter": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione",
++  "chapter_id": "cap-23",
++  "section": "PATENTE B: DEROGA PER MERCI AD ALIMENTAZIONE ALTERNATIVA",
++  "section_id": "cap-23-sez-17",
++  "text": "Con B posseduta da almeno due anni è prevista una deroga per veicoli merci senza rimorchio ad alimentazione alternativa, oltre 3.500 e fino a 4.250 kg. L'eccesso di massa deve dipendere soltanto dal sistema di propulsione rispetto al corrispondente veicolo convenzionale e non aumentare la capacità di carico. Non è una deroga generale per ogni autoveicolo elettrico, ogni camper o ogni complesso con rimorchio.",
++  "embedding_text": "Patenti di Guida, Provvedimenti di revisione, revoca, ritiro e sospensione della patente, Carta di Circolazione — PATENTE B: DEROGA PER MERCI AD ALIMENTAZIONE ALTERNATIVA\n\nCon B posseduta da almeno due anni è prevista una deroga per veicoli merci senza rimorchio ad alimentazione alternativa, oltre 3.500 e fino a 4.250 kg. L'eccesso di massa deve dipendere soltanto dal sistema di propulsione rispetto al corrispondente veicolo convenzionale e non aumentare la capacità di carico. Non è una deroga generale per ogni autoveicolo elettrico, ogni camper o ogni complesso con rimorchio.",
++  "source_file": [
++    "https://mit.gov.it/conseguimento-patente-b",
++    "https://aci.gov.it/codice-della-strada/art-116/"
++  ],
++  "article_ref": [
++    "Art. 116, comma 3, lettera f), n.2 CdS"
++  ],
++  "keywords": [
++    "patente B",
++    "alimentazione alternativa",
++    "4250 kg",
++    "due anni",
++    "trasporto merci"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-21/sez-07/001.json
+@@ -0,0 +1,22 @@
++{
++  "chapter": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo",
++  "chapter_id": "cap-21",
++  "section": "SEGGIOLINI: DEROGHE E AIRBAG",
++  "section_id": "cap-21-sez-07",
++  "text": "Su taxi e veicoli NCC il trasporto di bambini senza il sistema di ritenuta è ammesso alle condizioni previste: sedile posteriore e accompagnatore di almeno 16 anni. Nei veicoli sprovvisti di sistemi di ritenuta i bambini fino a tre anni non possono viaggiare; oltre tre anni il posto anteriore richiede statura superiore a 1,50 m. Un seggiolino rivolto all'indietro non va usato davanti a un airbag frontale attivo: l'airbag deve essere disattivato. Queste condizioni non autorizzano a ignorare il seggiolino nella normale autovettura che ne deve essere dotata.",
++  "embedding_text": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo — SEGGIOLINI: DEROGHE E AIRBAG\n\nSu taxi e veicoli NCC il trasporto di bambini senza il sistema di ritenuta è ammesso alle condizioni previste: sedile posteriore e accompagnatore di almeno 16 anni. Nei veicoli sprovvisti di sistemi di ritenuta i bambini fino a tre anni non possono viaggiare; oltre tre anni il posto anteriore richiede statura superiore a 1,50 m. Un seggiolino rivolto all'indietro non va usato davanti a un airbag frontale attivo: l'airbag deve essere disattivato. Queste condizioni non autorizzano a ignorare il seggiolino nella normale autovettura che ne deve essere dotata.",
++  "source_file": [
++    "https://aci.gov.it/codice-della-strada/art-172/",
++    "Manuale_PatenteB.pdf#page=211"
++  ],
++  "article_ref": [
++    "Art. 172 CdS"
++  ],
++  "keywords": [
++    "seggiolini",
++    "taxi",
++    "NCC",
++    "airbag",
++    "seggiolino contromarcia"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-21/sez-08/001.json
+@@ -0,0 +1,20 @@
++{
++  "chapter": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo",
++  "chapter_id": "cap-21",
++  "section": "DISPOSITIVO ANTIABBANDONO",
++  "section_id": "cap-21-sez-08",
++  "text": "Quando trasporta un bambino di età inferiore a quattro anni nel sistema di ritenuta, il conducente deve usare il dispositivo antiabbandono conforme alle prescrizioni nei veicoli M1, N1, N2 e N3 immatricolati in Italia, oppure immatricolati all'estero se condotti da residenti in Italia. Il dispositivo segnala il rischio di lasciare il bambino a bordo e si aggiunge al seggiolino: non lo sostituisce.",
++  "embedding_text": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo — DISPOSITIVO ANTIABBANDONO\n\nQuando trasporta un bambino di età inferiore a quattro anni nel sistema di ritenuta, il conducente deve usare il dispositivo antiabbandono conforme alle prescrizioni nei veicoli M1, N1, N2 e N3 immatricolati in Italia, oppure immatricolati all'estero se condotti da residenti in Italia. Il dispositivo segnala il rischio di lasciare il bambino a bordo e si aggiunge al seggiolino: non lo sostituisce.",
++  "source_file": [
++    "https://aci.gov.it/codice-della-strada/art-172/"
++  ],
++  "article_ref": [
++    "Art. 172, comma 1-bis CdS"
++  ],
++  "keywords": [
++    "antiabbandono",
++    "bambini",
++    "quattro anni",
++    "seggiolino"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-21/sez-09/001.json
+@@ -0,0 +1,19 @@
++{
++  "chapter": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo",
++  "chapter_id": "cap-21",
++  "section": "ABBIGLIAMENTO PROTETTIVO PER MOTOCICLISTI",
++  "section_id": "cap-21-sez-09",
++  "text": "L'abbigliamento da moto deve consentire i movimenti e proteggere da abrasioni, urti e agenti atmosferici. Giacca e pantaloni resistenti, con protezioni nelle zone esposte, riducono le conseguenze di una caduta e dello scivolamento. Colori visibili e inserti retroriflettenti aiutano a essere notati. Indumenti svolazzanti, nastri e lacci liberi possono impigliarsi e sono da evitare. Il casco non protegge tronco e arti: l'abbigliamento protettivo lo integra. L'abbigliamento protettivo è consigliato anche per gli spostamenti brevi.",
++  "embedding_text": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo — ABBIGLIAMENTO PROTETTIVO PER MOTOCICLISTI\n\nL'abbigliamento da moto deve consentire i movimenti e proteggere da abrasioni, urti e agenti atmosferici. Giacca e pantaloni resistenti, con protezioni nelle zone esposte, riducono le conseguenze di una caduta e dello scivolamento. Colori visibili e inserti retroriflettenti aiutano a essere notati. Indumenti svolazzanti, nastri e lacci liberi possono impigliarsi e sono da evitare. Il casco non protegge tronco e arti: l'abbigliamento protettivo lo integra. L'abbigliamento protettivo è consigliato anche per gli spostamenti brevi.",
++  "source_file": [
++    "Manuale_PatenteB.pdf#page=215"
++  ],
++  "article_ref": [],
++  "keywords": [
++    "abbigliamento moto",
++    "giacca",
++    "pantaloni",
++    "abrasioni",
++    "retroriflettenti"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-21/sez-10/001.json
+@@ -0,0 +1,19 @@
++{
++  "chapter": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo",
++  "chapter_id": "cap-21",
++  "section": "GUANTI MOTOCICLISTICI",
++  "section_id": "cap-21-sez-10",
++  "text": "I guanti da moto proteggono mani, palmi e nocche da urti e abrasioni; sono utili anche in estate. Devono essere della misura corretta, resistenti e fissati in modo da non sfilarsi durante una caduta. Devono permettere una presa sicura e la sensibilità necessaria per azionare frizione, acceleratore e freno. Imbottitura e materiali vanno scelti anche in funzione del clima. La protezione non deve ostacolare i comandi. È consigliato indossarli in ogni stagione e anche nei percorsi brevi.",
++  "embedding_text": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo — GUANTI MOTOCICLISTICI\n\nI guanti da moto proteggono mani, palmi e nocche da urti e abrasioni; sono utili anche in estate. Devono essere della misura corretta, resistenti e fissati in modo da non sfilarsi durante una caduta. Devono permettere una presa sicura e la sensibilità necessaria per azionare frizione, acceleratore e freno. Imbottitura e materiali vanno scelti anche in funzione del clima. La protezione non deve ostacolare i comandi. È consigliato indossarli in ogni stagione e anche nei percorsi brevi.",
++  "source_file": [
++    "Manuale_PatenteB.pdf#page=215"
++  ],
++  "article_ref": [],
++  "keywords": [
++    "guanti",
++    "nocche",
++    "palmo",
++    "estate",
++    "comandi moto"
++  ]
++}--- /dev/null
++++ b/manual_chunks/v1/cap-21/sez-11/001.json
+@@ -0,0 +1,19 @@
++{
++  "chapter": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo",
++  "chapter_id": "cap-21",
++  "section": "STIVALI E PROTEZIONE DELLA SCHIENA",
++  "section_id": "cap-21-sez-11",
++  "text": "Le calzature da moto devono proteggere piedi e caviglie, resistere alle abrasioni e restare salde al piede in caso di caduta. Stivali adatti, chiusi e senza lacci o nastri liberi, riducono il rischio di impigliarsi nelle parti del motociclo e aiutano a proteggere la caviglia. Giacche con protezioni e paraschiena sono destinati a limitare urti e abrasioni nelle zone coperte; non annullano il rischio di lesioni. Una fascia lombare di sostegno non va considerata automaticamente equivalente a un paraschiena protettivo.",
++  "embedding_text": "Cinture di Sicurezza, Sistemi di Ritenuta, Airbag, Casco Protettivo — STIVALI E PROTEZIONE DELLA SCHIENA\n\nLe calzature da moto devono proteggere piedi e caviglie, resistere alle abrasioni e restare salde al piede in caso di caduta. Stivali adatti, chiusi e senza lacci o nastri liberi, riducono il rischio di impigliarsi nelle parti del motociclo e aiutano a proteggere la caviglia. Giacche con protezioni e paraschiena sono destinati a limitare urti e abrasioni nelle zone coperte; non annullano il rischio di lesioni. Una fascia lombare di sostegno non va considerata automaticamente equivalente a un paraschiena protettivo.",
++  "source_file": [
++    "Manuale_PatenteB.pdf#page=216"
++  ],
++  "article_ref": [],
++  "keywords": [
++    "stivali",
++    "caviglie",
++    "paraschiena",
++    "giacca",
++    "fascia lombare"
++  ]
++}

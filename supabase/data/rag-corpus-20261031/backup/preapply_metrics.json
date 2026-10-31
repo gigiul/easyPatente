@@ -1,0 +1,15 @@
+{
+  "project": "mvkxafzywzuohnbqjqmo",
+  "captured_at": "2026-10-31T15:22:00Z",
+  "chunks": 554,
+  "corpus_hash": "f90a5227d2faf4ed9176249003589a6e",
+  "unrelated_hash": "38da57dd4ed1e70951a7432c31d6218a",
+  "explanations": 9995,
+  "explanations_hash": "6bc4345821d056ec5a9286f5e95294cf",
+  "questions": 8970,
+  "question_translations": 26910,
+  "target_updates": 13,
+  "target_inserts": 14,
+  "all_13_digests_match_snapshot": true,
+  "all_14_inserts_absent": true
+}
