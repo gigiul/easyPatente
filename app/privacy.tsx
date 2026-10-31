@@ -38,7 +38,7 @@ export default function PrivacyScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <ThemedText style={[styles.lastUpdated, { color: secondaryTextColor }]}>
-          Ultimo aggiornamento: 29 Agosto 2026
+          Ultimo aggiornamento: 15 Ottobre 2026
         </ThemedText>
 
         <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
@@ -46,7 +46,7 @@ export default function PrivacyScreen() {
             1. Titolare del Trattamento
           </ThemedText>
           <ThemedText style={styles.paragraph}>
-            {"Il titolare del trattamento dei dati è il team di sviluppo di EasyPatente, conformemente al Regolamento Generale sulla Protezione dei Dati (UE) 2016/679 (GDPR)."}
+            {"Il titolare del trattamento dei dati è il gestore del servizio Quiz Patente (quizpatenteitaliana.it), conformemente al Regolamento Generale sulla Protezione dei Dati (UE) 2016/679 (GDPR). Per richieste relative ai dati personali è possibile contattare il titolare tramite il sito ufficiale."}
           </ThemedText>
         </View>
 
@@ -69,18 +69,47 @@ export default function PrivacyScreen() {
             • <ThemedText style={styles.bold}>{"Dati Didattici: "}</ThemedText>
             {"Storico risposte, punteggi nei quiz e registro errori (utilizzati per calcolare le statistiche e consentire la revisione mirata)."}
           </ThemedText>
+          <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
+            • <ThemedText style={styles.bold}>{"Conversazioni con l'AI: "}</ThemedText>
+            {"Messaggi della chat testuale e trascrizioni delle conversazioni vocali."}
+          </ThemedText>
+          <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
+            • <ThemedText style={styles.bold}>{"Identificativo di Dispositivo: "}</ThemedText>
+            {"Un codice aleatorio generato sul dispositivo, utilizzato per garantire l'accesso da un solo dispositivo alla volta e proteggere l'account."}
+          </ThemedText>
         </View>
 
         <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
           <ThemedText type="defaultSemiBold" style={[styles.sectionHeading, { color: accentColor }]}>
-            3. Finalità del Trattamento e Sicurezza
+            3. Funzionalità di Intelligenza Artificiale
+          </ThemedText>
+          <ThemedText style={styles.paragraph}>
+            {"Le spiegazioni delle domande e la chat (testuale e vocale) sono alimentate da intelligenza artificiale (Google Gemini)."}
+          </ThemedText>
+          <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
+            • <ThemedText style={styles.bold}>{"Testo inviato all'AI: "}</ThemedText>
+            {"Il contenuto delle domande e delle richieste viene inviato al fornitore AI per generare la risposta."}
+          </ThemedText>
+          <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
+            • <ThemedText style={styles.bold}>{"Chat vocale: "}</ThemedText>
+            {"L'audio del microfono è trasmesso esclusivamente per la durata della conversazione avviata da te; non viene registrato né conservato, vengono salvate solo le trascrizioni testuali nella chat."}
+          </ThemedText>
+        </View>
+
+        <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
+          <ThemedText type="defaultSemiBold" style={[styles.sectionHeading, { color: accentColor }]}>
+            4. Finalità, Condivisione e Sicurezza
           </ThemedText>
           <ThemedText style={styles.paragraph}>
             {"I dati sono trattati esclusivamente per consentire l'erogazione del servizio di esercitazione, sincronizzare il profilo e garantire la sicurezza dell'app."}
           </ThemedText>
           <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
             • <ThemedText style={styles.bold}>{"Nessuna vendita di dati: "}</ThemedText>
-            {"Nessun dato personale viene ceduto o venduto a soggetti terzi a scopo pubblicitario o commerciale."}
+            {"Nessun dato personale viene ceduto o venduto a soggetti terzi a scopo pubblicitario o commerciale. Il servizio non usa analytics, pubblicità o strumenti di tracciamento."}
+          </ThemedText>
+          <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
+            • <ThemedText style={styles.bold}>{"Fornitori tecnici: "}</ThemedText>
+            {"Supabase (infrastruttura, UE), Google (AI) e Cloudflare (elaborazione dei contenuti) trattano i dati come responsabili del trattamento."}
           </ThemedText>
           <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
             • <ThemedText style={styles.bold}>{"Server sicuri: "}</ThemedText>
@@ -90,14 +119,14 @@ export default function PrivacyScreen() {
 
         <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
           <ThemedText type="defaultSemiBold" style={[styles.sectionHeading, { color: accentColor }]}>
-            {"4. Diritti dell'Utente e Cancellazione"}
+            {"5. Diritti dell'Utente e Cancellazione"}
           </ThemedText>
           <ThemedText style={styles.paragraph}>
-            {"In qualsiasi momento puoi richiedere l'accesso, la rettifica o la cancellazione dei tuoi dati personali."}
+            {"In qualsiasi momento puoi richiedere l'accesso, la rettifica, la limitazione o la cancellazione dei tuoi dati personali (artt. 15-22 GDPR). In caso di reclamo puoi rivolgerti al Garante per la protezione dei dati personali (garanteprivacy.it)."}
           </ThemedText>
           <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
             • <ThemedText style={styles.bold}>{"Cancellazione immediata: "}</ThemedText>
-            {"Puoi eliminare in qualunque momento e direttamente dall'app il tuo account e tutti i dati associati (statistiche ed errori) tramite l'opzione "}
+            {"Puoi eliminare in qualunque momento e direttamente dall'app il tuo account e tutti i dati associati (profilo, statistiche, errori e conversazioni) tramite l'opzione "}
             <ThemedText style={styles.bold}>{'\"Elimina account\"'}</ThemedText>
             {" presente nella scheda Profilo."}
           </ThemedText>

@@ -38,15 +38,15 @@ export default function TermsScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <ThemedText style={[styles.lastUpdated, { color: secondaryTextColor }]}>
-          Ultimo aggiornamento: 29 Agosto 2026
+          Ultimo aggiornamento: 15 Ottobre 2026
         </ThemedText>
 
         <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
           <ThemedText type="defaultSemiBold" style={[styles.sectionHeading, { color: accentColor }]}>
-            {"1. Oggetto e Finalità dell'App"}
+            {"1. Oggetto e Finalità del Servizio"}
           </ThemedText>
           <ThemedText style={styles.paragraph}>
-            {"EasyPatente è un'applicazione didattica progettata per assistere gli studenti nell'apprendimento e nella preparazione dell'esame teorico per la patente di guida italiana (Cat. A e B), offrendo quiz tematici, simulazioni d'esame e spiegazioni didattiche multilingua."}
+            {"Quiz Patente (quizpatenteitaliana.it) è un servizio didattico progettato per assistere gli utenti nell'apprendimento e nella preparazione dell'esame teorico per la patente di guida italiana (Cat. A e B), offrendo quiz tematici, simulazioni d'esame, spiegazioni multilingua e strumenti di assistenza basati su intelligenza artificiale."}
           </ThemedText>
         </View>
 
@@ -55,7 +55,7 @@ export default function TermsScreen() {
             {"2. Revisione e Miglioramento dei Quiz"}
           </ThemedText>
           <ThemedText style={styles.paragraph}>
-            {"Tutti i quesiti, le opzioni di risposta, le traduzioni e le spiegazioni presenti all'interno dell'applicazione sono stati sottoposti a un meticoloso processo autonomo di revisione, correzione, chiarimento e ottimizzazione didattica da parte del nostro team, al fine di facilitare l'apprendimento anche per gli studenti non madrelingua."}
+            {"Tutti i quesiti, le opzioni di risposta, le traduzioni e le spiegazioni presenti nel servizio sono stati sottoposti a un processo autonomo di revisione, correzione, chiarimento e ottimizzazione didattica da parte del nostro team, al fine di facilitare l'apprendimento anche per gli studenti non madrelingua."}
           </ThemedText>
           <ThemedText style={[styles.paragraph, { marginTop: 8 }]}>
             {"Tuttavia, si precisa che l'unico testo ufficiale avente valore legale vincolante per gli esami di Stato è esclusivamente quello ministeriale pubblicato e aggiornato dal Ministero delle Infrastrutture e dei Trasporti."}
@@ -63,8 +63,20 @@ export default function TermsScreen() {
         </View>
 
         <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
+          <ThemedText type="defaultSemiBold" style={[styles.sectionHeading, { color: accentColor }]}>
+            {"3. Funzionalità di Intelligenza Artificiale"}
+          </ThemedText>
+          <ThemedText style={styles.paragraph}>
+            {"Le spiegazioni e la chat (testuale e vocale) sono generate automaticamente da intelligenza artificiale. Tali risposte sono puramente indicative e didattiche, possono contenere errori o informazioni non aggiornate e non costituiscono un sostituto dei materiali ministeriali ufficiali."}
+          </ThemedText>
+          <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
+            {"L'accesso alle funzionalità AI può essere soggetto a un limite giornaliero di richieste."}
+          </ThemedText>
+        </View>
+
+        <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
           <ThemedText type="defaultSemiBold" style={[styles.sectionHeading, { color: '#EF4444' }]}>
-            {"3. Esclusione Totale di Responsabilità"}
+            {"4. Esclusione Totale di Responsabilità"}
           </ThemedText>
           <ThemedText style={styles.paragraph}>
             • <ThemedText style={styles.bold}>{"Nessuna garanzia di superamento: "}</ThemedText>
@@ -72,29 +84,35 @@ export default function TermsScreen() {
           </ThemedText>
           <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
             • <ThemedText style={styles.bold}>{'Fornitura "Così com\'è" (As Is): '}</ThemedText>
-            {"L'applicazione e tutti i relativi contenuti sono forniti senza garanzie esplicite o implicite di totale assenza di errori, omissioni o refusi."}
+            {"Il servizio e tutti i relativi contenuti, incluse le risposte generate da AI, sono forniti senza garanzie esplicite o implicite di totale assenza di errori, omissioni o refusi."}
           </ThemedText>
           <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
             • <ThemedText style={styles.bold}>{"Limitazione di responsabilità: "}</ThemedText>
-            {"Lo sviluppatore e i gestori di EasyPatente non rispondono in alcun caso per esiti negativi degli esami, sanzioni, spese di reiscrizione ad autoscuole o qualunque danno diretto o indiretto derivante dall'uso dell'applicazione o dall'affidamento sui contenuti in essa presenti."}
+            {"Il gestore del servizio e i suoi collaboratori non rispondono in alcun caso per esiti negativi degli esami, sanzioni, spese di reiscrizione ad autoscuole o qualunque danno diretto o indiretto derivante dall'uso dell'applicazione o dall'affidamento sui contenuti in essa presenti."}
           </ThemedText>
         </View>
 
         <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
           <ThemedText type="defaultSemiBold" style={[styles.sectionHeading, { color: accentColor }]}>
-            {"4. Account Utente e Utilizzo Consentito"}
+            {"5. Account Utente e Utilizzo Consentito"}
           </ThemedText>
           <ThemedText style={styles.paragraph}>
-            {"L'utente è l'unico responsabile della riservatezza delle proprie credenziali. L'utilizzo dell'applicazione è strettamente personale e non cedibile a terzi."}
+            {"La registrazione è limitata a indirizzi email di domini autorizzati. L'utente è l'unico responsabile della riservatezza delle proprie credenziali."}
+          </ThemedText>
+          <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
+            {"Un account può essere utilizzato su un solo dispositivo alla volta. L'utilizzo del servizio è strettamente personale e non cedibile a terzi: è vietata la duplicazione, l'estrazione automatizzata (scraping) e la diffusione non autorizzata dei contenuti."}
           </ThemedText>
         </View>
 
         <View style={[styles.card, { backgroundColor: cardBackgroundColor, borderColor }]}>
           <ThemedText type="defaultSemiBold" style={[styles.sectionHeading, { color: accentColor }]}>
-            {"5. Modifiche e Legge Applicabile"}
+            {"6. Cancellazione, Modifiche e Legge Applicabile"}
           </ThemedText>
           <ThemedText style={styles.paragraph}>
-            {"Ci riserviamo il diritto di aggiornare o modificare i presenti Termini in qualsiasi momento. I presenti Termini sono disciplinati dalla legge italiana."}
+            {"Puoi eliminare in qualsiasi momento il tuo account e tutti i dati associati tramite l'opzione \"Elimina account\" nella scheda Profilo, con cancellazione definitiva e immediata."}
+          </ThemedText>
+          <ThemedText style={[styles.paragraph, { marginTop: 6 }]}>
+            {"Ci riserviamo il diritto di aggiornare o modificare i presenti Termini e le funzionalità del servizio in qualsiasi momento. I presenti Termini sono disciplinati dalla legge italiana; per i consumatori si applica il Codice del Consumo e il foro competente è quello del luogo di residenza del consumatore."}
           </ThemedText>
         </View>
 
