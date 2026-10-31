@@ -1,3 +1,5 @@
+import { LearningSummary } from '@/components/LearningSummary';
+import { useFeatureFlagsStore } from '@/store/featureFlags';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
@@ -20,6 +22,7 @@ import { useUserProfileStore } from '@/store/user';
 
 export default function UserScreen() {
   const { t } = useTranslation();
+  const statisticsEnabled = useFeatureFlagsStore((state) => state.flags.learning_statistics);
   const router = useRouter();
   const { signOut, session } = useAuth();
   const languages = useLanguagesStore((state) => state.languages);
@@ -202,6 +205,8 @@ export default function UserScreen() {
             <ThemedText style={styles.devBannerText}>DEV</ThemedText>
           </View>
         )}
+
+        {statisticsEnabled && <LearningSummary />}
 
         {/* LINGUA - CORE FEATURE */}
         <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>

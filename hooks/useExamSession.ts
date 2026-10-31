@@ -1,6 +1,5 @@
 import { AppAlert as Alert } from '@/lib/alert';
 import { useQuizPersistence } from '@/hooks/useQuizPersistence';
-import { recordExamMistakes } from '@/queries/mistakes';
 import type { QuizQuestion } from '@/store/quizQuestions';
 import type { UserQuizProgress } from '@/types/user_quiz_progress';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,6 +15,8 @@ interface UseExamSessionOptions {
   progressLoading: boolean;
   /** Batch whose progression has been fetched – see useQuizProgression. */
   loadedBatchId: string | null;
+  primaryLanguage?: string;
+  secondaryLanguage?: string | null;
 }
 
 /**
@@ -28,31 +29,33 @@ export function useExamSession({
   questions,
   progress,
   progressLoading,
-  loadedBatchId,
+  loadedBatchId, primaryLanguage, secondaryLanguage,
 }: UseExamSessionOptions) {
   const { t } = useTranslation();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [finalResult, setFinalResult] = useState<{ score: number; incorrectCount: number } | null>(null);
   const [timeLeft, setTimeLeft] = useState(EXAM_DURATION_SECONDS);
 
-  const { persist, setPersistedKey, cancelPending } = useQuizPersistence({ userId, batchId });
+  const { persist, setPersistedKey, savedResult, saveState, savedAnswers } = useQuizPersistence({ userId, batchId, primaryLanguage, secondaryLanguage });
 
   const hydratedRef = useRef(false);
   const submittedRef = useRef(false);
+  const deadlineRef = useRef(Date.now() + EXAM_DURATION_SECONDS * 1000);
 
   // Reset everything when the batch changes
   useEffect(() => {
     hydratedRef.current = false;
     submittedRef.current = false;
     setPersistedKey(null);
-    cancelPending();
     setCurrentQuestionIndex(0);
     setAnswers({});
     setQuizCompleted(false);
+    setFinalResult(null);
     setTimeLeft(EXAM_DURATION_SECONDS);
-  }, [batchId, setPersistedKey, cancelPending]);
+  }, [batchId, setPersistedKey]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -63,18 +66,20 @@ export function useExamSession({
       if (timeOutAlert) {
         Alert.alert(t('exam.alerts.timeOutTitle'), t('exam.alerts.timeOutMessage'));
       }
-      setQuizCompleted(true);
-      await persist({
+      const saved = await persist({
         answers: finalAnswers,
         current_question: currentQuestionIndex + 1,
         completed: true,
       });
-      // Record mistakes in the background (non-blocking)
-      recordExamMistakes(batchId).catch((err) =>
-        console.warn('Could not record exam mistakes:', err)
-      );
+      if (saved) {
+        const result = savedResult();
+        if (result?.score != null && result.incorrect_count != null) setFinalResult({ score: result.score, incorrectCount: result.incorrect_count });
+        setAnswers(savedAnswers() ?? finalAnswers); setQuizCompleted(true);
+      }
+      // Leave submittedRef set after a timeout failure: only explicit retry should resubmit.
+      else if (!timeOutAlert) submittedRef.current = false;
     },
-    [persist, currentQuestionIndex, batchId, t]
+    [persist, savedAnswers, savedResult, currentQuestionIndex, t]
   );
 
   // --- Initialization & State Restoration ---
@@ -86,9 +91,11 @@ export function useExamSession({
     if (!record) return;
 
     const recordAnswers: Record<string, boolean> = record.answers ?? {};
+    setPersistedKey({ answers: recordAnswers, current_question: record.current_question, completed: record.completed });
     if (Object.keys(recordAnswers).length > 0) setAnswers(recordAnswers);
 
     if (record.completed) {
+      if (record.score != null && record.incorrect_count != null) setFinalResult({ score: record.score, incorrectCount: record.incorrect_count });
       setQuizCompleted(true);
       submittedRef.current = true;
       return;
@@ -96,19 +103,20 @@ export function useExamSession({
 
     if (record.started_at) {
       const startedTime = new Date(record.started_at).getTime();
+      deadlineRef.current = startedTime + EXAM_DURATION_SECONDS * 1000;
       const elapsed = Math.floor((Date.now() - startedTime) / 1000);
       const remaining = Math.max(EXAM_DURATION_SECONDS - elapsed, 0);
       setTimeLeft(remaining);
       if (remaining === 0) void submit(recordAnswers);
     }
-  }, [progress, progressLoading, loadedBatchId, batchId, submit]);
+  }, [progress, progressLoading, loadedBatchId, batchId, submit, setPersistedKey]);
 
   // --- Timer: tick every second while the exam is running ---
   const timerFinished = timeLeft <= 0;
 
   useEffect(() => {
     if (quizCompleted || timerFinished || questions.length === 0) return;
-    const timer = setInterval(() => setTimeLeft((prev) => Math.max(prev - 1, 0)), 1000);
+    const timer = setInterval(() => setTimeLeft(Math.max(Math.ceil((deadlineRef.current - Date.now()) / 1000), 0)), 1000);
     return () => clearInterval(timer);
   }, [quizCompleted, timerFinished, questions.length]);
 
@@ -146,7 +154,7 @@ export function useExamSession({
   const answer = useCallback(
     (value: boolean) => {
       const questionId = currentQuestion?.id;
-      if (!questionId) return;
+      if (!questionId || timeLeft <= 0 || submittedRef.current) return;
       const updatedAnswers = { ...answers, [questionId]: value };
       setAnswers(updatedAnswers);
 
@@ -166,10 +174,11 @@ export function useExamSession({
         });
       }
     },
-    [answers, currentQuestion?.id, currentQuestionIndex, questions.length, persist]
+    [answers, currentQuestion?.id, currentQuestionIndex, questions.length, persist, timeLeft]
   );
 
   const next = useCallback(() => {
+    if (submittedRef.current) return;
     if (currentQuestionIndex >= questions.length - 1) return;
     setCurrentQuestionIndex(currentQuestionIndex + 1);
     void persist({
@@ -180,6 +189,7 @@ export function useExamSession({
   }, [answers, currentQuestionIndex, questions.length, persist]);
 
   const previous = useCallback(() => {
+    if (submittedRef.current) return;
     if (currentQuestionIndex === 0) return;
     const newIndex = currentQuestionIndex - 1;
     setCurrentQuestionIndex(newIndex);
@@ -213,6 +223,8 @@ export function useExamSession({
   }, [answers, questions.length, submit, t]);
 
   return {
+    saveState,
+    retry: async () => { submittedRef.current = false; await submit(answers, timeLeft <= 0); },
     currentQuestion,
     currentQuestionIndex,
     quizCompleted,
@@ -220,8 +232,8 @@ export function useExamSession({
     answers,
     hasAnswered,
     userAnswer,
-    score,
-    incorrectCount,
+    score: finalResult?.score ?? score,
+    incorrectCount: finalResult?.incorrectCount ?? incorrectCount,
     incorrectQuestions,
     progressPercent,
     answer,

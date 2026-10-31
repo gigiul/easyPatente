@@ -36,6 +36,7 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   - Utilizza le traduzioni dinamiche (**`category_translations`**) per mostrare Titolo e Descrizione di ogni categoria.
   - Mostra una griglia di pulsanti per ogni categoria tematica, configurata per adattarsi dinamicamente ai colori e all'ordine definiti nel database (`sort_order`, `color`).
   - Al tap su una categoria, effettua un `router.push('/quizBatch')` passando l'ID della categoria.
+- **`app/statistics.tsx` (La mia preparazione)**: schermata nello stack, accessibile dal riepilogo `LearningSummary` nel profilo. Sette statistiche, indice v1 spiegabile, categorie e azioni, obiettivo giornaliero e data esame facoltativi. UI sotto flag `learning_statistics`, senza gating Premium. Dettagli: `doc/LEARNING_STATISTICS.md`.
 - **`app/(tabs)/user.tsx` (User Screen)**: 
   Schermata profilo utente, riprogettata con una UI a card per una gestione "premium" delle preferenze.
   - **Impostazioni Lingua (Fulcro)**: Permette di modificare la **Lingua Primaria** (interfaccia e quiz) e una **Lingua Secondaria** opzionale (testo parallelo).
@@ -46,7 +47,7 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   - Hub dedicato alle simulazioni d'esame.
   - Permette di generare un nuovo esame da 30 domande casuali collegate a un timer di 20 minuti, chiamando la RPC Supabase `generate_exam_batch`.
   - **Revisione Errori**: Include una sezione dinamica che mostra il numero di errori accumulati negli esami precedenti. Un pulsante dedicato permette di avviare un quiz di revisione personalizzato (limitato alle ultime 30 domande per simulare un esame reale) basato sulla tabella `user_mistakes`, utilizzando la RPC `generate_mistakes_review_batch`.
-  - Mostra lo **"Storico Esami"** dell'utente (incluso le sessioni di revisione errori), con logica di ricalcolo del punteggio super ottimizzata interrogando direttamente via RPC (`get_user_exam_history`).
+  - Mostra lo **"Storico Esami"** dell'utente (escluse le sessioni di revisione errori), con logica di ricalcolo del punteggio super ottimizzata interrogando direttamente via RPC (`get_user_exam_history`).
   - **Interfaccia Dinamica**: Include una sezione informativa collassabile per ottimizzare lo spazio e utilizza skeleton loaders per eliminare i layout shift durante il caricamento dello storico.
   - Carica i titoli dei batch dinamicamente mediante chiavi i18n memorizzate nel database, garantendo una localizzazione perfetta.
 
@@ -62,22 +63,22 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   - È la schermata di _orchestrazione_ del testing: collega gli hook di logica (`useQuizSession`, `useQuizExplanations`, `useSignedQuizImages`, `useQuizQuestions`, `useQuizProgression`) e compone la UI con i sottocomponenti di `components/quiz/`.
   - **Sottocomponenti** (`components/quiz/`): `QuizHeader`, `QuestionCard`, `AnsweredSection`, `AnswerBar`, `QuizBottomNav` (parte di gioco) e `QuizResultsScreen` + `ScorePills` + `ErrorListItem` (schermata risultati, con lista errori memoizzata via `React.memo`).
   - **Hook di logica**:
-    - `useQuizSession`: stato della sessione (indice domanda, risposte, completamento), score/derivati calcolati **in locale** con `useMemo` e persistenza della progressione (delegata a `useQuizPersistence`) con **debounce** (un solo upsert per azione utente, flush all'unmount).
-    - `useQuizPersistence`: scrittura condivisa su `user_quiz_progress` (dedupe del payload identico, debounce, flush su unmount/cambio batch).
+    - `useQuizSession`: stato della sessione (indice domanda, risposte, completamento), derivati locali durante la sessione, risultato finale da snapshot server e persistenza tramite `useQuizPersistence`, immediata e serializzata.
+    - `useQuizPersistence`: coda di scrittura condivisa tramite `open_learning_attempt`/`save_learning_progress`, dedupe, controllo revisione e retry esplicito; nessuna cancellazione di risposte accodate all’unmount.
     - `useQuizExplanations`: cache locale delle spiegazioni (primaria/secondaria) con fetch on-demand.
     - `useSignedQuizImages`: risoluzione + prefetch delle signed URL delle immagini (prossime domande e immagini degli errori).
   - **Funzionalità incluse nella schermata**:
     - **Audio/TTS:** Integrazione con `expo-speech` per la lettura del testo tradotto.
     - **Supporto multi-lingua:** Visualizzazione contestuale della traduzione secondaria (se configurata).
     - **Progresso:** Barra a riempimento orizzontale posizionata sotto l'header.
-    - **Azioni Interattive (Vero/Falso):** Una volta fornita la risposta, lo stato viene salvato e persistito in debounce su `user_quiz_progress` (`updateQuizProgression`) e mostra dinamicamente la carta risultato e la _Explanation_ (con lettura sonora/multi-lingua).
+    - **Azioni Interattive (Vero/Falso):** Una volta fornita la risposta, la prima risposta viene accodata immediatamente al protocollo di salvataggio transazionale e mostra dinamicamente la carta risultato e la _Explanation_ (con lettura sonora/multi-lingua).
     - **Risultati Finali:** A quiz completato, il punteggio viene calcolato in locale sulle risposte e mostrato con design full-theme compatibile (`useQuizTheme`).
 - **`app/examQuiz.tsx` (Exam Quiz Screen)**:
   - Variante specializzata per la **Simulazione Esame Reale**.
   - Non mostra le spiegazioni né la correttezza della risposta durante lo svolgimento.
   - Integra un Timer rigoroso da 20 minuti con elaborazione di submit automatica allo scadere del tempo.
   - Mostra la schermata dei risultati al termine della simulazione (Superato/Non Superato con soglia max 3 errori) e l'elenco degli errori commessi con confronto tra risposta data e risposta corretta (senza spiegazioni/descrizioni aggiuntive).
-  - Anche questa schermata è un **orchestratore**: collega `useExamSession` (timer con resume da `started_at`, risposta con auto-advance, submit con conferma, score calcolato in locale, persistenza **immediata** via `useQuizPersistence`) e compone la UI con i sottocomponenti di `components/exam/` (`ExamHeader`, `ExamQuestionCard`, `ExamAnswerBar`, `ExamResultsScreen`, quest'ultimo condividendo `ErrorListItem` in variante verde senza spiegazioni).
+  - Anche questa schermata è un **orchestratore**: collega `useExamSession` (timer con resume da `started_at`, risposta con auto-advance, submit con conferma, derivati locali e score finale server, timer ricalcolato da deadline assoluta, persistenza **immediata** via `useQuizPersistence`) e compone la UI con i sottocomponenti di `components/exam/` (`ExamHeader`, `ExamQuestionCard`, `ExamAnswerBar`, `ExamResultsScreen`, quest'ultimo condividendo `ErrorListItem` in variante verde senza spiegazioni).
 
 ### 5. Chat AI (testuale e vocale)
 - **`app/(tabs)/chat.tsx`**:
@@ -329,6 +330,12 @@ Implmentare un hook che nel caso venga flaggato a true un parametro nel db visua
   `feature_flags.voice` default `false` via migration `20260930100000_add_voice_feature_flag`).
   Piano completo con fasi ed exit criteria: `doc/PLAN_VOICE_CHAT.md`. Restano: test locale completo
   in browser, deploy DEV e attivazione esplicita del flag.
-- **Statistiche Globali**:
-  Dashboard analitica avanzata per tracciare le performance a lungo termine (progressione apprendimento, argomenti più falliti, percentuale probabilità di passare l'esame reale).
+- **Statistiche personali** — implementate nel pacchetto locale, non distribuite: schermata dal profilo, ledger tentativi privato, indice euristico v1 e suggerimenti per categorie. Non è una probabilità di promozione. Restano QA visivo/native e verifica della migrazione completa su Supabase locale prima del rilascio. Vedi `doc/LEARNING_STATISTICS.md`.
 
+
+
+## Ledger statistiche (migrazione 20261031161918)
+
+`learning_private.attempts`, `attempt_questions`, `current_attempt`: snapshot privati e isolamento per utente nei wrapper RPC; nessun accesso diretto client. Nuove colonne `profiles.exam_date`, `daily_question_goal`, `timezone` e `user_quiz_progress.learning_revision`. Un trigger acquisisce anche gli upsert legacy, distingue reset e finalizzazione ed evita doppi conteggi errori. RPC pubbliche invoker: open/save learning attempt, get_my_learning_stats, get_my_quiz_progress, set_learning_preferences e generatore ripasso per categoria. Implementazioni privilegiate nello schema privato con identità verificata.
+
+`hooks/useQuizProgression` non idrata il quiz dopo errori di lettura e ignora risposte tardive di altre richieste; `hooks/useLearningStats` gestisce focus, filtri e risposte obsolete senza condividere dati tra account. `queries/learning.ts` e `types/learning.ts` definiscono il contratto, `lib/learning.ts` sceglie un’attività concreta. Le vecchie risposte non possono produrre una prima risposta o una lingua inventata. I tentativi vengono eliminati insieme all’account, mentre i riferimenti storici alle domande non dipendono da cancellazioni del catalogo.

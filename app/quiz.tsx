@@ -4,6 +4,7 @@ import { QuestionCard } from '@/components/quiz/QuestionCard';
 import { QuizBottomNav } from '@/components/quiz/QuizBottomNav';
 import { QuizHeader } from '@/components/quiz/QuizHeader';
 import { QuizResultsScreen } from '@/components/quiz/QuizResultsScreen';
+import { QuizSaveStatus } from '@/components/quiz/QuizSaveStatus';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -39,6 +40,7 @@ export default function QuizScreen() {
   const {
     progress,
     loading: progressLoading,
+    error: progressError,
     loadedBatchId,
     refresh: refreshProgression,
   } = useQuizProgression(userId, String(batchId));
@@ -62,7 +64,7 @@ export default function QuizScreen() {
     progress,
     progressLoading,
     loadedBatchId,
-    refreshProgression,
+    refreshProgression, primaryLanguage: i18n.language, secondaryLanguage,
   });
 
   const question = quiz.currentQuestion;
@@ -127,6 +129,8 @@ export default function QuizScreen() {
     router.navigate('/(tabs)/chat');
   }, [translatedQuestion, question?.id, i18n.language, sendMessage, router]);
 
+  if (progressError) return <ThemedView style={styles.container}><QuizSaveStatus state="error" onRetry={refreshProgression} /></ThemedView>;
+
   if (progressLoading) {
     return (
       <ThemedView style={styles.container}>
@@ -137,6 +141,7 @@ export default function QuizScreen() {
 
   if (quiz.quizCompleted) {
     return (
+      <ThemedView style={styles.container}><QuizSaveStatus state={quiz.saveState} onRetry={quiz.retry} />
       <QuizResultsScreen
         title={String(batchTitle ?? '')}
         score={quiz.score}
@@ -148,16 +153,17 @@ export default function QuizScreen() {
         secondaryLanguage={secondaryLanguage}
         explanations={explanations}
         images={images}
-        previousDisabled={quiz.currentQuestionIndex === 0}
+        previousDisabled={true}
         onBack={() => router.back()}
         onPrevious={quiz.previous}
         onReset={quiz.reset}
-      />
+      /></ThemedView>
     );
   }
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: colors.backgroundColor }]}>
+      <QuizSaveStatus state={quiz.saveState} onRetry={quiz.retry} />
       <QuizHeader
         title={String(batchTitle ?? '')}
         progressPercent={quiz.progressPercent}
@@ -206,7 +212,7 @@ export default function QuizScreen() {
 
       <QuizBottomNav
         onPrevious={quiz.previous}
-        previousDisabled={quiz.currentQuestionIndex === 0}
+        previousDisabled={true}
         counter={`${quiz.currentQuestionIndex + 1} / ${questions.length}`}
         right={{
           label: quiz.hasAnswered ? t('quiz.nextQuestion') : t('quiz.skipQuestion'),

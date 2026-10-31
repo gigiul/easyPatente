@@ -2,6 +2,7 @@ import { ExamAnswerBar } from '@/components/exam/ExamAnswerBar';
 import { ExamHeader } from '@/components/exam/ExamHeader';
 import { ExamQuestionCard } from '@/components/exam/ExamQuestionCard';
 import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen';
+import { QuizSaveStatus } from '@/components/quiz/QuizSaveStatus';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,7 +33,7 @@ export default function ExamQuizScreen() {
   const { session } = useAuth();
   const userId = session?.user?.id || '';
 
-  const { progress, loading: progressLoading, loadedBatchId } = useQuizProgression(
+  const { progress, loading: progressLoading, error: progressError, refresh: refreshProgression, loadedBatchId } = useQuizProgression(
     userId,
     String(batchId)
   );
@@ -53,6 +54,8 @@ export default function ExamQuizScreen() {
     progress,
     progressLoading,
     loadedBatchId,
+    primaryLanguage: isForcedItalian ? 'it' : i18n.language,
+    secondaryLanguage: isForcedItalian ? null : secondaryLanguage,
   });
 
   const question = exam.currentQuestion;
@@ -104,6 +107,8 @@ export default function ExamQuizScreen() {
     };
   }, []);
 
+  if (progressError) return <ThemedView style={styles.container}><QuizSaveStatus state="error" onRetry={refreshProgression} /></ThemedView>;
+
   if (progressLoading || questions.length === 0) {
     return (
       <ThemedView style={styles.container}>
@@ -132,6 +137,7 @@ export default function ExamQuizScreen() {
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: colors.backgroundColor }]}>
+      <QuizSaveStatus state={exam.saveState} onRetry={exam.retry} />
       {/* ── Header with Timer ── */}
       <ExamHeader
         current={exam.currentQuestionIndex + 1}

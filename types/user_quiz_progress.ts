@@ -1,5 +1,8 @@
 export interface UserQuizProgress {
   id: string;
+  learning_revision?: number;
+  score?: number | null;
+  incorrect_count?: number | null;
   user_id: string;
   batch_id: string;
   current_question: number;

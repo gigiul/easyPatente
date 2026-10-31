@@ -1,110 +1,58 @@
-import { updateQuizProgression } from '@/queries/quizProgression';
-import { useCallback, useEffect, useRef } from 'react';
+import { openLearningAttempt, saveLearningProgress } from '@/queries/learning';
+import type { LearningSession } from '@/types/learning';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-/** Coalesce rapid state changes into a single upsert per user action. */
-const PERSIST_DEBOUNCE_MS = 300;
-
-export interface QuizProgressPayload {
-  answers: Record<string, boolean>;
-  current_question: number;
-  completed: boolean;
-}
-
+export interface QuizProgressPayload { answers: Record<string, boolean>; current_question: number; completed: boolean }
 export const quizPayloadKey = (payload: QuizProgressPayload) => JSON.stringify(payload);
-
-export const buildQuizPayload = (state: {
-  answers: Record<string, boolean>;
-  index: number;
-  completed: boolean;
-}): QuizProgressPayload => ({
-  answers: state.answers,
-  // Position (1-based) of the question to resume at.
-  current_question: state.completed ? state.index : state.index + 1,
-  completed: state.completed,
+export const buildQuizPayload = (state: { answers: Record<string, boolean>; index: number; completed: boolean }): QuizProgressPayload => ({
+  answers: state.answers, current_question: state.completed ? state.index : state.index + 1, completed: state.completed,
 });
+interface Options { userId: string; batchId: string; primaryLanguage?: string; secondaryLanguage?: string | null }
 
-interface UseQuizPersistenceOptions {
-  userId: string;
-  batchId: string;
-}
-
-/**
- * Shared write path for `user_quiz_progress`: dedupes identical payloads,
- * debounces bursts of state changes and flushes on unmount/batch switch.
- */
-export function useQuizPersistence({ userId, batchId }: UseQuizPersistenceOptions) {
-  const lastPersistedKeyRef = useRef<string | null>(null);
-  const pendingRef = useRef<{ payload: QuizProgressPayload; timer: ReturnType<typeof setTimeout> } | null>(null);
-
-  const persist = useCallback(
-    async (payload: QuizProgressPayload) => {
-      if (pendingRef.current) {
-        clearTimeout(pendingRef.current.timer);
-        pendingRef.current = null;
-      }
-      const key = quizPayloadKey(payload);
-      if (key === lastPersistedKeyRef.current) return;
-      lastPersistedKeyRef.current = key;
+/** A scope owns its queue, including unmount flushes. A later scope cannot mutate its session. */
+export function useQuizPersistence({ userId, batchId, primaryLanguage = 'it', secondaryLanguage = null }: Options) {
+  const [saveState, setSaveState] = useState<'saved' | 'pending' | 'error'>('saved');
+  const scope = useMemo(() => ({
+    userId, batchId, baseline: null as Record<string, boolean> | null,
+    session: null as LearningSession | null, key: null as string | null,
+    queue: Promise.resolve(), failed: null as QuizProgressPayload | null, latest: null as QuizProgressPayload | null, alive: true,
+  }), [userId, batchId]);
+  const persist = useCallback((payload: QuizProgressPayload): Promise<boolean> => {
+    if (!userId || !batchId) return Promise.resolve(false);
+    scope.latest = payload;
+    if (scope.alive) setSaveState('pending');
+    let success = false;
+    scope.queue = scope.queue.catch(() => {}).then(async () => {
       try {
-        await updateQuizProgression(
-          userId,
-          batchId,
-          payload.answers,
-          payload.current_question,
-          payload.completed
-        );
-      } catch (error) {
-        console.error('Failed to persist quiz progression:', error);
-        lastPersistedKeyRef.current = null;
+        if (scope.failed && quizPayloadKey(scope.failed) !== quizPayloadKey(payload)) { if (scope.alive) setSaveState('error'); return; }
+        if (scope.key === quizPayloadKey(payload)) { success = true; return; }
+        if (!scope.session) {
+          const opened = await openLearningAttempt(batchId, primaryLanguage, secondaryLanguage);
+          const normalized = (answers: Record<string, boolean>) => JSON.stringify(Object.entries(answers).sort(([a], [b]) => a.localeCompare(b)));
+          if (scope.baseline && normalized(scope.baseline) !== normalized(opened.answers)) throw new Error('attempt_conflict');
+          scope.session = opened;
+        }
+        scope.session = await saveLearningProgress(batchId, scope.session, payload.answers, payload.current_question, payload.completed, primaryLanguage, secondaryLanguage);
+        scope.key = quizPayloadKey(payload); scope.failed = null; success = true;
+      } catch {
+        // Keep the latest complete state for explicit retry, never silently discard an answer.
+        scope.failed = payload;
+      } finally {
+        if (scope.alive) setSaveState(success ? 'saved' : 'error');
       }
-    },
-    [userId, batchId]
-  );
-
-  const schedulePersist = useCallback(
-    (payload: QuizProgressPayload) => {
-      if (quizPayloadKey(payload) === lastPersistedKeyRef.current) return;
-      if (pendingRef.current) clearTimeout(pendingRef.current.timer);
-      const timer = setTimeout(() => {
-        pendingRef.current = null;
-        void persist(payload);
-      }, PERSIST_DEBOUNCE_MS);
-      pendingRef.current = { payload, timer };
-    },
-    [persist]
-  );
-
-  /** Remember what the DB already contains (skips the next identical write). */
-  const setPersistedKey = useCallback((payload: QuizProgressPayload | null) => {
-    lastPersistedKeyRef.current = payload ? quizPayloadKey(payload) : null;
-  }, []);
-
-  const cancelPending = useCallback(() => {
-    if (pendingRef.current) {
-      clearTimeout(pendingRef.current.timer);
-      pendingRef.current = null;
-    }
-  }, []);
-
-  // Flush any pending write when leaving the screen (or switching batch)
-  useEffect(() => {
-    return () => {
-      const pending = pendingRef.current;
-      if (!pending) return;
-      clearTimeout(pending.timer);
-      pendingRef.current = null;
-      const key = quizPayloadKey(pending.payload);
-      if (key === lastPersistedKeyRef.current) return;
-      lastPersistedKeyRef.current = key;
-      updateQuizProgression(
-        userId,
-        batchId,
-        pending.payload.answers,
-        pending.payload.current_question,
-        pending.payload.completed
-      ).catch(() => {});
-    };
-  }, [userId, batchId]);
-
-  return { persist, schedulePersist, setPersistedKey, cancelPending };
+    });
+    return scope.queue.then(() => success);
+  }, [scope, userId, batchId, primaryLanguage, secondaryLanguage]);
+  const retry = useCallback(async () => {
+    if (!scope.failed) return true;
+    const failed = scope.failed;
+    const latest = scope.latest;
+    const saved = await persist(failed);
+    return saved && latest && quizPayloadKey(latest) !== quizPayloadKey(failed) ? persist(latest) : saved;
+  }, [persist, scope]);
+  const setPersistedKey = useCallback((payload: QuizProgressPayload | null) => { scope.key = payload ? quizPayloadKey(payload) : null; scope.baseline = payload?.answers ?? null; }, [scope]);
+  useEffect(() => { scope.alive = true; setSaveState('saved'); return () => { scope.alive = false; }; }, [scope]);
+  const savedResult = useCallback(() => scope.session, [scope]);
+  const savedAnswers = useCallback(() => scope.session?.answers, [scope]);
+  return { savedResult, savedAnswers, persist, setPersistedKey, saveState, retry };
 }

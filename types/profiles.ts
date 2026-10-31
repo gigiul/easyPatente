@@ -1,5 +1,8 @@
 export interface Profile {
   id: string;
+  exam_date?: string | null;
+  daily_question_goal?: number | null;
+  timezone?: string;
   email?: string | null;
   lang_primary?: string | null;
   lang_secondary?: string | null;

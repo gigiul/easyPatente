@@ -1,11 +1,8 @@
 import { supabase } from '@/lib/supabase';
 
 export async function fetchQuizProgression(userId: string, batchId: string) {
-  const { data, error } = await supabase
-    .from('user_quiz_progress')
-    .select('id, user_id, batch_id, current_question, answers, completed, started_at, completed_at')
-    .eq('user_id', userId)
-    .eq('batch_id', batchId);
+  if (!userId) return [];
+  const { data, error } = await supabase.rpc('get_my_quiz_progress', { p_batch_id: batchId });
   if (error) throw error;
   return data || [];
 }
