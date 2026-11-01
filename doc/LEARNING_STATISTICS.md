@@ -72,10 +72,22 @@ Benchmark PGlite/WASM con oltre 100.000 risposte per utente: cinque richieste tr
 
 La verifica visiva/browser non è completata: l'ambiente non aveva un browser installato e il download Chromium non è riuscito. La struttura usa componenti React Native tematizzati, controlli accessibili e valori testuali accanto alle barre, ma serve QA visivo su web/iOS/Android reali prima del rilascio.
 
-Non è incluso un motore offline: in caso di errore le risposte restano nello stato della schermata con retry esplicito; uscire/chiudere l'app prima del salvataggio può perdere le risposte non confermate. Per conflitti tra dispositivi il banner indica di riaprire il quiz; non si fa merge automatico. Gli endpoint richiedono la migrazione anche con UI disattivata. Per un rollback del percorso quiz occorre ridistribuire il client precedente; il flag UI da solo non cambia il protocollo di salvataggio.
+Non è incluso un motore offline: in caso di errore le risposte restano nello stato della schermata con retry esplicito nel protocollo; uscire/chiudere l'app prima del salvataggio può perdere le risposte non confermate. Per conflitti tra dispositivi il banner indica di riaprire il quiz; non si fa merge automatico. Gli endpoint richiedono la migrazione anche con UI disattivata. Per un rollback del percorso quiz occorre ridistribuire il client precedente; il flag UI da solo non cambia il protocollo di salvataggio.
 
 Il nuovo snapshot non espone le soluzioni prima della correzione. Il vecchio endpoint/query di catalogo dell'app contiene già `questions.is_correct`: la chiusura completa di quella esposizione richiede un intervento separato sui quiz e non viene rivendicata da questa modifica.
 
 ## Rollback non distruttivo
 
 Disattivare il flag UI se necessario e tornare al client precedente per problemi del nuovo protocollo. Conservare ledger, trigger e migrazione applicata: gli upsert precedenti restano supportati e non si elimina lo storico. I vecchi client non qualificano nuovi esami per il grado di preparazione finché non vengono aggiornati. Nessuna down migration distruttiva è inclusa.
+
+
+## Correzione navigazione quiz
+
+Ripristinato `previousDisabled={quiz.currentQuestionIndex === 0}` nella navigazione del quiz attivo. Il valore costante `true` inserito nel primo pacchetto disabilitava erroneamente il pulsante per tutte le domande. Il controllo resta separato dalla schermata risultati. Il test client ora verifica sia il movimento dell’hook sia la condizione JSX effettiva per gli indici 0, 1 e 29.
+
+
+## Presentazione del voto e banner
+
+Il voto esposto nel profilo, nella schermata statistiche, nelle componenti dell’indice e per la padronanza delle categorie è espresso da 1 a 10: `max(1,min(10,score/10))`, con al massimo un decimale localizzato. Esempio: 83 interno → 8,3/10. I dati insufficienti restano «—». Accuratezza e copertura in percentuale, errori e numero di risposte mantengono le loro unità. La scala interna SQL resta 0–100; nessuna modifica a formula, soglie o migrazioni.
+
+`QuizSaveStatus` restituisce sempre `null`, anche per errori: nessun banner di salvataggio viene visualizzato e nessuno spazio viene occupato. La logica di salvataggio e gli stati degli hook restano attivi. Questo aggiornamento sostituisce la descrizione precedente del banner/retry visibile. Per richiesta esplicita, gli errori di scrittura non mostrano più un pulsante Riprova nel quiz; gli errori di lettura iniziale del progresso conservano una schermata di errore con Riprova, così il quiz non diventa una pagina vuota.

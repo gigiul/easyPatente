@@ -17,3 +17,10 @@ export function validExamDate(value: string) {
   const parsed = new Date(`${value}T12:00:00Z`);
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
+
+/** Display-only conversion. Server scores and readiness thresholds remain on their original scale. */
+export function formatLearningGrade(score: number | null, locale: string) {
+  if (score === null || !Number.isFinite(score)) return '—';
+  const grade = Math.max(1, Math.min(10, score / 10));
+  return `${grade.toLocaleString(locale, { maximumFractionDigits: 1 })}/10`;
+}

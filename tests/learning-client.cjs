@@ -65,11 +65,43 @@ function load(file){
  assert.equal(writes.length,0);assert.equal(current.currentQuestionIndex,1);assert.equal(current.answers.q,false);
  await act(async()=>{current.answer(true);});
  assert.equal(writes.length,1);assert.equal(server.answers.r,true);
+ await act(async()=>{current.previous();});
+ assert.equal(current.currentQuestionIndex,0,'previous returns to the preceding question');
+ const writesAtFirst=writes.length;
+ await act(async()=>{current.previous();});
+ assert.equal(current.currentQuestionIndex,0,'previous never moves before the first question');
+ assert.equal(writes.length,writesAtFirst,'first-question previous does not write');
+ await act(async()=>{current.next();});
+ assert.equal(current.currentQuestionIndex,1);
+ // Exercise the actual screen prop as well as the hook: the regression was in JSX wiring.
+ const screen=ts.createSourceFile('quiz.tsx',fs.readFileSync(path.join(__dirname,'../app/quiz.tsx'),'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
+ let disabledExpression;
+ function visit(node){
+  if(ts.isJsxSelfClosingElement(node) && node.tagName.getText(screen)==='QuizBottomNav') {
+   const prop=node.attributes.properties.find(p=>p.name?.getText(screen)==='previousDisabled');
+   disabledExpression=prop?.initializer?.expression?.getText(screen);
+  }
+  ts.forEachChild(node,visit);
+ }
+ visit(screen);
+ assert.ok(disabledExpression,'active quiz navigation must declare its disabled condition');
+ for(const [index,expected] of [[0,true],[1,false],[29,false]]) {
+  assert.equal(vm.runInNewContext(disabledExpression,{quiz:{currentQuestionIndex:index}}),expected,`actual navigation prop at question index ${index}`);
+ }
+
  await act(async()=>{current.next();});
  assert.equal(current.quizCompleted,true);assert.equal(server.completed,true);
  await act(async()=>{tree.unmount();});
- const {validExamDate,learningSuggestion}=load('lib/learning.ts');
+ const {validExamDate,learningSuggestion,formatLearningGrade}=load('lib/learning.ts');
+ assert.equal(formatLearningGrade(83,'it'),'8,3/10');
+ assert.equal(formatLearningGrade(83,'es'),'8,3/10');
+ assert.equal(formatLearningGrade(100,'it'),'10/10');
+ assert.equal(formatLearningGrade(0,'it'),'1/10');
+ assert.equal(formatLearningGrade(5,'it'),'1/10');
+ assert.equal(formatLearningGrade(null,'it'),'—');
+ const {QuizSaveStatus}=load('components/quiz/QuizSaveStatus.tsx');
+ for(const state of ['saved','pending','error']) assert.equal(QuizSaveStatus({state,onRetry:()=>{throw Error('unexpected retry');}}),null);
  assert.equal(validExamDate('2026-02-30'),false);assert.equal(validExamDate('2028-02-29'),true);
  assert.equal(learningSuggestion({resume:{batch_id:'b',mode:'exam'},categories:[],readiness:{enough:false}}).kind,'resume');
- console.log('PASS: serialized saves, failure/retry ordering, hydration without reset, first answer, finalization, date validation, resume priority');
+ console.log('PASS: serialized saves, failure/retry ordering, hydration without reset, first answer, previous navigation and JSX disabled state, finalization, date validation, resume priority, hidden save banner, 1–10 localized grade');
 })().catch(error=>{console.error(error);process.exitCode=1;});

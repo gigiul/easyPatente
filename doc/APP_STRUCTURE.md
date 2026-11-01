@@ -339,3 +339,8 @@ Implmentare un hook che nel caso venga flaggato a true un parametro nel db visua
 `learning_private.attempts`, `attempt_questions`, `current_attempt`: snapshot privati e isolamento per utente nei wrapper RPC; nessun accesso diretto client. Nuove colonne `profiles.exam_date`, `daily_question_goal`, `timezone` e `user_quiz_progress.learning_revision`. Un trigger acquisisce anche gli upsert legacy, distingue reset e finalizzazione ed evita doppi conteggi errori. RPC pubbliche invoker: open/save learning attempt, get_my_learning_stats, get_my_quiz_progress, set_learning_preferences e generatore ripasso per categoria. Implementazioni privilegiate nello schema privato con identità verificata.
 
 `hooks/useQuizProgression` non idrata il quiz dopo errori di lettura e ignora risposte tardive di altre richieste; `hooks/useLearningStats` gestisce focus, filtri e risposte obsolete senza condividere dati tra account. `queries/learning.ts` e `types/learning.ts` definiscono il contratto, `lib/learning.ts` sceglie un’attività concreta. Le vecchie risposte non possono produrre una prima risposta o una lingua inventata. I tentativi vengono eliminati insieme all’account, mentre i riferimenti storici alle domande non dipendono da cancellazioni del catalogo.
+
+
+### Presentazione statistiche e notifiche di salvataggio
+
+Il voto viene mostrato su scala 1–10 in profilo, statistiche e padronanza delle categorie tramite `formatLearningGrade`; la formula SQL continua a usare la scala 0–100. Il banner `QuizSaveStatus` è nascosto in ogni stato per richiesta dell’utente. Gli errori di lettura iniziale mostrano un messaggio dedicato con Riprova; il protocollo di scrittura rimane invariato.

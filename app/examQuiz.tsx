@@ -2,6 +2,7 @@ import { ExamAnswerBar } from '@/components/exam/ExamAnswerBar';
 import { ExamHeader } from '@/components/exam/ExamHeader';
 import { ExamQuestionCard } from '@/components/exam/ExamQuestionCard';
 import { ExamResultsScreen } from '@/components/exam/ExamResultsScreen';
+import { ThemedButton } from '@/components/ThemedButton';
 import { QuizSaveStatus } from '@/components/quiz/QuizSaveStatus';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -107,7 +108,7 @@ export default function ExamQuizScreen() {
     };
   }, []);
 
-  if (progressError) return <ThemedView style={styles.container}><QuizSaveStatus state="error" onRetry={refreshProgression} /></ThemedView>;
+  if (progressError) return <ThemedView style={styles.container}><ThemedText>{t('statistics.error')}</ThemedText><ThemedButton title={t('statistics.retry')} onPress={refreshProgression} /></ThemedView>;
 
   if (progressLoading || questions.length === 0) {
     return (

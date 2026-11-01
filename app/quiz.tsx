@@ -4,7 +4,9 @@ import { QuestionCard } from '@/components/quiz/QuestionCard';
 import { QuizBottomNav } from '@/components/quiz/QuizBottomNav';
 import { QuizHeader } from '@/components/quiz/QuizHeader';
 import { QuizResultsScreen } from '@/components/quiz/QuizResultsScreen';
+import { ThemedButton } from '@/components/ThemedButton';
 import { QuizSaveStatus } from '@/components/quiz/QuizSaveStatus';
+import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -129,7 +131,7 @@ export default function QuizScreen() {
     router.navigate('/(tabs)/chat');
   }, [translatedQuestion, question?.id, i18n.language, sendMessage, router]);
 
-  if (progressError) return <ThemedView style={styles.container}><QuizSaveStatus state="error" onRetry={refreshProgression} /></ThemedView>;
+  if (progressError) return <ThemedView style={styles.container}><ThemedText>{t('statistics.error')}</ThemedText><ThemedButton title={t('statistics.retry')} onPress={refreshProgression} /></ThemedView>;
 
   if (progressLoading) {
     return (
@@ -142,22 +144,22 @@ export default function QuizScreen() {
   if (quiz.quizCompleted) {
     return (
       <ThemedView style={styles.container}><QuizSaveStatus state={quiz.saveState} onRetry={quiz.retry} />
-        <QuizResultsScreen
-          title={String(batchTitle ?? '')}
-          score={quiz.score}
-          incorrectCount={quiz.incorrectCount}
-          questions={questions}
-          incorrectQuestions={quiz.incorrectQuestions}
-          answers={quiz.answers}
-          explanationEnabled={explanationEnabled}
-          secondaryLanguage={secondaryLanguage}
-          explanations={explanations}
-          images={images}
-          previousDisabled={true}
-          onBack={() => router.back()}
-          onPrevious={quiz.previous}
-          onReset={quiz.reset}
-        /></ThemedView>
+      <QuizResultsScreen
+        title={String(batchTitle ?? '')}
+        score={quiz.score}
+        incorrectCount={quiz.incorrectCount}
+        questions={questions}
+        incorrectQuestions={quiz.incorrectQuestions}
+        answers={quiz.answers}
+        explanationEnabled={explanationEnabled}
+        secondaryLanguage={secondaryLanguage}
+        explanations={explanations}
+        images={images}
+        previousDisabled={true}
+        onBack={() => router.back()}
+        onPrevious={quiz.previous}
+        onReset={quiz.reset}
+      /></ThemedView>
     );
   }
 

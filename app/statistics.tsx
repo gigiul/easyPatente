@@ -7,7 +7,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '@/hooks/useAuth';
 import { useLearningStats } from '@/hooks/useLearningStats';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { learningSuggestion, validExamDate } from '@/lib/learning';
+import { formatLearningGrade, learningSuggestion, validExamDate } from '@/lib/learning';
 import { setLearningPreferences } from '@/queries/learning';
 import { supabase } from '@/lib/supabase';
 import { useFeatureFlagsStore } from '@/store/featureFlags';
@@ -87,13 +87,13 @@ export default function StatisticsScreen() {
         <ThemedText style={styles.muted}>{t('statistics.updated', { date: new Date(data.updated_at).toLocaleString(i18n.language) })}</ThemedText>
         {data.legacy_count > 0 && <ThemedText>{t('statistics.legacy')}</ThemedText>}
         {section('readiness', <>
-          <ThemedText type="title">{data.readiness.score === null ? '—' : `${data.readiness.score}/100`}</ThemedText>
+          <ThemedText type="title">{formatLearningGrade(data.readiness.score, i18n.language)}</ThemedText>
           <ThemedText type="defaultSemiBold">{t(`statistics.states.${data.readiness.state}`)}</ThemedText>
           <ThemedText>{t(data.readiness.enough ? data.readiness.gates_met ? 'statistics.reliabilitySolid' : 'statistics.reliabilityIndicative' : 'statistics.reliabilityLimited')}</ThemedText>
           <ThemedText>{t('statistics.evidence', { exams: data.readiness.exam_count, questions: data.readiness.recent_unique, categories: data.readiness.recent_categories, total: data.readiness.total_categories })}</ThemedText>
         </>, <>
           <ThemedText>{t('statistics.formula')}</ThemedText>
-          <ThemedText>{t('statistics.components', { exam: fmt(data.readiness.exam), mastery: fmt(data.readiness.mastery), coverage: fmt(data.readiness.breadth) })}</ThemedText>
+          <ThemedText>{t('statistics.components', { exam: formatLearningGrade(data.readiness.exam, i18n.language), mastery: formatLearningGrade(data.readiness.mastery, i18n.language), coverage: formatLearningGrade(data.readiness.breadth, i18n.language) })}</ThemedText>
           <ThemedText>{t('statistics.requirements')}</ThemedText>
           <ThemedText>{t('statistics.readyRequirements')}</ThemedText>
           <ThemedText>{t('statistics.heuristic')}</ThemedText>
@@ -131,7 +131,7 @@ export default function StatisticsScreen() {
           {data.categories.slice(0, expanded.categories ? undefined : 3).map(category => <View key={category.id} style={styles.item}>
             <ThemedText type="defaultSemiBold">{category.title}</ThemedText>
             <ThemedText>{t('statistics.categoryMetrics', { accuracy: fmt(category.accuracy), samples: category.samples, seen: category.seen, total: category.total })}</ThemedText>
-            <ThemedText>{category.recent_unique < Math.min(10, category.total) ? t('statistics.smallSample') : t('statistics.mastery', { value: fmt(category.mastery) })}</ThemedText>
+            <ThemedText>{category.recent_unique < Math.min(10, category.total) ? t('statistics.smallSample') : t('statistics.mastery', { value: formatLearningGrade(category.mastery, i18n.language) })}</ThemedText>
             {category.accessible > 0 && button(t('statistics.train'), () => router.push({ pathname: '/quizBatch', params: { categoryId: category.id, categoryName: category.title } }))}
           </View>)}
           {button(t(expanded.categories ? 'statistics.less' : 'statistics.more'), () => setExpanded(v => ({ ...v, categories: !v.categories })))}
