@@ -1,10 +1,56 @@
+import { createQuizDraft, readQuizDraft, writeQuizDraft } from '@/lib/quizDraft';
+import { beginLearningAttempt } from '@/queries/learning';
+import type { QuizDraft } from '@/types/learning';
+import type { UserQuizProgress } from '@/types/user_quiz_progress';
 import { supabase } from '@/lib/supabase';
 
-export async function fetchQuizProgression(userId: string, batchId: string) {
+const sameAnswers = (a: Record<string, boolean>, b: Record<string, boolean>) =>
+  JSON.stringify(Object.entries(a).sort()) === JSON.stringify(Object.entries(b).sort());
+
+export function draftProgress(draft: QuizDraft): UserQuizProgress {
+  return {
+    id: draft.progress_id, user_id: draft.user_id, batch_id: draft.batch_id,
+    answers: draft.answers, current_question: draft.current_question, completed: draft.session.completed,
+    started_at: draft.session.started_at, learning_revision: draft.session.revision,
+    score: draft.session.completed ? draft.session.score : null,
+    incorrect_count: draft.session.completed ? draft.session.incorrect_count : null, learning_draft: draft,
+  };
+}
+
+export async function fetchQuizProgression(userId: string, batchId: string, primary = 'it', secondary: string | null = null): Promise<UserQuizProgress[]> {
   if (!userId) return [];
-  const { data, error } = await supabase.rpc('get_my_quiz_progress', { p_batch_id: batchId });
-  if (error) throw error;
-  return data || [];
+  const local = await readQuizDraft(userId, batchId);
+  let remote: Awaited<ReturnType<typeof beginLearningAttempt>>;
+  try { remote = await beginLearningAttempt(batchId, primary, secondary); }
+  catch (error) {
+    // Authentication, validation and ownership failures must not turn into offline authorization.
+    const code = (error as { code?: string }).code;
+    if (local && !code) return [draftProgress(local)];
+    throw error;
+  }
+  let draft = createQuizDraft(userId, batchId, remote.id, remote.learning_session, primary, secondary);
+  if (local && local.session.attempt_id === draft.session.attempt_id) {
+    if (remote.completed) {
+      if (local.pending_submission && !sameAnswers(local.answers, remote.answers)) throw new Error('attempt_conflict');
+    } else {
+      if (local.session.revision !== draft.session.revision && !sameAnswers(local.session.answers, remote.answers)) throw new Error('attempt_conflict');
+      draft = { ...local, session: draft.session, clock_offset_ms: draft.clock_offset_ms,
+        mixed_language: local.mixed_language || local.primary_language !== primary || local.secondary_language !== secondary };
+    }
+  } else if (local?.pending_submission) {
+    throw new Error('attempt_conflict'); // Preserve the pending receipt; never overwrite an unsent submission.
+  }
+  if (remote.completed) await writeQuizDraft(draft).catch(() => {});
+  else await writeQuizDraft(draft);
+  return [draftProgress(draft)];
+}
+
+export async function restartQuizProgression(draft: QuizDraft, primary: string, secondary: string | null): Promise<QuizDraft> {
+  if (draft.pending_submission) throw new Error('submission_pending');
+  const progress = await beginLearningAttempt(draft.batch_id, primary, secondary, draft.session.attempt_id);
+  const next = createQuizDraft(draft.user_id, draft.batch_id, progress.id, progress.learning_session, primary, secondary);
+  await writeQuizDraft(next);
+  return next;
 }
 
 export async function updateQuizProgression(userId: string, batchId: string, answers: any, currentQuestion: number, completed: boolean) {

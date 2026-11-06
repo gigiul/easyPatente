@@ -1,3 +1,4 @@
+import { clearQuizDrafts } from '@/lib/quizDraft';
 import { storage } from '../lib/storage';
 import { supabase } from '../lib/supabase';
 import { useUserProfileStore } from '../store/user';
@@ -67,6 +68,8 @@ export async function updateUserLanguages(primary: string | null, secondary: str
 }
 
 export async function deleteUserAccount() {
+  const userId = useUserProfileStore.getState().user?.id;
   const { error } = await supabase.rpc('delete_user_account');
   if (error) throw error;
+  if (userId) await clearQuizDrafts(userId);
 }

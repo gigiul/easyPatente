@@ -28,3 +28,32 @@ export interface LearningStats {
   preferences: { exam_date: string | null; daily_goal: number | null; timezone: string } | null;
   today: number; legacy_count: number; resume: { batch_id: string; mode: string; force_italian: boolean } | null;
 }
+
+export interface LocalLearningSession extends LearningSession {
+  submission_id: string;
+  server_time: string;
+  started_at: string;
+  current_question: number;
+  mode: 'practice' | 'exam' | 'review';
+  first_answers: Record<string, boolean>;
+  first_answered_at: Record<string, string>;
+  answered_at: Record<string, string>;
+}
+
+export interface QuizDraft {
+  version: 1;
+  user_id: string;
+  batch_id: string;
+  progress_id: string;
+  session: LocalLearningSession;
+  answers: Record<string, boolean>;
+  first_answers: Record<string, boolean>;
+  first_answered_at: Record<string, string>;
+  answered_at: Record<string, string>;
+  current_question: number;
+  pending_submission: boolean;
+  primary_language: string;
+  secondary_language: string | null;
+  mixed_language: boolean;
+  clock_offset_ms: number;
+}

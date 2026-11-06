@@ -33,12 +33,12 @@ export default function ExamQuizScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const userId = session?.user?.id || '';
+  const { secondaryLanguage } = useLanguage();
 
   const { progress, loading: progressLoading, error: progressError, refresh: refreshProgression, loadedBatchId } = useQuizProgression(
     userId,
-    String(batchId)
+    String(batchId), isForcedItalian ? 'it' : i18n.language, isForcedItalian ? null : secondaryLanguage
   );
-  const { secondaryLanguage } = useLanguage();
   const { questions, ready: questionsReady } = useQuizQuestions(
     String(batchId),
     isForcedItalian ? 'it' : i18n.language,

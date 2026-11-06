@@ -39,7 +39,7 @@ export function useExamSession({
   const [finalResult, setFinalResult] = useState<{ score: number; incorrectCount: number } | null>(null);
   const [timeLeft, setTimeLeft] = useState(EXAM_DURATION_SECONDS);
 
-  const { persist, setPersistedKey, savedResult, saveState, savedAnswers } = useQuizPersistence({ userId, batchId, primaryLanguage, secondaryLanguage });
+  const { persist, savedResult, saveState, savedAnswers, finalizedSession, isSubmitting, retry: retrySubmission } = useQuizPersistence({ userId, batchId, progress: progress[0], primaryLanguage, secondaryLanguage });
 
   const hydratedRef = useRef(false);
   const submittedRef = useRef(false);
@@ -49,13 +49,12 @@ export function useExamSession({
   useEffect(() => {
     hydratedRef.current = false;
     submittedRef.current = false;
-    setPersistedKey(null);
     setCurrentQuestionIndex(0);
     setAnswers({});
     setQuizCompleted(false);
     setFinalResult(null);
     setTimeLeft(EXAM_DURATION_SECONDS);
-  }, [batchId, setPersistedKey]);
+  }, [batchId, userId]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -77,21 +76,23 @@ export function useExamSession({
         setAnswers(savedAnswers() ?? finalAnswers); setQuizCompleted(true);
       }
       // Leave submittedRef set after a timeout failure: only explicit retry should resubmit.
-      else if (!timeOutAlert) submittedRef.current = false;
+      else {
+        if (!timeOutAlert) submittedRef.current = false;
+        Alert.alert(t('quiz.submitPendingTitle'), t('quiz.submitPending'));
+      }
     },
     [persist, savedAnswers, savedResult, currentQuestionIndex, t]
   );
 
   // --- Initialization & State Restoration ---
   useEffect(() => {
-    if (progressLoading || hydratedRef.current || loadedBatchId !== batchId) return;
+    if (progressLoading || questions.length === 0 || hydratedRef.current || loadedBatchId !== batchId) return;
     hydratedRef.current = true;
 
     const record = progress[0];
     if (!record) return;
 
     const recordAnswers: Record<string, boolean> = record.answers ?? {};
-    setPersistedKey({ answers: recordAnswers, current_question: record.current_question, completed: record.completed });
     if (Object.keys(recordAnswers).length > 0) setAnswers(recordAnswers);
 
     if (record.completed) {
@@ -101,15 +102,22 @@ export function useExamSession({
       return;
     }
 
+    setCurrentQuestionIndex(Math.min(Math.max(record.current_question - 1, 0), Math.max(questions.length - 1, 0)));
     if (record.started_at) {
-      const startedTime = new Date(record.started_at).getTime();
-      deadlineRef.current = startedTime + EXAM_DURATION_SECONDS * 1000;
-      const elapsed = Math.floor((Date.now() - startedTime) / 1000);
-      const remaining = Math.max(EXAM_DURATION_SECONDS - elapsed, 0);
+      const offset = record.learning_draft?.clock_offset_ms ?? 0;
+      const serverDeadline = record.learning_draft?.session.deadline_at;
+      deadlineRef.current = (serverDeadline ? Date.parse(serverDeadline) : Date.parse(record.started_at) + EXAM_DURATION_SECONDS * 1000) - offset;
+      const remaining = Math.max(Math.ceil((deadlineRef.current - Date.now()) / 1000), 0);
       setTimeLeft(remaining);
       if (remaining === 0) void submit(recordAnswers);
     }
-  }, [progress, progressLoading, loadedBatchId, batchId, submit, setPersistedKey]);
+  }, [progress, progressLoading, loadedBatchId, batchId, submit, questions.length]);
+
+  useEffect(() => {
+    if (!finalizedSession?.completed) return;
+    submittedRef.current = true; setAnswers(finalizedSession.answers); setQuizCompleted(true);
+    if (finalizedSession.score != null && finalizedSession.incorrect_count != null) setFinalResult({ score: finalizedSession.score, incorrectCount: finalizedSession.incorrect_count });
+  }, [finalizedSession]);
 
   // --- Timer: tick every second while the exam is running ---
   const timerFinished = timeLeft <= 0;
@@ -154,7 +162,7 @@ export function useExamSession({
   const answer = useCallback(
     (value: boolean) => {
       const questionId = currentQuestion?.id;
-      if (!questionId || timeLeft <= 0 || submittedRef.current) return;
+      if (!questionId || Date.now() >= deadlineRef.current || timeLeft <= 0 || isSubmitting() || submittedRef.current) return;
       const updatedAnswers = { ...answers, [questionId]: value };
       setAnswers(updatedAnswers);
 
@@ -174,11 +182,11 @@ export function useExamSession({
         });
       }
     },
-    [answers, currentQuestion?.id, currentQuestionIndex, questions.length, persist, timeLeft]
+    [answers, currentQuestion?.id, currentQuestionIndex, questions.length, persist, timeLeft, isSubmitting]
   );
 
   const next = useCallback(() => {
-    if (submittedRef.current) return;
+    if (submittedRef.current || isSubmitting()) return;
     if (currentQuestionIndex >= questions.length - 1) return;
     setCurrentQuestionIndex(currentQuestionIndex + 1);
     void persist({
@@ -186,10 +194,10 @@ export function useExamSession({
       current_question: currentQuestionIndex + 2,
       completed: false,
     });
-  }, [answers, currentQuestionIndex, questions.length, persist]);
+  }, [answers, currentQuestionIndex, questions.length, persist, isSubmitting]);
 
   const previous = useCallback(() => {
-    if (submittedRef.current) return;
+    if (submittedRef.current || isSubmitting()) return;
     if (currentQuestionIndex === 0) return;
     const newIndex = currentQuestionIndex - 1;
     setCurrentQuestionIndex(newIndex);
@@ -198,9 +206,10 @@ export function useExamSession({
       current_question: newIndex + 1,
       completed: false,
     });
-  }, [answers, currentQuestionIndex, persist]);
+  }, [answers, currentQuestionIndex, persist, isSubmitting]);
 
   const attemptSubmit = useCallback(() => {
+    if (isSubmitting()) { void retrySubmission(); return; }
     const answeredCount = Object.keys(answers).length;
     let message = t('exam.alerts.submitConfirm');
     if (answeredCount < questions.length) {
@@ -220,11 +229,11 @@ export function useExamSession({
         },
       },
     ]);
-  }, [answers, questions.length, submit, t]);
+  }, [answers, questions.length, submit, t, isSubmitting, retrySubmission]);
 
   return {
     saveState,
-    retry: async () => { submittedRef.current = false; await submit(answers, timeLeft <= 0); },
+    retry: retrySubmission,
     currentQuestion,
     currentQuestionIndex,
     quizCompleted,

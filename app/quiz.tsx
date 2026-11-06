@@ -45,7 +45,7 @@ export default function QuizScreen() {
     error: progressError,
     loadedBatchId,
     refresh: refreshProgression,
-  } = useQuizProgression(userId, String(batchId));
+  } = useQuizProgression(userId, String(batchId), i18n.language, secondaryLanguage);
   const { questions, ready: questionsReady } = useQuizQuestions(
     String(batchId),
     i18n.language,

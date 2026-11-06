@@ -60,7 +60,9 @@
     },
     "getExplanation": "Pedir explicación",
     "loadingExplanation": "Cargando...",
-    "batchCount": "{{count}} módulos"
+    "batchCount": "{{count}} módulos",
+    "submitPendingTitle": "Envío pendiente",
+    "submitPending": "No se pudo enviar. Mantén esta pantalla abierta: reintentaremos automáticamente. También puedes pulsar Finalizar para reintentar."
   },
   "user": {
     "title": "Perfil",

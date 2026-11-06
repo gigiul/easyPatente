@@ -1,3 +1,4 @@
+import { readQuizDraft } from '@/lib/quizDraft';
 import { supabase } from '@/lib/supabase';
 
 export const MAX_ALLOWED_ERRORS = 3;
@@ -25,6 +26,7 @@ export async function fetchQuizBatchesWithProgress(categoryId: string, userId: s
         completed,
         completed_at,
         current_question,
+        learning_revision,
         answers
       ),
       quiz_batch_questions (
@@ -41,8 +43,12 @@ export async function fetchQuizBatchesWithProgress(categoryId: string, userId: s
 
   if (error) throw error;
 
+  const drafts = await Promise.all((data ?? []).map(batch => readQuizDraft(userId, batch.id).catch(() => null)));
   return data?.map((batch, index) => {
-    const progress = batch.user_quiz_progress?.[0] || null;
+    const remote = batch.user_quiz_progress?.[0] || null;
+    const draft = drafts[index];
+    const progress = draft && remote && !remote.completed && draft.session.revision === remote.learning_revision
+      ? { ...remote, answers: draft.answers, current_question: draft.current_question } : remote;
     const answers: Record<string, boolean> = progress?.answers || {};
 
     // Calcola errori per determinare se il quiz è stato superato

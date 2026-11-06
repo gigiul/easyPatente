@@ -29,7 +29,6 @@ export function useQuizSession({
   progress,
   progressLoading,
   loadedBatchId,
-  refreshProgression,
   primaryLanguage, secondaryLanguage,
 }: UseQuizSessionOptions) {
   const { t } = useTranslation();
@@ -40,9 +39,9 @@ export function useQuizSession({
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [isResetting, setIsResetting] = useState(false);
 
-  const { persist, setPersistedKey, savedResult, saveState, retry } = useQuizPersistence({
+  const { persist, savedResult, saveState, retry, restart, finalizedSession, isSubmitting } = useQuizPersistence({
     userId,
-    batchId, primaryLanguage, secondaryLanguage,
+    batchId, progress: progress[0], primaryLanguage, secondaryLanguage,
   });
 
   const hydratedRef = useRef(false);
@@ -50,13 +49,12 @@ export function useQuizSession({
   // Reset everything when the batch changes
   useEffect(() => {
     hydratedRef.current = false;
-    setPersistedKey(null);
     setCurrentQuestionIndex(0);
     setQuizCompleted(false);
     setFinalResult(null);
     setAnswers({});
     setIsResetting(false);
-  }, [batchId, setPersistedKey]);
+  }, [batchId, userId]);
 
   // Hydrate local state from the stored progression (once per batch)
   useEffect(() => {
@@ -67,7 +65,7 @@ export function useQuizSession({
     const progressEntry = progress[0];
     const progressAnswers: Record<string, boolean> = progressEntry?.answers ?? {};
     const hasNoAnswers = Object.keys(progressAnswers).length === 0;
-    const completed = hasNoAnswers ? false : !!progressEntry?.completed;
+    const completed = !!progressEntry?.completed;
     const storedQuestion = progressEntry?.current_question ?? 1;
     const restoredIndex = hasNoAnswers
       ? 0
@@ -75,7 +73,7 @@ export function useQuizSession({
         ? Math.max(storedQuestion, 0)
         : Math.max(storedQuestion - 1, 0);
 
-    if (!hasNoAnswers) {
+    if (!hasNoAnswers || completed) {
       setAnswers(progressAnswers);
       setCurrentQuestionIndex(restoredIndex);
       if (completed) {
@@ -83,16 +81,15 @@ export function useQuizSession({
         if (progressEntry.score != null && progressEntry.incorrect_count != null) setFinalResult({ score: progressEntry.score, incorrectCount: progressEntry.incorrect_count });
       }
     }
+  }, [progress, progressLoading, isResetting, loadedBatchId, batchId]);
 
-    setPersistedKey(
-      buildQuizPayload({
-        answers: hasNoAnswers ? {} : progressAnswers,
-        index: hasNoAnswers ? 0 : restoredIndex,
-        completed,
-      })
-    );
-  }, [progress, progressLoading, isResetting, loadedBatchId, batchId, setPersistedKey]);
 
+  useEffect(() => {
+    if (!finalizedSession?.completed) return;
+    setAnswers(finalizedSession.answers); setQuizCompleted(true);
+    setCurrentQuestionIndex(questions.length);
+    if (finalizedSession.score != null && finalizedSession.incorrect_count != null) setFinalResult({ score: finalizedSession.score, incorrectCount: finalizedSession.incorrect_count });
+  }, [finalizedSession, questions.length]);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -125,17 +122,18 @@ export function useQuizSession({
   const answer = useCallback(
     (value: boolean) => {
       const questionId = currentQuestion?.id;
-      if (!questionId) return;
+      if (!questionId || quizCompleted || isSubmitting()) return;
       const updated = { ...answers, [questionId]: value };
       setAnswers(updated);
-      // Persist the first answer before any subsequent navigation/correction can overwrite it.
+      // Checkpoint locally before a later navigation/correction can overwrite the first answer.
       void persist(buildQuizPayload({ answers: updated, index: currentQuestionIndex, completed: false }));
     },
-    [currentQuestion?.id, answers, currentQuestionIndex, persist]
+    [currentQuestion?.id, answers, currentQuestionIndex, persist, quizCompleted, isSubmitting]
   );
 
   const next = useCallback(() => {
     if (questions.length === 0) return;
+    if (isSubmitting()) { void retry(); return; }
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       void persist(buildQuizPayload({ answers, index: currentQuestionIndex + 1, completed: false }));
@@ -152,33 +150,32 @@ export function useQuizSession({
               const result = savedResult();
               if (result?.score != null && result.incorrect_count != null) setFinalResult({ score: result.score, incorrectCount: result.incorrect_count });
               setCurrentQuestionIndex(completedIndex); setQuizCompleted(true);
-            }
+            } else Alert.alert(t('quiz.submitPendingTitle'), t('quiz.submitPending'));
           });
         },
       },
     ]);
-  }, [currentQuestionIndex, questions.length, answers, persist, savedResult, t]);
+  }, [currentQuestionIndex, questions.length, answers, persist, savedResult, t, isSubmitting, retry]);
 
   const previous = useCallback(() => {
-    if (quizCompleted) {
+    if (quizCompleted || isSubmitting()) {
       return; // Completed attempts are immutable; repeat creates a new attempt. results already include review.
     }
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
       void persist(buildQuizPayload({ answers, index: currentQuestionIndex - 1, completed: false }));
     }
-  }, [quizCompleted, currentQuestionIndex, answers, persist]);
+  }, [quizCompleted, currentQuestionIndex, answers, persist, isSubmitting]);
 
   const reset = useCallback(() => {
     setIsResetting(true);
-    void persist(buildQuizPayload({ answers: {}, index: 0, completed: false })).then((saved) => {
+    void restart().then((saved) => {
       if (saved) {
         setCurrentQuestionIndex(0); setQuizCompleted(false); setFinalResult(null); setAnswers({});
-        refreshProgression();
       }
       setIsResetting(false);
     });
-  }, [persist, refreshProgression]);
+  }, [restart]);
 
 
 

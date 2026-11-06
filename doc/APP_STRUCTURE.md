@@ -63,22 +63,22 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
   - È la schermata di _orchestrazione_ del testing: collega gli hook di logica (`useQuizSession`, `useQuizExplanations`, `useSignedQuizImages`, `useQuizQuestions`, `useQuizProgression`) e compone la UI con i sottocomponenti di `components/quiz/`.
   - **Sottocomponenti** (`components/quiz/`): `QuizHeader`, `QuestionCard`, `AnsweredSection`, `AnswerBar`, `QuizBottomNav` (parte di gioco) e `QuizResultsScreen` + `ScorePills` + `ErrorListItem` (schermata risultati, con lista errori memoizzata via `React.memo`).
   - **Hook di logica**:
-    - `useQuizSession`: stato della sessione (indice domanda, risposte, completamento), derivati locali durante la sessione, risultato finale da snapshot server e persistenza tramite `useQuizPersistence`, immediata e serializzata.
-    - `useQuizPersistence`: coda di scrittura condivisa tramite `open_learning_attempt`/`save_learning_progress`, dedupe, controllo revisione e retry esplicito; nessuna cancellazione di risposte accodate all’unmount.
+    - `useQuizSession`: session state (question index, answers, completion), local derivations during the session, final result from the server snapshot, and persistence through `useQuizPersistence` (local draft while the quiz is in progress, a single final submit on completion).
+    - `useQuizPersistence`: local draft persistence through `lib/quizDraft` plus the `begin_learning_attempt` / `finalize_learning_attempt` protocol; no per-answer or per-navigation RPC, optimistic revision checks, idempotent retry of the final submit, and no deletion of unsent answers on unmount.
     - `useQuizExplanations`: cache locale delle spiegazioni (primaria/secondaria) con fetch on-demand.
     - `useSignedQuizImages`: risoluzione + prefetch delle signed URL delle immagini (prossime domande e immagini degli errori).
   - **Funzionalità incluse nella schermata**:
     - **Audio/TTS:** Integrazione con `expo-speech` per la lettura del testo tradotto.
     - **Supporto multi-lingua:** Visualizzazione contestuale della traduzione secondaria (se configurata).
     - **Progresso:** Barra a riempimento orizzontale posizionata sotto l'header.
-    - **Azioni Interattive (Vero/Falso):** Una volta fornita la risposta, la prima risposta viene accodata immediatamente al protocollo di salvataggio transazionale e mostra dinamicamente la carta risultato e la _Explanation_ (con lettura sonora/multi-lingua).
+    - **Interactive actions (True/False):** Once answered, the first answer is stored in the local draft (no RPC per answer) and the result card and _Explanation_ are shown immediately (with read-aloud/multi-language playback).
     - **Risultati Finali:** A quiz completato, il punteggio viene calcolato in locale sulle risposte e mostrato con design full-theme compatibile (`useQuizTheme`).
 - **`app/examQuiz.tsx` (Exam Quiz Screen)**:
   - Variante specializzata per la **Simulazione Esame Reale**.
   - Non mostra le spiegazioni né la correttezza della risposta durante lo svolgimento.
   - Integra un Timer rigoroso da 20 minuti con elaborazione di submit automatica allo scadere del tempo.
   - Mostra la schermata dei risultati al termine della simulazione (Superato/Non Superato con soglia max 3 errori) e l'elenco degli errori commessi con confronto tra risposta data e risposta corretta (senza spiegazioni/descrizioni aggiuntive).
-  - Anche questa schermata è un **orchestratore**: collega `useExamSession` (timer con resume da `started_at`, risposta con auto-advance, submit con conferma, derivati locali e score finale server, timer ricalcolato da deadline assoluta, persistenza **immediata** via `useQuizPersistence`) e compone la UI con i sottocomponenti di `components/exam/` (`ExamHeader`, `ExamQuestionCard`, `ExamAnswerBar`, `ExamResultsScreen`, quest'ultimo condividendo `ErrorListItem` in variante verde senza spiegazioni).
+  - This screen is also an **orchestrator**: it wires `useExamSession` (timer resumed from `started_at`, answer with auto-advance, submit with confirmation, local derivations and server-side final score, timer recalculated from the absolute deadline, local draft persistence through `useQuizPersistence` and a single final submit) and composes the UI with the `components/exam/` subcomponents (`ExamHeader`, `ExamQuestionCard`, `ExamAnswerBar`, `ExamResultsScreen`, the latter sharing `ErrorListItem` in a green variant without explanations).
 
 ### 5. Chat AI (testuale e vocale)
 - **`app/(tabs)/chat.tsx`**:
@@ -103,6 +103,7 @@ La repository segue un'architettura modulare chiara e basata sui concetti tipici
 - **`hooks/usePreventScreenCapture.ts` / `.web.ts`**: no-op su web (evita `UnavailabilityError` di `expo-screen-capture`).
 - **`lib/alert.ts` / `alert.web.ts`**: `AppAlert.alert` → `Alert.alert` su native, `window.confirm/alert` su web (fix `logout`, `deleteAccount`, `clearChat`, `finishQuiz`).
 - **`lib/storage.ts`**: mirror `AsyncStorage` ↔ `localStorage` su web.
+- **`lib/quizDraft.ts`**: per-user, per-environment and per-batch quiz drafts on AsyncStorage (answers, first answers, timestamps, position, revision); reconciled with `user_quiz_progress.learning_revision`, cleared on account deletion, and never synced across devices.
 - **`lib/supabase.ts`**: priorizza `Constants.expoConfig.extra` su `process.env` per coerenza web/native.
 - **`lib/siteConfig.ts`**: subdomain detection on web (`window.location.hostname`, `EXPO_PUBLIC_SITE` override) → maps host → language rules (primary `it` + optional site secondary) and per-site meta; `null` on apex/mobile → full list. Used by `queries/languages.ts` (upstream filter), `app/_layout.tsx`, `app/(tabs)/user.tsx` and `hooks/useLanguage.ts`. Plan: `doc/plans/SUBDOMAIN_LANGUAGES.md`.
 - **`metro.config.js`**: `unstable_enablePackageExports:false` + `babel.config.js` `babel-plugin-transform-import-meta` fix `zustand@5` `import.meta` su web.
@@ -343,4 +344,4 @@ Implmentare un hook che nel caso venga flaggato a true un parametro nel db visua
 
 ### Presentazione statistiche e notifiche di salvataggio
 
-Il voto viene mostrato su scala 1–10 in profilo, statistiche e padronanza delle categorie tramite `formatLearningGrade`; la formula SQL continua a usare la scala 0–100. Il banner `QuizSaveStatus` è nascosto in ogni stato per richiesta dell’utente. Gli errori di lettura iniziale mostrano un messaggio dedicato con Riprova; il protocollo di scrittura rimane invariato.
+Grades are shown on a 1–10 scale in the profile, statistics and category mastery through `formatLearningGrade`; the SQL formula still uses the 0–100 scale. The `QuizSaveStatus` banner is hidden in every state by explicit user request. Initial read errors show a dedicated message with Retry. The write protocol is no longer unchanged: the client keeps a local draft during the quiz and sends a single `finalize_learning_attempt` at completion (see `doc/LEARNING_STATISTICS.md`).

@@ -60,7 +60,9 @@
     },
     "getExplanation": "Chiedi spiegazione",
     "loadingExplanation": "Caricamento...",
-    "batchCount": "{{count}} schede"
+    "batchCount": "{{count}} schede",
+    "submitPendingTitle": "Invio in attesa",
+    "submitPending": "Invio non riuscito. Mantieni aperta questa schermata: riproveremo automaticamente. Puoi riprovare anche premendo Termina."
   },
   "user": {
     "title": "Profilo",
